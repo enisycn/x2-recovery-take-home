@@ -1,0 +1,14 @@
+x2_recovery:
+  ros__parameters:
+    backend: reduced
+    policy_mode: checkpoint
+    timeout_sec: 6.0
+    seed: 101
+    real_time: true
+    model_path: ""
+
+x2_telemetry:
+  ros__parameters:
+    joint_name: left_knee_joint
+    log_period_sec: 1.0
+
