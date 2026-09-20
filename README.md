@@ -4,6 +4,8 @@ This repository implements the HRS take-home as a self-contained external Isaac 
 
 The repository never installs files into an existing robot workspace. Isaac Lab is invoked as a runtime, the AgiBot source model and converted USD stay under this repository, ROS builds into this repository, and the ROS–Isaac bridge uses one local Unix socket.
 
+ROS and Isaac deliberately run in different processes and Python environments. ROS 2 Humble uses its system Python; Isaac uses the Python environment supplied with its simulator stack. Neither process imports the other framework. Their only shared contract is newline-delimited JSON over `/tmp/hrs_x2_recovery.sock`, so sourcing ROS cannot replace Isaac's Python dependencies and Isaac cannot pollute the ROS overlay.
+
 ## What is validated
 
 | Item | Status |
@@ -58,6 +60,13 @@ For the CPU harness only:
 ./scripts/run_evaluation.sh
 ```
 
+Verify the runtime boundary on a workstation that has both stacks:
+
+```bash
+ISAAC_PYTHON=/absolute/path/to/isaac/environment/bin/python \
+  ./scripts/check_runtime_isolation.sh
+```
+
 ## Isaac Lab environment
 
 `HRS-X2-Recovery-v0` is a manager-based environment with 200 Hz PhysX simulation and 20 Hz policy decisions. Each reset places the pelvis 0.28 m above the floor and rotates it -90° about Y, then adds small pose, velocity and joint perturbations. In X2's documented FLU frame this points its forward/chest axis upward, keeping every episode on the back while preventing a single exact initial state.
@@ -94,7 +103,7 @@ All terms are evaluated each 20 Hz policy step.
 | Joint torque L2 | `-2e-6` | Discourage excessive effort |
 | Soft joint-limit violation | `-0.20` | Keep motion away from mechanical limits |
 
-The staged task reward follows HoST's height-dependent righting/rising/standing decomposition. Smooth actions, speed regularization, explicit contact checks and sustained stability follow the hardware concerns reported by HoST and FRASA. Exact connections and primary sources are documented in [docs/evidence.md](docs/evidence.md).
+The staged task reward follows HoST's height-dependent righting/rising/standing decomposition. Smooth actions, speed regularization, explicit contact checks and sustained stability follow the hardware concerns reported by HoST and FRASA. He et al.'s real-world getting-up study further motivates the simplified collision model and the explicit post-training collision inspection. Exact connections and primary sources are documented in [docs/evidence.md](docs/evidence.md).
 
 ## PPO training and evaluation
 

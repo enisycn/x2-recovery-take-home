@@ -8,9 +8,10 @@ Recorded on 20 September 2026. Results below distinguish executed checks from co
 /usr/bin/python3 -m compileall -q isaaclab_ext src/x2_recovery_ros/x2_recovery_ros scripts
 bash -n scripts/*.sh
 PYTHONPATH="$PWD/src/x2_recovery_ros" /usr/bin/python3 -m pytest -q src/x2_recovery_ros/test
+ISAAC_PYTHON=/path/to/isaac/bin/python ./scripts/check_runtime_isolation.sh
 ```
 
-Observed: Python and shell checks passed; `7 passed, 1 skipped`. The skipped test exercises a real Unix socket, and the execution sandbox rejects `AF_UNIX` creation with `EPERM`. The IPC path therefore still requires an end-to-end run on the target workstation.
+Observed: Python and shell checks passed; `7 passed, 1 skipped`. The runtime-isolation check confirmed distinct Python executables: ROS imported `rclpy` but could not see Isaac Lab, while the Isaac interpreter imported Isaac Lab but could not see `rclpy`. The skipped test exercises a real Unix socket, and the execution sandbox rejects `AF_UNIX` creation with `EPERM`. The IPC path therefore still requires an end-to-end run on the target workstation.
 
 The Isaac task and PPO registration loaded with the machine's Isaac Lab 3.0 Python environment:
 
