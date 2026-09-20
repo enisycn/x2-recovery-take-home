@@ -1,28 +1,23 @@
 # Task requirement map
 
-This file translates the supplied take-home PDF into checkable repository work.
-
-| Requirement | Planned evidence |
+| PDF requirement | Implementation and evidence |
 | --- | --- |
-| Choose an X2 URDF and simulator | Official AgiBot X2 Ultra v1.3.0; MuJoCo backend plus fetch script |
-| Floating base on a flat floor | `MujocoRecoveryEnv`; reduced-order baseline mirrors base pose variables |
-| Reset lying on its back, collision-safe | Backend reset checks and unit tests |
-| Respect joint and actuator limits | Limits read from MuJoCo; normalized/clipped actions |
-| Define observations, actions, reward, ending | README environment section and environment source |
-| Run PPO or another RL algorithm | Seeded cross-entropy policy search; checkpoint and reward plot |
-| Recovery service | `/x2/start_recovery`, `std_srvs/srv/Trigger` |
-| Reject concurrent request | Non-blocking worker with a locked busy flag |
-| Recovery status | `/x2/recovery_status`, `std_msgs/msg/String` |
-| Live joint states | `/x2/joint_states`, `sensor_msgs/msg/JointState` |
-| Configurable timeout | ROS parameter and launch configuration |
-| Telemetry node | Status and selected-joint logging |
-| One launch file | `x2_recovery.launch.py` |
-| Five evaluation episodes | `reports/evaluation.json` and validation report |
-| Upright, stable, two feet, no other support | Explicit success predicate and tests |
-| Fresh colcon build and CLI checks | Recorded commands and outputs in `reports/validation.md` |
-| Meaningful commit history | Separate scaffold, simulation, ROS, and validation commits |
+| Choose an X2 URDF and simulator | Official X2 Ultra v1.3.0 simplified-collision URDF; Isaac Lab 3.0/PhysX; fetch and conversion scripts |
+| Floating base and flat floor | `X2_CFG` leaves the root free; `X2RecoverySceneCfg` supplies a 20 m plane |
+| Start on the back without intersection | 0.28 m pelvis height, +90° Y rotation and narrow reset jitter; visual check remains required after asset import |
+| Respect joint and actuator limits | URDF limits preserved in USD; actions map to 90% soft limits; simulator enforces effort and speed limits |
+| Observations, actions, reward and ending | `env_cfg.py`, `mdp.py`, README design and reward tables |
+| RL experiment and checkpoint/plot | PPO experiment is configured; sandbox-blocked run is disclosed; reduced harness checkpoint and plot are committed |
+| Recovery Trigger service | `/x2/start_recovery`; callback accepts before timer dispatch |
+| Reject a second request | `AttemptGate` covers pending and running states; CLI validation recorded |
+| Status and joint-state topics | Required names and message types; simulator values and ROS timestamps |
+| Configurable timeout | `timeout_sec` parameter and launch argument |
+| Telemetry node | Logs status and configured joint at 1 Hz |
+| Connect ROS to simulator | `isaac_policy_server.py` + local Unix IPC; reduced simulator is the default test harness |
+| Build and one launch | `scripts/build_ros.sh`; `x2_recovery.launch.py` starts both nodes |
+| Five simulation episodes | Isaac evaluator uses seeds 101–105 for five reproducible perturbed back-lying starts; reduced fallback report is committed and labelled |
+| Upright, stable, both feet, no other support | Explicit force, height, tilt and speed predicate held for 0.5 s |
+| Success/failure and ROS command record | `reports/validation.md` |
+| Meaningful development history | Separate scaffold, experiment, ROS, Isaac and evidence commits |
 
-## Scope decision
-
-The high-fidelity target is MuJoCo with AgiBot's official MJCF/URDF assets. The current workstation has ROS 2 Humble but no MuJoCo Python package, no working GPU driver, and no outbound Git access. A reduced-order NumPy environment is therefore used for the runnable training experiment and ROS integration. Results from that backend are labelled as baseline results and are not presented as X2 hardware performance.
-
+The HRS work is a nested standalone Git repository. Its assets, builds, logs and simulator socket remain inside the HRS workspace or `/tmp`; no existing Isaac/ROS robot repository is modified.
