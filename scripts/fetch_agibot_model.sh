@@ -11,4 +11,4 @@ fi
 
 mkdir -p "${project_dir}/models"
 git clone --depth 1 https://github.com/AgibotTech/agibot_x2_urdf.git "${model_dir}"
-echo "MuJoCo scene: ${model_dir}/X2_URDF-v1.3.0/scene.xml"
+echo "Isaac input: ${model_dir}/X2_URDF-v1.3.0/x2_ultra_simple_collision.urdf"

@@ -6,9 +6,9 @@ x2_recovery:
     seed: 101
     real_time: true
     model_path: ""
+    socket_path: /tmp/hrs_x2_recovery.sock
 
 x2_telemetry:
   ros__parameters:
     joint_name: left_knee_joint
     log_period_sec: 1.0
-

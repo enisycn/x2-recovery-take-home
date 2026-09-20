@@ -1,0 +1,16 @@
+[package]
+version = "0.1.0"
+category = "isaaclab"
+title = "HRS X2 Recovery"
+author = "HRS take-home candidate"
+maintainer = "HRS take-home candidate"
+description = "AgiBot X2 stand-up task as an external Isaac Lab extension"
+repository = "local take-home repository"
+keywords = ["isaaclab", "humanoid", "reinforcement-learning", "recovery"]
+
+[dependencies]
+"isaaclab" = {}
+"isaaclab_rl" = {}
+
+[[python.module]]
+name = "x2_recovery_isaac"

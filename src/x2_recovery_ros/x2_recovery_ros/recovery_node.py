@@ -25,6 +25,7 @@ class RecoveryNode(Node):
         self.declare_parameter("policy_mode", "checkpoint")
         self.declare_parameter("checkpoint", str(share / "artifacts/recovery_policy.npz"))
         self.declare_parameter("model_path", "")
+        self.declare_parameter("socket_path", "/tmp/hrs_x2_recovery.sock")
         self.declare_parameter("timeout_sec", 6.0)
         self.declare_parameter("seed", 101)
         self.declare_parameter("real_time", True)
@@ -88,6 +89,7 @@ class RecoveryNode(Node):
                 seed=int(self.get_parameter("seed").value) + self._attempt_index - 1,
                 timeout_sec=float(self.get_parameter("timeout_sec").value),
                 model_path=model_path,
+                socket_path=str(self.get_parameter("socket_path").value),
                 real_time=bool(self.get_parameter("real_time").value),
             )
             result = session.run(on_step=self._publish_joint_state)
@@ -134,4 +136,3 @@ def main(args=None) -> None:
 
 if __name__ == "__main__":
     main()
-

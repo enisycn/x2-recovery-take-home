@@ -3,8 +3,9 @@ build/
 install/
 log/
 models/agibot_x2_urdf/
+assets/isaac/
+logs/
 __pycache__/
 *.py[cod]
 .pytest_cache/
 .venv/
-

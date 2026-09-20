@@ -11,6 +11,7 @@ from typing import Callable
 import numpy as np
 
 from .mujoco_env import MujocoRecoveryEnv
+from .isaac_ipc import IsaacIpcClient
 from .policy import SCRIPTED_ACTIONS, PhasePolicy
 from .reduced_env import ReducedOrderRecoveryEnv
 
@@ -57,6 +58,7 @@ class RecoverySession:
         seed: int,
         timeout_sec: float,
         model_path: str | Path | None = None,
+        socket_path: str = "/tmp/hrs_x2_recovery.sock",
         real_time: bool = True,
     ) -> None:
         self.backend = backend
@@ -65,6 +67,7 @@ class RecoverySession:
         self.seed = int(seed)
         self.timeout_sec = float(timeout_sec)
         self.model_path = Path(model_path) if model_path else None
+        self.socket_path = str(socket_path)
         self.real_time = bool(real_time)
 
     def _environment(self):
@@ -90,6 +93,19 @@ class RecoverySession:
         raise ValueError(f"unknown policy_mode: {self.policy_mode}")
 
     def run(self, on_step: Callable[[dict], None] | None = None) -> SessionResult:
+        if self.backend == "isaac_ipc":
+            event = IsaacIpcClient(self.socket_path, self.timeout_sec).run(
+                seed=self.seed,
+                real_time=self.real_time,
+                on_step=on_step,
+            )
+            success = bool(event["success"])
+            return SessionResult(
+                success=success,
+                status="SUCCEEDED" if success else "FAILED",
+                steps=int(event["steps"]),
+                failure_reason=str(event.get("failure_reason", "")),
+            )
         env = self._environment()
         action_fn = self._policy()
         observation, info = env.reset(seed=self.seed)
@@ -109,4 +125,3 @@ class RecoverySession:
             steps=int(info["step"]),
             failure_reason=str(info["failure_reason"]),
         )
-
