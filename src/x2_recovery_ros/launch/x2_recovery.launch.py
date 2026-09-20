@@ -14,6 +14,8 @@ def generate_launch_description():
         [
             DeclareLaunchArgument("backend", default_value="reduced"),
             DeclareLaunchArgument("socket_path", default_value="/tmp/hrs_x2_recovery.sock"),
+            DeclareLaunchArgument("policy_mode", default_value="checkpoint"),
+            DeclareLaunchArgument("timeout_sec", default_value="6.0"),
             Node(
                 package="x2_recovery_ros",
                 executable="x2_recovery_node",
@@ -24,6 +26,8 @@ def generate_launch_description():
                     {
                         "backend": LaunchConfiguration("backend"),
                         "socket_path": LaunchConfiguration("socket_path"),
+                        "policy_mode": LaunchConfiguration("policy_mode"),
+                        "timeout_sec": LaunchConfiguration("timeout_sec"),
                     },
                 ],
             ),

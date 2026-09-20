@@ -101,7 +101,7 @@ def main() -> None:
     socket_path.unlink(missing_ok=True)
 
     config = X2RecoveryPlayEnvCfg()
-    env = gym.make("HRS-X2-Recovery-v0", cfg=config)
+    env = gym.make("HRS-X2-Recovery-Play-v0", cfg=config)
     feet_cfg = SceneEntityCfg("contact_forces", body_names=FEET)
     all_cfg = SceneEntityCfg("contact_forces", body_names=".*")
     feet_cfg.resolve(env.unwrapped.scene)

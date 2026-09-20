@@ -24,7 +24,6 @@ class RecoveryNode(Node):
         self.declare_parameter("backend", "reduced")
         self.declare_parameter("policy_mode", "checkpoint")
         self.declare_parameter("checkpoint", str(share / "artifacts/recovery_policy.npz"))
-        self.declare_parameter("model_path", "")
         self.declare_parameter("socket_path", "/tmp/hrs_x2_recovery.sock")
         self.declare_parameter("timeout_sec", 6.0)
         self.declare_parameter("seed", 101)
@@ -81,14 +80,12 @@ class RecoveryNode(Node):
 
     def _run_attempt(self) -> None:
         try:
-            model_path = self.get_parameter("model_path").value or None
             session = RecoverySession(
                 backend=str(self.get_parameter("backend").value),
                 checkpoint=str(self.get_parameter("checkpoint").value),
                 policy_mode=str(self.get_parameter("policy_mode").value),
                 seed=int(self.get_parameter("seed").value) + self._attempt_index - 1,
                 timeout_sec=float(self.get_parameter("timeout_sec").value),
-                model_path=model_path,
                 socket_path=str(self.get_parameter("socket_path").value),
                 real_time=bool(self.get_parameter("real_time").value),
             )

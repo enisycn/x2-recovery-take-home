@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-import math
-
 import isaaclab.sim as sim_utils
 from isaaclab.assets import ArticulationCfg, AssetBaseCfg
 from isaaclab.envs import ManagerBasedRLEnvCfg
@@ -222,11 +220,5 @@ class X2RecoveryPlayEnvCfg(X2RecoveryEnvCfg):
         self.events.mass = None
         self.events.pelvis_com = None
         self.events.actuator_gains = None
-        self.events.reset_back_pose.params["pose_range"] = {
-            key: (0.0, 0.0) for key in ("x", "y", "z", "roll", "pitch", "yaw")
-        }
-        self.events.reset_back_pose.params["velocity_range"] = {
-            key: (0.0, 0.0) for key in ("x", "y", "z", "roll", "pitch", "yaw")
-        }
-        self.events.reset_joints.params["position_range"] = (0.0, 0.0)
-        self.events.reset_joints.params["velocity_range"] = (0.0, 0.0)
+        # Keep the narrow reset distribution: fixed evaluator seeds then exercise
+        # five reproducible back-lying states instead of repeating one state.

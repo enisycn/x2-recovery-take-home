@@ -36,7 +36,7 @@ def policy_observation(observation):
     return observation["policy"] if isinstance(observation, dict) else observation
 
 
-def snapshot(env, feet_cfg: SceneEntityCfg, all_cfg: SceneEntityCfg) -> dict:
+def snapshot(env, feet_cfg: SceneEntityCfg) -> dict:
     robot = env.scene["robot"]
     contact_sensor = env.scene.sensors["contact_forces"]
     forces = contact_sensor.data.net_forces_w_history.torch.norm(dim=-1).amax(dim=1)[0]
@@ -47,6 +47,7 @@ def snapshot(env, feet_cfg: SceneEntityCfg, all_cfg: SceneEntityCfg) -> dict:
     return {
         "pelvis_height_m": round(float(robot.data.root_pos_w.torch[0, 2].item()), 4),
         "tilt_metric": round(float(projected_gravity[:2].norm().item()), 4),
+        "projected_gravity_z": round(float(projected_gravity[2].item()), 4),
         "linear_speed_m_s": round(float(robot.data.root_lin_vel_w.torch[0].norm().item()), 4),
         "angular_speed_rad_s": round(float(robot.data.root_ang_vel_w.torch[0].norm().item()), 4),
         "left_foot_force_n": round(float(forces[foot_ids[0]].item()), 2),
@@ -62,7 +63,7 @@ def main() -> None:
 
     config = X2RecoveryPlayEnvCfg()
     config.scene.num_envs = 1
-    env = gym.make("HRS-X2-Recovery-v0", cfg=config)
+    env = gym.make("HRS-X2-Recovery-Play-v0", cfg=config)
     unwrapped = env.unwrapped
     feet_cfg = SceneEntityCfg("contact_forces", body_names=FEET)
     all_cfg = SceneEntityCfg("contact_forces", body_names=".*")
@@ -85,7 +86,7 @@ def main() -> None:
                     mdp.strict_success(unwrapped, feet_cfg=feet_cfg, all_bodies_cfg=all_cfg)[0].item()
                 )
                 consecutive_stable = consecutive_stable + 1 if instant_success else 0
-                terminal_snapshot = snapshot(unwrapped, feet_cfg, all_cfg)
+                terminal_snapshot = snapshot(unwrapped, feet_cfg)
                 if consecutive_stable >= STABLE_STEPS:
                     success = True
                     break
@@ -106,11 +107,12 @@ def main() -> None:
 
     result = {
         "backend": "Isaac Lab 3.0 / PhysX",
-        "task": "HRS-X2-Recovery-v0",
+        "task": "HRS-X2-Recovery-Play-v0",
         "policy": str(policy_path),
         "success_definition": {
             "pelvis_height_m_min": 0.62,
             "tilt_metric_max": 0.15,
+            "projected_gravity_z_max": -0.98,
             "linear_speed_m_s_max": 0.20,
             "angular_speed_rad_s_max": 0.35,
             "each_foot_contact_force_n_min": 15.0,

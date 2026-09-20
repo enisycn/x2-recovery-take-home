@@ -15,7 +15,7 @@ cd "${project_dir}"
 PYTHONPATH="${project_dir}/isaaclab_ext${PYTHONPATH:+:${PYTHONPATH}}" \
   "${ISAACLAB_ROOT}/isaaclab.sh" play \
   --rl_library rsl_rl \
-  --task HRS-X2-Recovery-v0 \
+  --task HRS-X2-Recovery-Play-v0 \
   --external_callback x2_recovery_isaac.register \
   --num_envs 1 \
   --checkpoint "${checkpoint}" "$@"

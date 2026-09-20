@@ -10,7 +10,6 @@ from typing import Callable
 
 import numpy as np
 
-from .mujoco_env import MujocoRecoveryEnv
 from .isaac_ipc import IsaacIpcClient
 from .policy import SCRIPTED_ACTIONS, PhasePolicy
 from .reduced_env import ReducedOrderRecoveryEnv
@@ -57,7 +56,6 @@ class RecoverySession:
         policy_mode: str,
         seed: int,
         timeout_sec: float,
-        model_path: str | Path | None = None,
         socket_path: str = "/tmp/hrs_x2_recovery.sock",
         real_time: bool = True,
     ) -> None:
@@ -66,21 +64,12 @@ class RecoverySession:
         self.policy_mode = policy_mode
         self.seed = int(seed)
         self.timeout_sec = float(timeout_sec)
-        self.model_path = Path(model_path) if model_path else None
         self.socket_path = str(socket_path)
         self.real_time = bool(real_time)
 
     def _environment(self):
         if self.backend == "reduced":
             return ReducedOrderRecoveryEnv(seed=self.seed, timeout_sec=self.timeout_sec)
-        if self.backend == "mujoco":
-            if self.model_path is None:
-                raise ValueError("model_path is required for backend=mujoco")
-            return MujocoRecoveryEnv(
-                model_path=self.model_path,
-                seed=self.seed,
-                timeout_sec=self.timeout_sec,
-            )
         raise ValueError(f"unknown backend: {self.backend}")
 
     def _policy(self):

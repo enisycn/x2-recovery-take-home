@@ -128,7 +128,7 @@ def strict_success(
 
     robot: Articulation = env.scene[asset_cfg.name]
     projected_gravity = robot.data.projected_gravity_b.torch
-    upright = projected_gravity[:, :2].norm(dim=1) < max_tilt
+    upright = (projected_gravity[:, :2].norm(dim=1) < max_tilt) & (projected_gravity[:, 2] < -0.98)
     height_ok = robot.data.root_pos_w.torch[:, 2] >= min_height
     linear_ok = robot.data.root_lin_vel_w.torch.norm(dim=1) <= max_linear_speed
     angular_ok = robot.data.root_ang_vel_w.torch.norm(dim=1) <= max_angular_speed

@@ -1,5 +1,2 @@
 numpy>=1.21
 matplotlib>=3.5
-# Optional high-fidelity backend; the ROS baseline does not require it.
-mujoco>=3.2,<4
-

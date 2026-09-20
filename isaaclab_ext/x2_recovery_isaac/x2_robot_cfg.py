@@ -55,10 +55,11 @@ X2_CFG = ArticulationCfg(
             solver_velocity_iteration_count=4,
         ),
     ),
-    # The pelvis is the root. A +90 degree rotation about Y places X2 on its back.
+    # X2 uses ROS FLU axes (X forward, Y left, Z up). Rotating -90 degrees
+    # about Y points the chest/forward axis upward and places the back down.
     init_state=ArticulationCfg.InitialStateCfg(
         pos=(0.0, 0.0, 0.28),
-        rot=(0.7071068, 0.0, 0.7071068, 0.0),
+        rot=(0.7071068, 0.0, -0.7071068, 0.0),
         joint_pos={".*": 0.0},
         joint_vel={".*": 0.0},
     ),
