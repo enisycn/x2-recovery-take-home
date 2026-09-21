@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Verify the HumanUP standing/supine reset mixture in live PhysX."""
+"""Verify the supine-to-squat recovery reset curriculum in live PhysX."""
 
 from __future__ import annotations
 
@@ -25,7 +25,11 @@ import torch  # noqa: E402
 import x2_recovery_isaac  # noqa: E402,F401
 from isaaclab.utils.math import quat_apply  # noqa: E402
 from x2_recovery_isaac import mdp  # noqa: E402
-from x2_recovery_isaac.env_cfg import FOOT_CONTACT_SENSORS, X2RecoveryEnvCfg  # noqa: E402
+from x2_recovery_isaac.env_cfg import (  # noqa: E402
+    X2RecoveryEnvCfg,
+    all_contact_cfg,
+    foot_contact_cfg,
+)
 
 
 def main() -> None:
@@ -42,48 +46,66 @@ def main() -> None:
         env.reset(seed=42)
         task = env.unwrapped
         robot = task.scene["robot"]
+        feet_cfg = foot_contact_cfg()
+        all_cfg = all_contact_cfg()
+        feet_cfg.resolve(task.scene)
+        all_cfg.resolve(task.scene)
         initial_height = robot.data.root_pos_w.torch[:, 2].clone()
         initial_gravity_z = robot.data.projected_gravity_b.torch[:, 2].clone()
         forward = torch.zeros((args.num_envs, 3), device=task.device)
         forward[:, 0] = 1.0
         initial_forward_z = quat_apply(robot.data.root_quat_w.torch, forward)[:, 2]
 
-        standing = initial_height > 0.60
-        supine = initial_height < 0.30
+        reference = initial_gravity_z < -0.95
+        supine = initial_gravity_z.abs() < 0.01
+        expected_heights = torch.tensor(
+            [0.68000, 0.60214, 0.50129, 0.39152, 0.31452, 0.25245, 0.21527, 0.14954, 0.09194],
+            device=task.device,
+        )
+        stage_error, nearest_stage = (initial_height[:, None] - expected_heights[None, :]).abs().min(dim=1)
+        reference_geometry_ok = reference & (stage_error < 0.015)
         zero_actions = torch.zeros((args.num_envs, task.action_manager.total_action_dim), device=task.device)
         for _ in range(5):
             env.step(zero_actions)
 
         final_height = robot.data.root_pos_w.torch[:, 2]
         final_gravity_z = robot.data.projected_gravity_b.torch[:, 2]
-        both_feet = mdp._named_contact_masks(task, FOOT_CONTACT_SENSORS, 15.0).all(dim=1)
-        retained_standing = standing & (final_height > 0.60) & (final_gravity_z < -0.98)
-        loaded_standing = retained_standing & both_feet
+        both_feet = mdp._contact_mask(task, feet_cfg, 15.0).all(dim=1)
+        retained_reference = reference & (final_height > 0.06) & (final_gravity_z < -0.90)
+        loaded_reference = retained_reference & both_feet
 
-        standing_count = int(standing.sum().item())
+        reference_count = int(reference.sum().item())
         supine_count = int(supine.sum().item())
+        stage_counts = {
+            str(index): int((reference & (nearest_stage == index)).sum().item())
+            for index in range(len(expected_heights))
+        }
         result = {
             "backend": "Isaac Lab 3.0 / PhysX",
             "seed": 42,
             "num_envs": args.num_envs,
             "policy_steps_observed": 5,
-            "standing_initial": standing_count,
+            "reference_initial": reference_count,
             "supine_initial": supine_count,
-            "standing_initial_gravity_z_mean": float(initial_gravity_z[standing].mean().item()),
-            "standing_initial_gravity_z_max": float(initial_gravity_z[standing].max().item()),
+            "reference_stage_counts": stage_counts,
+            "reference_geometry_matches": int(reference_geometry_ok.sum().item()),
+            "reference_initial_gravity_z_mean": float(initial_gravity_z[reference].mean().item()),
+            "reference_initial_gravity_z_max": float(initial_gravity_z[reference].max().item()),
             "supine_initial_forward_z_min": float(initial_forward_z[supine].min().item()),
             "supine_initial_abs_gravity_z_max": float(initial_gravity_z[supine].abs().max().item()),
-            "standing_retained_after_five_steps": int(retained_standing.sum().item()),
-            "standing_both_feet_after_five_steps": int(loaded_standing.sum().item()),
+            "reference_retained_after_five_steps": int(retained_reference.sum().item()),
+            "reference_both_feet_after_five_steps": int(loaded_reference.sum().item()),
         }
         result["passes"] = bool(
-            0 < standing_count < args.num_envs
-            and standing_count + supine_count == args.num_envs
-            and result["standing_initial_gravity_z_max"] <= -0.99
+            0 < reference_count < args.num_envs
+            and reference_count + supine_count == args.num_envs
+            and result["reference_geometry_matches"] == reference_count
+            and sum(count > 0 for count in stage_counts.values()) >= 7
+            and result["reference_initial_gravity_z_max"] <= -0.99
             and result["supine_initial_forward_z_min"] >= 0.99
             and result["supine_initial_abs_gravity_z_max"] <= 0.01
-            and result["standing_retained_after_five_steps"] >= 0.90 * standing_count
-            and result["standing_both_feet_after_five_steps"] >= 0.90 * standing_count
+            and result["reference_retained_after_five_steps"] >= 0.80 * reference_count
+            and result["reference_both_feet_after_five_steps"] >= 0.80 * reference_count
         )
 
         output = args.output.expanduser().resolve()

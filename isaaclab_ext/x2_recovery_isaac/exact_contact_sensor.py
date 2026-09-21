@@ -1,4 +1,4 @@
-"""Exact-path PhysX contact sensor for hierarchical URDF-converted links."""
+"""Recursive PhysX contact sensor for hierarchical URDF-converted links."""
 
 from __future__ import annotations
 
@@ -8,12 +8,14 @@ from isaaclab_physx.sensors import ContactSensor
 
 
 class ExactPathContactSensor(ContactSensor):
-    """Create a one-body PhysX view directly from the configured full path.
+    """Create one PhysX view directly from a configured hierarchical glob.
 
     Isaac Lab's generic contact sensor rebuilds a path from a parent and leaf
     name.  That is useful for flat link layouts but duplicates the final path
-    component for the hierarchical X2 USD.  This small adapter keeps all data
-    buffers and update logic from the official sensor and only fixes view setup.
+    component for the hierarchical X2 USD.  PhysX supports ``/**`` as a
+    recursive body glob, so one view can cover all 32 X2 bodies.  This keeps
+    the official buffers and update kernels while avoiding 32 separate views
+    and 32 sensor updates at every policy step.
     """
 
     def _initialize_impl(self) -> None:
@@ -28,11 +30,13 @@ class ExactPathContactSensor(ContactSensor):
             filter_patterns=filter_globs,
             max_contact_data_count=self.cfg.max_contact_data_count_per_prim * self._num_envs,
         )
-        self._num_sensors = self.body_physx_view.count // self._num_envs
-        if self._num_sensors != 1:
+        if self.body_physx_view.count % self._num_envs:
             raise RuntimeError(
-                "Exact-path contact sensor must resolve one body per environment."
+                "Hierarchical contact view does not contain an equal body count per environment."
                 f"\n\tInput prim path: {self.cfg.prim_path}"
                 f"\n\tResolved count : {self.body_physx_view.count}"
             )
+        self._num_sensors = self.body_physx_view.count // self._num_envs
+        if self._num_sensors < 1:
+            raise RuntimeError(f"No contact bodies resolved for {self.cfg.prim_path}")
         self._create_buffers()

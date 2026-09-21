@@ -36,7 +36,11 @@ from isaaclab_rl.rsl_rl import RslRlVecEnvWrapper, handle_deprecated_rsl_rl_cfg 
 
 import x2_recovery_isaac  # noqa: E402,F401
 from x2_recovery_isaac.agents.rsl_rl_ppo_cfg import X2RecoveryPPORunnerCfg  # noqa: E402
-from x2_recovery_isaac.env_cfg import ALL_CONTACT_SENSORS, X2RecoveryEnvCfg  # noqa: E402
+from x2_recovery_isaac.env_cfg import (  # noqa: E402
+    ALL_CONTACT_BODIES,
+    CONTACT_SENSOR_NAME,
+    X2RecoveryEnvCfg,
+)
 
 
 def main() -> Path:
@@ -70,12 +74,16 @@ def main() -> Path:
     )
 
     env = gym.make("HRS-X2-Recovery-v0", cfg=env_cfg)
-    resolved_contact_bodies = {
-        name: env.unwrapped.scene.sensors[name].body_names for name in ALL_CONTACT_SENSORS
-    }
-    if any(len(names) != 1 for names in resolved_contact_bodies.values()):
-        raise RuntimeError(f"Invalid X2 contact sensor mapping: {resolved_contact_bodies}")
-    print(f"[HRS] Verified {len(resolved_contact_bodies)} exact X2 body contact sensors.", flush=True)
+    resolved_contact_bodies = tuple(env.unwrapped.scene.sensors[CONTACT_SENSOR_NAME].body_names)
+    if resolved_contact_bodies != ALL_CONTACT_BODIES:
+        raise RuntimeError(
+            "Invalid recursive X2 contact mapping:\n"
+            f"expected={ALL_CONTACT_BODIES}\nresolved={resolved_contact_bodies}"
+        )
+    print(
+        f"[HRS] Verified one recursive view with {len(resolved_contact_bodies)} X2 contact bodies.",
+        flush=True,
+    )
     wrapped_env = RslRlVecEnvWrapper(env, clip_actions=agent_cfg.clip_actions)
     try:
         runner = OnPolicyRunner(wrapped_env, agent_cfg.to_dict(), log_dir=str(log_dir), device=agent_cfg.device)

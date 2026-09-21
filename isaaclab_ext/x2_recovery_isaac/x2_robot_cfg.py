@@ -79,8 +79,11 @@ X2_CFG = ArticulationCfg(
         ),
         articulation_props=sim_utils.ArticulationRootPropertiesCfg(
             enabled_self_collisions=True,
-            solver_position_iteration_count=8,
-            solver_velocity_iteration_count=4,
+            # The official simplified collision model is stable at the
+            # standard humanoid solver budget.  The previous 8/4 setting
+            # doubled contact work without improving the live stance probe.
+            solver_position_iteration_count=4,
+            solver_velocity_iteration_count=1,
         ),
     ),
     # X2 uses ROS FLU axes (X forward, Y left, Z up). Rotating -90 degrees
@@ -104,7 +107,7 @@ X2_CFG = ArticulationCfg(
         # Official URDF torque and speed limits remain authoritative in the USD.
         # Gains are grouped by load and joint size: the weight-bearing leg and
         # waist drives need more stiffness than the arm/head drives.  The
-        # startup gain randomization still covers a +/-10% model mismatch.
+        # later gain randomization can cover measured model mismatch.
         "legs_waist": ImplicitActuatorCfg(
             joint_names_expr=[".*hip.*", ".*knee.*", "waist_.*"],
             effort_limit_sim=None,

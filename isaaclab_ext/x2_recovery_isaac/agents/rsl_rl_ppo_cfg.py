@@ -6,7 +6,10 @@ from isaaclab_rl.rsl_rl import RslRlMLPModelCfg, RslRlOnPolicyRunnerCfg, RslRlPp
 
 @configclass
 class X2RecoveryPPORunnerCfg(RslRlOnPolicyRunnerCfg):
-    num_steps_per_env = 32
+    # 3000 envs x 12 steps is already a 36k-transition PPO batch.  Shorter
+    # rollouts update the actor 2.67x more often and keep 400 iterations near
+    # the expected desktop-GPU runtime without reducing environment diversity.
+    num_steps_per_env = 12
     max_iterations = 1500
     save_interval = 50
     experiment_name = "hrs_x2_recovery"
@@ -15,7 +18,7 @@ class X2RecoveryPPORunnerCfg(RslRlOnPolicyRunnerCfg):
         hidden_dims=[512, 256, 128],
         activation="elu",
         obs_normalization=True,
-        distribution_cfg=RslRlMLPModelCfg.GaussianDistributionCfg(init_std=0.8),
+        distribution_cfg=RslRlMLPModelCfg.GaussianDistributionCfg(init_std=0.5),
     )
     critic = RslRlMLPModelCfg(
         hidden_dims=[512, 256, 128],
@@ -26,7 +29,7 @@ class X2RecoveryPPORunnerCfg(RslRlOnPolicyRunnerCfg):
         value_loss_coef=1.0,
         use_clipped_value_loss=True,
         clip_param=0.2,
-        entropy_coef=0.01,
+        entropy_coef=0.0,
         num_learning_epochs=5,
         num_mini_batches=4,
         learning_rate=3.0e-4,

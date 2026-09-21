@@ -55,6 +55,32 @@ def foot_contacts(
     return _contact_mask(env, sensor_cfg, threshold).to(dtype=torch.float32)
 
 
+def body_contacts(
+    env: ManagerBasedRLEnv,
+    threshold: float = 15.0,
+    sensor_cfg: SceneEntityCfg = SceneEntityCfg("contact_all"),
+) -> torch.Tensor:
+    """Binary contact state for each selected rigid body."""
+
+    return _contact_mask(env, sensor_cfg, threshold).to(dtype=torch.float32)
+
+
+def bilateral_joint_symmetry_l2(
+    env: ManagerBasedRLEnv,
+    left_cfg: SceneEntityCfg,
+    right_cfg: SceneEntityCfg,
+    asset_cfg: SceneEntityCfg = SceneEntityCfg("robot"),
+) -> torch.Tensor:
+    """Squared mismatch between ordered left/right sagittal joints."""
+
+    robot: Articulation = env.scene[asset_cfg.name]
+    left = robot.data.joint_pos.torch[:, left_cfg.joint_ids]
+    right = robot.data.joint_pos.torch[:, right_cfg.joint_ids]
+    if left.shape != right.shape:
+        raise ValueError(f"Bilateral joint groups differ: {left.shape} versus {right.shape}")
+    return torch.sum(torch.square(left - right), dim=1)
+
+
 def staged_recovery_progress(
     env: ManagerBasedRLEnv,
     target_height: float,
@@ -225,7 +251,10 @@ def base_height_progress(
     robot: Articulation = env.scene[asset_cfg.name]
     normalized = (robot.data.root_pos_w.torch[:, 2] / target_height).clamp(0.0, 1.0)
     upright_gate = (-robot.data.projected_gravity_b.torch[:, 2]).clamp(0.0, 1.0).square()
-    return torch.square(normalized) * upright_gate
+    # Linear progress keeps a non-vanishing ascent gradient in the low seated
+    # state.  Squaring height made the gradient weakest exactly where the
+    # first policy became trapped (pelvis at roughly 0.064 m).
+    return normalized * upright_gate
 
 
 def inverted_orientation(
@@ -278,10 +307,11 @@ def unsupported_contacts(
 
 def both_feet_when_high(
     env: ManagerBasedRLEnv,
-    sensor_names: Sequence[str],
     threshold: float,
     gate_start_height: float,
     target_height: float,
+    sensor_names: Sequence[str] | None = None,
+    sensor_cfg: SceneEntityCfg | None = None,
     asset_cfg: SceneEntityCfg = SceneEntityCfg("robot"),
 ) -> torch.Tensor:
     """Reward two-foot support only as the pelvis approaches standing."""
@@ -291,16 +321,24 @@ def both_feet_when_high(
         0.0, 1.0
     )
     upright_gate = (-robot.data.projected_gravity_b.torch[:, 2]).clamp(0.0, 1.0).square()
-    return _named_contact_masks(env, sensor_names, threshold).all(dim=1).to(torch.float32) * height_gate * upright_gate
+    if sensor_cfg is not None:
+        contacts = _contact_mask(env, sensor_cfg, threshold)
+    elif sensor_names is not None:
+        contacts = _named_contact_masks(env, sensor_names, threshold)
+    else:
+        raise ValueError("both_feet_when_high requires sensor_cfg or sensor_names")
+    return contacts.all(dim=1).to(torch.float32) * height_gate * upright_gate
 
 
 def unsupported_contacts_when_high(
     env: ManagerBasedRLEnv,
-    sensor_names: Sequence[str],
-    feet_sensor_names: Sequence[str],
     threshold: float,
     gate_start_height: float,
     target_height: float,
+    sensor_names: Sequence[str] | None = None,
+    feet_sensor_names: Sequence[str] | None = None,
+    all_bodies_cfg: SceneEntityCfg | None = None,
+    feet_cfg: SceneEntityCfg | None = None,
     asset_cfg: SceneEntityCfg = SceneEntityCfg("robot"),
 ) -> torch.Tensor:
     """Allow transitional pushes, then reject non-foot support near standing."""
@@ -314,6 +352,8 @@ def unsupported_contacts_when_high(
         sensor_names=sensor_names,
         feet_sensor_names=feet_sensor_names,
         threshold=threshold,
+        all_bodies_cfg=all_bodies_cfg,
+        feet_cfg=feet_cfg,
     )
     return contacts * gate
 
@@ -447,17 +487,19 @@ def reset_root_state_recovery_curriculum(
     env_ids: torch.Tensor,
     supine_pose_range: dict[str, tuple[float, float]],
     velocity_range: dict[str, tuple[float, float]],
-    standing_probability_start: float,
-    standing_probability_end: float,
-    standing_probability_anneal_transitions: int,
-    standing_height_offset: float,
+    reference_probability_start: float,
+    reference_probability_end: float,
+    reference_probability_anneal_policy_steps: int,
+    reference_root_height_offsets: Sequence[float],
+    reference_body_angles: Sequence[Sequence[float]],
     asset_cfg: SceneEntityCfg = SceneEntityCfg("robot"),
 ) -> None:
-    """Mix safe standing resets into early discovery, then anneal to supine.
+    """Mix collision-audited squat/standing references with supine resets.
 
-    HumanUP explicitly mixes standing poses into Stage I to accelerate motion
-    discovery.  The final evaluator sets both probabilities to zero, so every
-    reported episode still starts from the audited back-lying pose.
+    The bridge poses give PPO reachable samples along the rising manifold,
+    while the remaining environments always begin supine.  Scheduling uses
+    vector-environment policy steps, not the aggregate transition count, so
+    changing ``num_envs`` does not collapse the curriculum into a few updates.
     """
 
     if env_ids is None:
@@ -469,28 +511,79 @@ def reset_root_state_recovery_curriculum(
         velocity_range=velocity_range,
         asset_cfg=asset_cfg,
     )
-    transition = int(getattr(env, "common_step_counter", 0)) * int(env.scene.num_envs)
+    robot: Articulation = env.scene[asset_cfg.name]
+    joint_pos = robot.data.default_joint_pos.torch[env_ids].clone()
+    joint_vel = robot.data.default_joint_vel.torch[env_ids].clone()
+    robot.write_joint_position_to_sim_index(position=joint_pos, env_ids=env_ids)
+    robot.write_joint_velocity_to_sim_index(velocity=joint_vel, env_ids=env_ids)
+
+    if len(reference_root_height_offsets) != len(reference_body_angles):
+        raise ValueError("Each recovery reference needs one root height and one leg pose")
+    if any(len(angles) != 5 for angles in reference_body_angles):
+        raise ValueError(
+            "Each recovery pose must contain hip, knee, ankle, shoulder, and elbow angles"
+        )
+
+    policy_step = int(getattr(env, "common_step_counter", 0))
     probability = linear_anneal(
-        standing_probability_start,
-        standing_probability_end,
-        transition,
-        standing_probability_anneal_transitions,
+        reference_probability_start,
+        reference_probability_end,
+        policy_step,
+        reference_probability_anneal_policy_steps,
     )
     if probability <= 0.0:
         return
-    standing_ids = env_ids[torch.rand(len(env_ids), device=env_ids.device) < probability]
-    if len(standing_ids) == 0:
+    reference_ids = env_ids[torch.rand(len(env_ids), device=env_ids.device) < probability]
+    if len(reference_ids) == 0:
         return
-    standing_pose_range = dict(supine_pose_range)
-    standing_pose_range["z"] = (standing_height_offset, standing_height_offset)
-    standing_pose_range["pitch"] = (0.5 * torch.pi, 0.5 * torch.pi)
-    reset_root_state_uniform_fresh(
-        env,
-        standing_ids,
-        pose_range=standing_pose_range,
-        velocity_range=velocity_range,
-        asset_cfg=asset_cfg,
+
+    stages = torch.randint(
+        len(reference_root_height_offsets),
+        (len(reference_ids),),
+        device=reference_ids.device,
     )
+    reference_joint_names = [
+        "left_hip_pitch_joint",
+        "left_knee_joint",
+        "left_ankle_pitch_joint",
+        "right_hip_pitch_joint",
+        "right_knee_joint",
+        "right_ankle_pitch_joint",
+        "left_shoulder_pitch_joint",
+        "left_elbow_joint",
+        "right_shoulder_pitch_joint",
+        "right_elbow_joint",
+    ]
+    reference_joint_ids, resolved = robot.find_joints(reference_joint_names, preserve_order=True)
+    if tuple(resolved) != tuple(reference_joint_names):
+        raise RuntimeError(f"Unexpected X2 recovery-joint map: {resolved}")
+
+    for stage, (height_offset, angles) in enumerate(
+        zip(reference_root_height_offsets, reference_body_angles)
+    ):
+        stage_ids = reference_ids[stages == stage]
+        if len(stage_ids) == 0:
+            continue
+        pose_range = dict(supine_pose_range)
+        pose_range["z"] = (height_offset, height_offset)
+        pose_range["pitch"] = (0.5 * torch.pi, 0.5 * torch.pi)
+        reset_root_state_uniform_fresh(
+            env,
+            stage_ids,
+            pose_range=pose_range,
+            velocity_range=velocity_range,
+            asset_cfg=asset_cfg,
+        )
+        stage_joint_pos = robot.data.default_joint_pos.torch[stage_ids].clone()
+        hip, knee, ankle, shoulder, elbow = angles
+        stage_joint_pos[:, reference_joint_ids] = torch.tensor(
+            [hip, knee, ankle, hip, knee, ankle, shoulder, elbow, shoulder, elbow],
+            device=robot.device,
+            dtype=stage_joint_pos.dtype,
+        )
+        stage_joint_vel = robot.data.default_joint_vel.torch[stage_ids].clone()
+        robot.write_joint_position_to_sim_index(position=stage_joint_pos, env_ids=stage_ids)
+        robot.write_joint_velocity_to_sim_index(velocity=stage_joint_vel, env_ids=stage_ids)
 
 
 def apply_vertical_force_curriculum(
@@ -498,7 +591,7 @@ def apply_vertical_force_curriculum(
     env_ids: torch.Tensor,
     start_force_n: float,
     end_force_n: float,
-    anneal_transitions: int,
+    anneal_policy_steps: int,
     orientation_threshold: float,
     asset_cfg: SceneEntityCfg = SceneEntityCfg("robot", body_names="pelvis"),
 ) -> None:
@@ -509,8 +602,8 @@ def apply_vertical_force_curriculum(
     robot: Articulation = env.scene[asset_cfg.name]
     if env_ids is None:
         env_ids = torch.arange(env.scene.num_envs, device=robot.device)
-    transition = int(getattr(env, "common_step_counter", 0)) * int(env.scene.num_envs)
-    magnitude = linear_anneal(start_force_n, end_force_n, transition, anneal_transitions)
+    policy_step = int(getattr(env, "common_step_counter", 0))
+    magnitude = linear_anneal(start_force_n, end_force_n, policy_step, anneal_policy_steps)
     body_ids = asset_cfg.body_ids
     quaternions = robot.data.body_quat_w.torch[env_ids][:, body_ids, :]
     world_force = torch.zeros((*quaternions.shape[:-1], 3), device=robot.device)

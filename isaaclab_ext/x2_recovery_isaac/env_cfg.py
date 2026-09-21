@@ -35,59 +35,80 @@ if GROUND_SIDE_M < _required_ground_side:
     )
 
 
-FOOT_CONTACT_SENSORS = (
-    "contact_left_ankle_roll_link",
-    "contact_right_ankle_roll_link",
+CONTACT_SENSOR_NAME = "contact_all"
+FOOT_CONTACT_BODIES = (
+    "left_ankle_roll_link",
+    "right_ankle_roll_link",
 )
-ALL_CONTACT_SENSORS = (
-    "contact_pelvis",
-    "contact_left_hip_pitch_link",
-    "contact_left_hip_roll_link",
-    "contact_left_hip_yaw_link",
-    "contact_left_knee_link",
-    "contact_left_ankle_pitch_link",
-    "contact_left_ankle_roll_link",
-    "contact_right_hip_pitch_link",
-    "contact_right_hip_roll_link",
-    "contact_right_hip_yaw_link",
-    "contact_right_knee_link",
-    "contact_right_ankle_pitch_link",
-    "contact_right_ankle_roll_link",
-    "contact_waist_yaw_link",
-    "contact_waist_pitch_link",
-    "contact_torso_link",
-    "contact_left_shoulder_pitch_link",
-    "contact_left_shoulder_roll_link",
-    "contact_left_shoulder_yaw_link",
-    "contact_left_elbow_link",
-    "contact_left_wrist_yaw_link",
-    "contact_left_wrist_pitch_link",
-    "contact_left_wrist_roll_link",
-    "contact_right_shoulder_pitch_link",
-    "contact_right_shoulder_roll_link",
-    "contact_right_shoulder_yaw_link",
-    "contact_right_elbow_link",
-    "contact_right_wrist_yaw_link",
-    "contact_right_wrist_pitch_link",
-    "contact_right_wrist_roll_link",
-    "contact_head_yaw_link",
-    "contact_head_pitch_link",
+ALL_CONTACT_BODIES = (
+    "pelvis",
+    "left_hip_pitch_link",
+    "left_hip_roll_link",
+    "left_hip_yaw_link",
+    "left_knee_link",
+    "left_ankle_pitch_link",
+    "left_ankle_roll_link",
+    "right_hip_pitch_link",
+    "right_hip_roll_link",
+    "right_hip_yaw_link",
+    "right_knee_link",
+    "right_ankle_pitch_link",
+    "right_ankle_roll_link",
+    "waist_yaw_link",
+    "waist_pitch_link",
+    "torso_link",
+    "left_shoulder_pitch_link",
+    "left_shoulder_roll_link",
+    "left_shoulder_yaw_link",
+    "left_elbow_link",
+    "left_wrist_yaw_link",
+    "left_wrist_pitch_link",
+    "left_wrist_roll_link",
+    "right_shoulder_pitch_link",
+    "right_shoulder_roll_link",
+    "right_shoulder_yaw_link",
+    "right_elbow_link",
+    "right_wrist_yaw_link",
+    "right_wrist_pitch_link",
+    "right_wrist_roll_link",
+    "head_yaw_link",
+    "head_pitch_link",
 )
+
+
+def foot_contact_cfg() -> SceneEntityCfg:
+    """Return a fresh, order-preserving selector for both feet."""
+
+    return SceneEntityCfg(
+        CONTACT_SENSOR_NAME,
+        body_names=list(FOOT_CONTACT_BODIES),
+        preserve_order=True,
+    )
+
+
+def all_contact_cfg() -> SceneEntityCfg:
+    """Return a fresh, order-preserving selector for all X2 bodies."""
+
+    return SceneEntityCfg(
+        CONTACT_SENSOR_NAME,
+        body_names=list(ALL_CONTACT_BODIES),
+        preserve_order=True,
+    )
 
 # Sum of the masses in the pinned official X2 Ultra v1.3.0 URDF. HoST's
 # official cross-robot guidance recommends a pull near 60% of robot weight.
 X2_TOTAL_MASS_KG = 41.966521
+# HoST applies its nominal pull on two G1 torso bodies. X2 likewise uses the
 HOST_ASSIST_FORCE_N = mdp.scaled_assist_force_n(X2_TOTAL_MASS_KG)
 
 
-def _contact_sensor(relative_body_path: str) -> ContactSensorCfg:
-    """Create an exact-path sensor for one link in X2's hierarchical USD."""
-
+def _all_contacts_sensor() -> ContactSensorCfg:
+    """Create one recursive view for every body in X2's hierarchical USD."""
     return ContactSensorCfg(
-        prim_path=f"{{ENV_REGEX_NS}}/Robot{relative_body_path}",
+        prim_path="{ENV_REGEX_NS}/Robot/Geometry/pelvis/**",
         class_type=ExactPathContactSensor,
-        history_length=3,
-        track_air_time=True,
+        history_length=1,
+        track_air_time=False,
     )
 
 
@@ -113,38 +134,7 @@ class X2RecoverySceneCfg(InteractiveSceneCfg):
         ),
     )
     robot: ArticulationCfg = X2_CFG.replace(prim_path="{ENV_REGEX_NS}/Robot")
-    contact_pelvis = _contact_sensor("/Geometry/pelvis")
-    contact_left_hip_pitch_link = _contact_sensor("/Geometry/pelvis/left_hip_pitch_link")
-    contact_left_hip_roll_link = _contact_sensor("/Geometry/pelvis/left_hip_pitch_link/left_hip_roll_link")
-    contact_left_hip_yaw_link = _contact_sensor("/Geometry/pelvis/left_hip_pitch_link/left_hip_roll_link/left_hip_yaw_link")
-    contact_left_knee_link = _contact_sensor("/Geometry/pelvis/left_hip_pitch_link/left_hip_roll_link/left_hip_yaw_link/left_knee_link")
-    contact_left_ankle_pitch_link = _contact_sensor("/Geometry/pelvis/left_hip_pitch_link/left_hip_roll_link/left_hip_yaw_link/left_knee_link/left_ankle_pitch_link")
-    contact_left_ankle_roll_link = _contact_sensor("/Geometry/pelvis/left_hip_pitch_link/left_hip_roll_link/left_hip_yaw_link/left_knee_link/left_ankle_pitch_link/left_ankle_roll_link")
-    contact_right_hip_pitch_link = _contact_sensor("/Geometry/pelvis/right_hip_pitch_link")
-    contact_right_hip_roll_link = _contact_sensor("/Geometry/pelvis/right_hip_pitch_link/right_hip_roll_link")
-    contact_right_hip_yaw_link = _contact_sensor("/Geometry/pelvis/right_hip_pitch_link/right_hip_roll_link/right_hip_yaw_link")
-    contact_right_knee_link = _contact_sensor("/Geometry/pelvis/right_hip_pitch_link/right_hip_roll_link/right_hip_yaw_link/right_knee_link")
-    contact_right_ankle_pitch_link = _contact_sensor("/Geometry/pelvis/right_hip_pitch_link/right_hip_roll_link/right_hip_yaw_link/right_knee_link/right_ankle_pitch_link")
-    contact_right_ankle_roll_link = _contact_sensor("/Geometry/pelvis/right_hip_pitch_link/right_hip_roll_link/right_hip_yaw_link/right_knee_link/right_ankle_pitch_link/right_ankle_roll_link")
-    contact_waist_yaw_link = _contact_sensor("/Geometry/pelvis/waist_yaw_link")
-    contact_waist_pitch_link = _contact_sensor("/Geometry/pelvis/waist_yaw_link/waist_pitch_link")
-    contact_torso_link = _contact_sensor("/Geometry/pelvis/waist_yaw_link/waist_pitch_link/torso_link")
-    contact_left_shoulder_pitch_link = _contact_sensor("/Geometry/pelvis/waist_yaw_link/waist_pitch_link/torso_link/left_shoulder_pitch_link")
-    contact_left_shoulder_roll_link = _contact_sensor("/Geometry/pelvis/waist_yaw_link/waist_pitch_link/torso_link/left_shoulder_pitch_link/left_shoulder_roll_link")
-    contact_left_shoulder_yaw_link = _contact_sensor("/Geometry/pelvis/waist_yaw_link/waist_pitch_link/torso_link/left_shoulder_pitch_link/left_shoulder_roll_link/left_shoulder_yaw_link")
-    contact_left_elbow_link = _contact_sensor("/Geometry/pelvis/waist_yaw_link/waist_pitch_link/torso_link/left_shoulder_pitch_link/left_shoulder_roll_link/left_shoulder_yaw_link/left_elbow_link")
-    contact_left_wrist_yaw_link = _contact_sensor("/Geometry/pelvis/waist_yaw_link/waist_pitch_link/torso_link/left_shoulder_pitch_link/left_shoulder_roll_link/left_shoulder_yaw_link/left_elbow_link/left_wrist_yaw_link")
-    contact_left_wrist_pitch_link = _contact_sensor("/Geometry/pelvis/waist_yaw_link/waist_pitch_link/torso_link/left_shoulder_pitch_link/left_shoulder_roll_link/left_shoulder_yaw_link/left_elbow_link/left_wrist_yaw_link/left_wrist_pitch_link")
-    contact_left_wrist_roll_link = _contact_sensor("/Geometry/pelvis/waist_yaw_link/waist_pitch_link/torso_link/left_shoulder_pitch_link/left_shoulder_roll_link/left_shoulder_yaw_link/left_elbow_link/left_wrist_yaw_link/left_wrist_pitch_link/left_wrist_roll_link")
-    contact_right_shoulder_pitch_link = _contact_sensor("/Geometry/pelvis/waist_yaw_link/waist_pitch_link/torso_link/right_shoulder_pitch_link")
-    contact_right_shoulder_roll_link = _contact_sensor("/Geometry/pelvis/waist_yaw_link/waist_pitch_link/torso_link/right_shoulder_pitch_link/right_shoulder_roll_link")
-    contact_right_shoulder_yaw_link = _contact_sensor("/Geometry/pelvis/waist_yaw_link/waist_pitch_link/torso_link/right_shoulder_pitch_link/right_shoulder_roll_link/right_shoulder_yaw_link")
-    contact_right_elbow_link = _contact_sensor("/Geometry/pelvis/waist_yaw_link/waist_pitch_link/torso_link/right_shoulder_pitch_link/right_shoulder_roll_link/right_shoulder_yaw_link/right_elbow_link")
-    contact_right_wrist_yaw_link = _contact_sensor("/Geometry/pelvis/waist_yaw_link/waist_pitch_link/torso_link/right_shoulder_pitch_link/right_shoulder_roll_link/right_shoulder_yaw_link/right_elbow_link/right_wrist_yaw_link")
-    contact_right_wrist_pitch_link = _contact_sensor("/Geometry/pelvis/waist_yaw_link/waist_pitch_link/torso_link/right_shoulder_pitch_link/right_shoulder_roll_link/right_shoulder_yaw_link/right_elbow_link/right_wrist_yaw_link/right_wrist_pitch_link")
-    contact_right_wrist_roll_link = _contact_sensor("/Geometry/pelvis/waist_yaw_link/waist_pitch_link/torso_link/right_shoulder_pitch_link/right_shoulder_roll_link/right_shoulder_yaw_link/right_elbow_link/right_wrist_yaw_link/right_wrist_pitch_link/right_wrist_roll_link")
-    contact_head_yaw_link = _contact_sensor("/Geometry/pelvis/waist_yaw_link/waist_pitch_link/torso_link/head_yaw_link")
-    contact_head_pitch_link = _contact_sensor("/Geometry/pelvis/waist_yaw_link/waist_pitch_link/torso_link/head_yaw_link/head_pitch_link")
+    contact_all = _all_contacts_sensor()
     light = AssetBaseCfg(
         prim_path="/World/light",
         spawn=sim_utils.DomeLightCfg(color=(0.9, 0.9, 0.9), intensity=750.0),
@@ -153,13 +143,14 @@ class X2RecoverySceneCfg(InteractiveSceneCfg):
 
 @configclass
 class ActionsCfg:
-    # HoST Eq. (1): q_target = q_current + beta*a.  beta=0.25 is its final
-    # hardware-conscious action bound; the task-local class clips final targets.
+    # HoST Eq. (1): q_target = q_current + beta*a.  A smooth tanh enforces the
+    # paper's normalized action assumption, beta=0.25 bounds one policy step,
+    # and the task-local class clips the final target to imported joint limits.
     joint_position = BoundedRelativeJointPositionActionCfg(
         asset_name="robot",
         joint_names=[".*"],
         scale=0.25,
-        clip={".*": (-0.25, 0.25)},
+        clip=None,
         use_zero_offset=True,
     )
 
@@ -176,7 +167,16 @@ class ObservationsCfg:
         joint_vel = ObsTerm(func=mdp.joint_vel_rel, scale=0.10, noise=Unoise(n_min=-0.10, n_max=0.10))
         feet_contact = ObsTerm(
             func=mdp.foot_contacts,
-            params={"sensor_names": FOOT_CONTACT_SENSORS},
+            params={
+                "sensor_cfg": foot_contact_cfg()
+            },
+        )
+        # Whole-body recovery depends on knowing whether the back, pelvis,
+        # knees, elbows, or hands are supporting the robot. Foot-only contact
+        # made those physically distinct states observationally ambiguous.
+        body_contact = ObsTerm(
+            func=mdp.body_contacts,
+            params={"sensor_cfg": all_contact_cfg(), "threshold": 15.0},
         )
         previous_actions = ObsTerm(func=mdp.last_action, history_length=2)
 
@@ -249,23 +249,41 @@ class EventsCfg:
                 "pitch": (0.0, 0.0),
                 "yaw": (0.0, 0.0),
             },
-            # HumanUP Stage-I mixes standing starts into discovery. Measure
-            # this schedule in aggregate transitions so larger GPU batches do
-            # not unnecessarily prolong the assisted stage.
-            "standing_probability_start": 0.50,
-            "standing_probability_end": 0.0,
-            "standing_probability_anneal_transitions": 8_192_000,
-            # X2's audited standing root is 0.68 m versus 0.19 m supine.
-            "standing_height_offset": 0.49,
+            # HumanUP mixes reference starts into discovery.  X2 adds three
+            # collision-audited squat depths between supine and standing so
+            # the policy observes the full rising manifold.  The schedule is
+            # measured in policy steps (300 PPO updates at 12 steps/update).
+            "reference_probability_start": 0.95,
+            "reference_probability_end": 0.35,
+            "reference_probability_anneal_policy_steps": 3_600,
+            # Offsets are relative to the audited 0.190 m supine pelvis.
+            "reference_root_height_offsets": (
+                0.49000,
+                0.41214,
+                0.31129,
+                0.20152,
+                0.12452,
+                0.06245,
+                0.02527,
+                -0.04046,
+                -0.09806,
+            ),
+            # Symmetric hip/knee/ankle and arm references connect standing,
+            # squatting, folded sitting, and low long-sitting states.  Every
+            # height comes from the official collision geometry with 2 mm
+            # clearance; shoulder/elbow flexion keeps wrists off the floor.
+            "reference_body_angles": (
+                (0.0, 0.0, 0.0, -1.0, -1.5),
+                (-0.5, 1.0, -0.5, -1.0, -1.5),
+                (-0.78, 1.56, -0.78, -1.0, -1.5),
+                (-1.2, 1.98, -0.78, -1.0, -1.5),
+                (-1.5, 2.2, -0.7, -1.0, -1.5),
+                (-1.8, 2.3, -0.5, -1.0, -1.5),
+                (-2.0, 2.3, -0.3, -1.0, -1.5),
+                (-2.3, 2.3, 0.0, -1.0, -1.5),
+                (-1.57, 0.0, 0.0, -1.0, -1.5),
+            ),
         },
-    )
-    reset_joints = EventTerm(
-        func=mdp.reset_joints_by_offset,
-        mode="reset",
-        # The geometry audit bounds the official zero-joint collision hull.
-        # Keep this exact so every episode is proven non-intersecting; root
-        # X/Y/yaw jitter still gives the fixed evaluator seeds distinct starts.
-        params={"position_range": (0.0, 0.0), "velocity_range": (0.0, 0.0)},
     )
     lift_assist = EventTerm(
         func=mdp.apply_vertical_force_curriculum,
@@ -274,7 +292,7 @@ class EventsCfg:
         params={
             "start_force_n": HOST_ASSIST_FORCE_N,
             "end_force_n": 0.0,
-            "anneal_transitions": 12_288_000,
+            "anneal_policy_steps": 4_000,
             "orientation_threshold": 0.80,
             "asset_cfg": SceneEntityCfg("robot", body_names="pelvis"),
         },
@@ -283,25 +301,25 @@ class EventsCfg:
 
 @configclass
 class RewardsCfg:
-    # HumanUP Stage-I discovery terms (RSS 2025, Appendix Table II).
-    base_height = RewTerm(func=mdp.humanup_base_height, weight=5.0)
-    head_height = RewTerm(
-        func=mdp.humanup_head_height,
-        weight=5.0,
-        params={"asset_cfg": SceneEntityCfg("robot", body_names="head_pitch_link")},
+    # Dense, orientation-gated height progress closes the two exploits seen in
+    # the first run: lifting only the head and collecting upward-velocity bits
+    # while the pelvis remains on the floor.
+    base_height_progress = RewTerm(
+        func=mdp.base_height_progress,
+        weight=40.0,
+        params={"target_height": 0.68},
     )
-    height_increase = RewTerm(func=mdp.humanup_height_increase, weight=1.0)
     upright = RewTerm(func=mdp.humanup_body_upright, weight=0.25)
     # HoST's task-orientation term has group weight 2.5.  Unlike its later
     # tilt-only post term, this signed target rejects a 180-degree inversion.
-    base_orientation = RewTerm(func=mdp.upright_exp, weight=2.5, params={"std": 0.10})
+    base_orientation = RewTerm(func=mdp.upright_exp, weight=2.5, params={"std": 0.25})
     standing_on_feet = RewTerm(
         func=mdp.both_feet_when_high,
-        weight=2.5,
+        weight=10.0,
         params={
-            "sensor_names": FOOT_CONTACT_SENSORS,
+            "sensor_cfg": foot_contact_cfg(),
             "threshold": 15.0,
-            "gate_start_height": 0.58,
+            "gate_start_height": 0.08,
             "target_height": 0.68,
         },
     )
@@ -309,36 +327,88 @@ class RewardsCfg:
         func=mdp.unsupported_contacts_when_high,
         weight=-2.0,
         params={
-            "sensor_names": ALL_CONTACT_SENSORS,
-            "feet_sensor_names": FOOT_CONTACT_SENSORS,
+            "all_bodies_cfg": all_contact_cfg(),
+            "feet_cfg": foot_contact_cfg(),
             "threshold": 15.0,
-            "gate_start_height": 0.58,
+            "gate_start_height": 0.45,
             "target_height": 0.68,
         },
     )
     # HoST post-task group (RSS 2025, Table VI), active above stage two.
     post_angular_velocity = RewTerm(
-        func=mdp.host_post_base_angular_velocity, weight=10.0, params={"stage_height": 0.62}
+        func=mdp.host_post_base_angular_velocity, weight=10.0, params={"stage_height": 0.58}
     )
     post_linear_velocity = RewTerm(
-        func=mdp.host_post_base_linear_velocity, weight=10.0, params={"stage_height": 0.62}
+        func=mdp.host_post_base_linear_velocity, weight=10.0, params={"stage_height": 0.58}
     )
     post_orientation = RewTerm(
-        func=mdp.host_post_base_orientation, weight=10.0, params={"stage_height": 0.62}
+        func=mdp.host_post_base_orientation, weight=10.0, params={"stage_height": 0.58}
     )
     post_height = RewTerm(
         func=mdp.host_post_base_height,
         weight=10.0,
-        params={"stage_height": 0.62, "target_height": 0.68},
+        params={"stage_height": 0.58, "target_height": 0.68},
     )
+    standing_still = RewTerm(func=mdp.standing_still, weight=5.0, params={"target_height": 0.68})
     # HumanUP's weak Stage-I regularization.
-    action_rate = RewTerm(func=mdp.action_rate_l2, weight=-0.10)
+    action_magnitude = RewTerm(func=mdp.action_l2, weight=-0.01)
+    action_rate = RewTerm(func=mdp.action_rate_l2, weight=-0.02)
     joint_acceleration = RewTerm(func=mdp.joint_acc_l2, weight=-1.0e-7)
     joint_velocity = RewTerm(func=mdp.joint_vel_l2, weight=-1.0e-4)
     joint_torque = RewTerm(func=mdp.joint_torques_l2, weight=-6.0e-7)
     base_angular_velocity = RewTerm(func=mdp.base_angular_velocity_l2, weight=-0.10)
     base_linear_velocity = RewTerm(func=mdp.base_linear_velocity_l2, weight=-0.10)
     joint_limits = RewTerm(func=mdp.joint_pos_limits, weight=-1.0)
+    # Keep recovery in a coherent sagittal plane while allowing the large hip,
+    # knee, shoulder-pitch, and elbow motions needed to get up.
+    bilateral_symmetry = RewTerm(
+        func=mdp.bilateral_joint_symmetry_l2,
+        weight=-0.05,
+        params={
+            "left_cfg": SceneEntityCfg(
+                "robot",
+                joint_names=[
+                    "left_hip_pitch_joint",
+                    "left_knee_joint",
+                    "left_ankle_pitch_joint",
+                    "left_shoulder_pitch_joint",
+                    "left_elbow_joint",
+                ],
+                preserve_order=True,
+            ),
+            "right_cfg": SceneEntityCfg(
+                "robot",
+                joint_names=[
+                    "right_hip_pitch_joint",
+                    "right_knee_joint",
+                    "right_ankle_pitch_joint",
+                    "right_shoulder_pitch_joint",
+                    "right_elbow_joint",
+                ],
+                preserve_order=True,
+            ),
+        },
+    )
+    non_sagittal_deviation = RewTerm(
+        func=mdp.joint_deviation_l1,
+        weight=-0.02,
+        params={
+            "asset_cfg": SceneEntityCfg(
+                "robot",
+                joint_names=[
+                    ".*_hip_roll_joint",
+                    ".*_hip_yaw_joint",
+                    ".*_ankle_roll_joint",
+                    "waist_yaw_joint",
+                    "waist_roll_joint",
+                    ".*_shoulder_roll_joint",
+                    ".*_shoulder_yaw_joint",
+                    ".*_wrist_.*",
+                    "head_.*",
+                ],
+            )
+        },
+    )
 
 
 @configclass
@@ -361,14 +431,24 @@ class X2RecoveryEnvCfg(ManagerBasedRLEnvCfg):
     terminations: TerminationsCfg = TerminationsCfg()
 
     def __post_init__(self) -> None:
-        # FRASA uses 20 Hz decisions; ten 200 Hz physics steps preserve contact fidelity.
-        self.decimation = 10
+        # FRASA uses 20 Hz decisions and 100 Hz physical control. Five contact
+        # substeps preserve that published ratio without spending half the run
+        # on an unsupported 200 Hz oversampling choice.
+        self.decimation = 5
         self.episode_length_s = 8.0
-        self.sim.dt = 1.0 / 200.0
+        self.sim.dt = 1.0 / 100.0
         self.sim.render_interval = self.decimation
         self.sim.physics_material.static_friction = 0.9
         self.sim.physics_material.dynamic_friction = 0.8
         self.sim.physics_material.restitution = 0.0
+        # The assignment evaluates nominal simulation recovery.  Keep the
+        # official mass/inertia, fixed floor friction and configured gains
+        # deterministic until a nominal policy succeeds; randomization is a
+        # later sim-to-real extension, not part of the required experiment.
+        self.events.material = None
+        self.events.mass = None
+        self.events.pelvis_com = None
+        self.events.actuator_gains = None
         self.viewer.eye = (3.0, 3.0, 2.0)
         self.viewer.lookat = (0.0, 0.0, 0.6)
 
@@ -386,7 +466,7 @@ class X2RecoveryPlayEnvCfg(X2RecoveryEnvCfg):
         self.events.pelvis_com = None
         self.events.actuator_gains = None
         self.events.lift_assist = None
-        self.events.reset_back_pose.params["standing_probability_start"] = 0.0
-        self.events.reset_back_pose.params["standing_probability_end"] = 0.0
+        self.events.reset_back_pose.params["reference_probability_start"] = 0.0
+        self.events.reset_back_pose.params["reference_probability_end"] = 0.0
         # Keep the narrow reset distribution: fixed evaluator seeds then exercise
         # five reproducible back-lying states instead of repeating one state.

@@ -35,9 +35,11 @@ import x2_recovery_isaac  # noqa: E402,F401
 from x2_recovery_isaac import mdp  # noqa: E402
 from x2_recovery_isaac.agents.rsl_rl_ppo_cfg import X2RecoveryPPORunnerCfg  # noqa: E402
 from x2_recovery_isaac.env_cfg import (  # noqa: E402
-    ALL_CONTACT_SENSORS,
-    FOOT_CONTACT_SENSORS,
+    CONTACT_SENSOR_NAME,
+    FOOT_CONTACT_BODIES,
     X2RecoveryPlayEnvCfg,
+    all_contact_cfg,
+    foot_contact_cfg,
 )
 
 
@@ -57,18 +59,15 @@ def _portable_path(path: Path) -> str:
 
 
 def _contact_forces(env) -> dict[str, float]:
-    values = {}
-    for name in ALL_CONTACT_SENSORS:
-        sensor = env.scene.sensors[name]
-        force = sensor.data.net_forces_w_history.torch[0].norm(dim=-1).amax()
-        values[name] = float(force.item())
-    return values
+    sensor = env.scene.sensors[CONTACT_SENSOR_NAME]
+    forces = sensor.data.net_forces_w_history.torch[0].norm(dim=-1).amax(dim=0)
+    return {name: float(force.item()) for name, force in zip(sensor.body_names, forces)}
 
 
 def snapshot(env) -> dict:
     robot = env.scene["robot"]
     forces = _contact_forces(env)
-    other_forces = [value for name, value in forces.items() if name not in FOOT_CONTACT_SENSORS]
+    other_forces = [value for name, value in forces.items() if name not in FOOT_CONTACT_BODIES]
     projected_gravity = robot.data.projected_gravity_b.torch[0]
     return {
         "pelvis_height_m": round(float(robot.data.root_pos_w.torch[0, 2].item()), 4),
@@ -76,8 +75,8 @@ def snapshot(env) -> dict:
         "projected_gravity_z": round(float(projected_gravity[2].item()), 4),
         "linear_speed_m_s": round(float(robot.data.root_lin_vel_w.torch[0].norm().item()), 4),
         "angular_speed_rad_s": round(float(robot.data.root_ang_vel_w.torch[0].norm().item()), 4),
-        "left_foot_force_n": round(forces[FOOT_CONTACT_SENSORS[0]], 2),
-        "right_foot_force_n": round(forces[FOOT_CONTACT_SENSORS[1]], 2),
+        "left_foot_force_n": round(forces[FOOT_CONTACT_BODIES[0]], 2),
+        "right_foot_force_n": round(forces[FOOT_CONTACT_BODIES[1]], 2),
         "max_other_body_force_n": round(max(other_forces), 2),
     }
 
@@ -98,6 +97,10 @@ def main() -> None:
     gym_env = gym.make("HRS-X2-Recovery-Play-v0", cfg=config)
     env = RslRlVecEnvWrapper(gym_env, clip_actions=agent_cfg.clip_actions)
     unwrapped = env.unwrapped
+    feet_cfg = foot_contact_cfg()
+    all_bodies_cfg = all_contact_cfg()
+    feet_cfg.resolve(unwrapped.scene)
+    all_bodies_cfg.resolve(unwrapped.scene)
     records: list[dict] = []
     try:
         runner = OnPolicyRunner(env, agent_cfg.to_dict(), log_dir=None, device=agent_cfg.device)
@@ -135,8 +138,8 @@ def main() -> None:
                     instant_success = bool(
                         mdp.strict_success(
                             unwrapped,
-                            feet_sensor_names=FOOT_CONTACT_SENSORS,
-                            all_sensor_names=ALL_CONTACT_SENSORS,
+                            feet_cfg=feet_cfg,
+                            all_bodies_cfg=all_bodies_cfg,
                         )[0].item()
                     )
                     consecutive_stable = consecutive_stable + 1 if instant_success else 0

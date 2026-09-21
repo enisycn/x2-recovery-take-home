@@ -111,6 +111,14 @@ def test_upright_and_height_exponentials_peak_at_the_target() -> None:
     assert torch.allclose(height_progress, torch.tensor([1.0, 0.0]))
 
 
+def test_height_progress_keeps_a_gradient_near_the_floor() -> None:
+    heights = torch.tensor([0.068, 0.34, 0.68])
+    gravity = torch.tensor([[0.0, 0.0, -1.0]] * 3)
+    env = SimpleNamespace(scene=FakeScene(fake_robot(heights, gravity)))
+    progress = mdp.base_height_progress(env, target_height=0.68)
+    assert torch.allclose(progress, torch.tensor([0.1, 0.5, 1.0]))
+
+
 def test_humanup_discovery_and_host_post_stand_terms() -> None:
     heights = torch.tensor([0.19, 0.68])
     gravity = torch.tensor([[1.0, 0.0, 0.0], [0.0, 0.0, -1.0]])
@@ -160,18 +168,22 @@ def test_strict_success_rejects_inversion_missing_foot_and_other_support() -> No
 
 
 def test_relative_action_holds_at_zero_and_clips_final_target() -> None:
-    """Check HoST's q_target=q_current+beta*a with beta=.25."""
+    """Check the once-per-policy-step HoST target with beta=.25."""
 
     current = torch.tensor([[0.10, 1.90]])
     raw = torch.tensor([[0.0, 2.0]])
     lower = torch.tensor([[-2.0, -2.0]])
     upper = torch.tensor([[2.0, 2.0]])
-    delta = (0.25 * raw).clamp(-0.25, 0.25)
+    delta = 0.25 * torch.tanh(raw)
     target = torch.clamp(current + delta, min=lower, max=upper)
 
     assert torch.isclose(target[0, 0], current[0, 0])
     assert torch.isclose(target[0, 1], upper[0, 1])
     assert torch.all(target >= lower) and torch.all(target <= upper)
+
+    # Holding this target over five physics substeps must not compound beta.
+    repeated_physics_targets = torch.stack([target] * 5)
+    assert torch.allclose(repeated_physics_targets[0], repeated_physics_targets[-1])
 
 
 def test_x2_knee_soft_margin_still_permits_near_extension() -> None:
@@ -204,5 +216,8 @@ def test_training_assistance_schedules_reach_zero() -> None:
     assert mdp.linear_anneal(0.5, 0.0, 16_000, 16_000) == 0.0
     assert mdp.linear_anneal(200.0, 0.0, 12_000, 24_000) == 100.0
     assert mdp.linear_anneal(200.0, 0.0, 30_000, 24_000) == 0.0
-    assert mdp.linear_anneal(0.5, 0.0, 8_192_000, 8_192_000) == 0.0
-    assert mdp.linear_anneal(247.0, 0.0, 12_288_000, 12_288_000) == 0.0
+    # Curriculum time is vector-environment policy time.  It is invariant to
+    # 64, 3000, or 4096 parallel robots and therefore spans the same updates.
+    assert math.isclose(mdp.linear_anneal(0.95, 0.35, 1_800, 3_600), 0.65)
+    assert math.isclose(mdp.linear_anneal(0.95, 0.35, 3_600, 3_600), 0.35)
+    assert mdp.linear_anneal(247.0, 0.0, 4_000, 4_000) == 0.0

@@ -24,10 +24,18 @@ import torch  # noqa: E402
 import x2_recovery_isaac  # noqa: E402,F401
 from x2_recovery_isaac import mdp  # noqa: E402
 from x2_recovery_isaac.env_cfg import (  # noqa: E402
-    ALL_CONTACT_SENSORS,
-    FOOT_CONTACT_SENSORS,
+    CONTACT_SENSOR_NAME,
+    FOOT_CONTACT_BODIES,
     X2RecoveryPlayEnvCfg,
+    all_contact_cfg,
+    foot_contact_cfg,
 )
+
+
+def contact_forces(task) -> dict[str, float]:
+    sensor = task.scene.sensors[CONTACT_SENSOR_NAME]
+    forces = sensor.data.net_forces_w_history.torch[0].norm(dim=-1).amax(dim=0)
+    return {name: float(force.item()) for name, force in zip(sensor.body_names, forces)}
 
 
 def main() -> None:
@@ -39,14 +47,18 @@ def main() -> None:
         env.reset(seed=42)
         task = env.unwrapped
         robot = task.scene["robot"]
+        feet_cfg = foot_contact_cfg()
+        all_bodies_cfg = all_contact_cfg()
+        feet_cfg.resolve(task.scene)
+        all_bodies_cfg.resolve(task.scene)
 
         root_pose = robot.data.default_root_pose.torch.clone()
         root_pose[:, :3] = task.scene.env_origins
         # Geometry audit gives 0.67495 m from pelvis origin to the lowest foot
         # hull.  Start 0.05 mm above the floor, without a drop transient.
         root_pose[:, 2] += 0.675
-        # Tensorized pose writes use scalar-last XYZW, unlike the WXYZ order
-        # used by ArticulationCfg.InitialStateCfg.
+        # Tensorized pose writes and this installed InitialStateCfg both use
+        # scalar-last XYZW.
         root_pose[:, 3:7] = torch.tensor([0.0, 0.0, 0.0, 1.0], device=task.device)
         robot.write_root_pose_to_sim_index(root_pose=root_pose)
         robot.write_root_velocity_to_sim_index(
@@ -60,13 +72,10 @@ def main() -> None:
             position=target,
             velocity=torch.zeros_like(target),
         )
-        # The action term caches its previous EMA target at reset.  Re-seed it
-        # after the diagnostic teleport so the probe tests this pose, not stale
-        # state from the normal supine reset.
+        # Reset action history after the diagnostic teleport so the probe
+        # tests this pose rather than state from the normal supine reset.
         env_ids = torch.tensor([0], dtype=torch.long, device=task.device)
         task.action_manager.reset(env_ids)
-        # Inverse of the action term's full-soft-range transform.
-        action = 2.0 * (target - limits[:, 0]) / (limits[:, 1] - limits[:, 0]) - 1.0
 
         stable_steps = 0
         max_stable_steps = 0
@@ -78,12 +87,19 @@ def main() -> None:
         max_steps = round(config.episode_length_s / task.step_dt) - 1
         for step in range(max_steps):
             with torch.no_grad():
+                # The policy action is relative to the measured joint pose.
+                # Recompute the inverse smooth map at each 20 Hz decision so
+                # the commanded absolute pose remains the audited straight
+                # target instead of accumulating a constant increment.
+                current = robot.data.joint_pos.torch
+                normalized_delta = ((target - current) / 0.25).clamp(-0.999, 0.999)
+                action = torch.atanh(normalized_delta)
                 _, _, _, _, _ = env.step(action)
                 stable = bool(
                     mdp.strict_success(
                         task,
-                        feet_sensor_names=FOOT_CONTACT_SENSORS,
-                        all_sensor_names=ALL_CONTACT_SENSORS,
+                        feet_cfg=feet_cfg,
+                        all_bodies_cfg=all_bodies_cfg,
                     )[0].item()
                 )
                 stable_steps = stable_steps + 1 if stable else 0
@@ -95,20 +111,11 @@ def main() -> None:
                 )
 
                 if step % 5 == 0 or step == max_steps - 1:
-                    current_forces = {
-                        name: float(
-                            task.scene.sensors[name]
-                            .data.net_forces_w_history.torch[0]
-                            .norm(dim=-1)
-                            .amax()
-                            .item()
-                        )
-                        for name in ALL_CONTACT_SENSORS
-                    }
+                    current_forces = contact_forces(task)
                     other = [
                         value
                         for name, value in current_forces.items()
-                        if name not in FOOT_CONTACT_SENSORS
+                        if name not in FOOT_CONTACT_BODIES
                     ]
                     trajectory.append(
                         {
@@ -127,29 +134,26 @@ def main() -> None:
                                 float(robot.data.root_ang_vel_b.torch[0].norm().item()), 5
                             ),
                             "left_foot_force_n": round(
-                                current_forces[FOOT_CONTACT_SENSORS[0]], 3
+                                current_forces[FOOT_CONTACT_BODIES[0]], 3
                             ),
                             "right_foot_force_n": round(
-                                current_forces[FOOT_CONTACT_SENSORS[1]], 3
+                                current_forces[FOOT_CONTACT_BODIES[1]], 3
                             ),
                             "max_other_body_force_n": round(max(other), 3),
                             "strict_stable": stable,
                         }
                     )
 
-        forces = {}
-        for name in ALL_CONTACT_SENSORS:
-            values = task.scene.sensors[name].data.net_forces_w_history.torch[0]
-            forces[name] = float(values.norm(dim=-1).amax().item())
-        non_feet = [value for name, value in forces.items() if name not in FOOT_CONTACT_SENSORS]
+        forces = contact_forces(task)
+        non_feet = [value for name, value in forces.items() if name not in FOOT_CONTACT_BODIES]
         result = {
             "backend": "Isaac Lab 3.0 / PhysX",
             "duration_s": config.episode_length_s,
             "minimum_pelvis_height_m": round(min_height, 5),
             "maximum_tilt_metric": round(max_tilt, 5),
             "maximum_consecutive_strict_stable_s": round(max_stable_steps * task.step_dt, 3),
-            "terminal_left_foot_force_n": round(forces[FOOT_CONTACT_SENSORS[0]], 3),
-            "terminal_right_foot_force_n": round(forces[FOOT_CONTACT_SENSORS[1]], 3),
+            "terminal_left_foot_force_n": round(forces[FOOT_CONTACT_BODIES[0]], 3),
+            "terminal_right_foot_force_n": round(forces[FOOT_CONTACT_BODIES[1]], 3),
             "terminal_max_other_body_force_n": round(max(non_feet), 3),
             "reachable_knee_min_rad": round(
                 min(

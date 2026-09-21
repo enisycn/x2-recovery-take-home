@@ -28,9 +28,9 @@ import torch  # noqa: E402
 import x2_recovery_isaac  # noqa: E402,F401
 from x2_recovery_isaac import mdp  # noqa: E402
 from x2_recovery_isaac.env_cfg import (  # noqa: E402
-    ALL_CONTACT_SENSORS,
-    FOOT_CONTACT_SENSORS,
     X2RecoveryPlayEnvCfg,
+    all_contact_cfg,
+    foot_contact_cfg,
 )
 
 
@@ -46,7 +46,7 @@ def _policy_observation(observation):
     return observation["policy"] if isinstance(observation, dict) else observation
 
 
-def serve_attempt(stream, env, policy, request: dict) -> None:
+def serve_attempt(stream, env, policy, request: dict, feet_cfg, all_bodies_cfg) -> None:
     if request.get("command") != "start":
         raise ValueError("expected command=start")
     seed = int(request["seed"])
@@ -65,8 +65,8 @@ def serve_attempt(stream, env, policy, request: dict) -> None:
             instant = bool(
                 mdp.strict_success(
                     unwrapped,
-                    feet_sensor_names=FOOT_CONTACT_SENSORS,
-                    all_sensor_names=ALL_CONTACT_SENSORS,
+                    feet_cfg=feet_cfg,
+                    all_bodies_cfg=all_bodies_cfg,
                 )[0].item()
             )
             consecutive_stable = consecutive_stable + 1 if instant else 0
@@ -110,6 +110,10 @@ def main() -> None:
 
     config = X2RecoveryPlayEnvCfg()
     env = gym.make("HRS-X2-Recovery-Play-v0", cfg=config)
+    feet_cfg = foot_contact_cfg()
+    all_bodies_cfg = all_contact_cfg()
+    feet_cfg.resolve(env.unwrapped.scene)
+    all_bodies_cfg.resolve(env.unwrapped.scene)
     policy = torch.jit.load(str(policy_path), map_location=env.unwrapped.device).eval()
 
     with socket.socket(socket.AF_UNIX, socket.SOCK_STREAM) as server:
@@ -130,6 +134,8 @@ def main() -> None:
                             env,
                             policy,
                             json.loads(raw_request.decode("utf-8")),
+                            feet_cfg,
+                            all_bodies_cfg,
                         )
                     except Exception as exc:
                         _write(

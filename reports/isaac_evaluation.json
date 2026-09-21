@@ -1,7 +1,7 @@
 {
   "backend": "Isaac Lab 3.0 / PhysX",
   "task": "HRS-X2-Recovery-Play-v0",
-  "checkpoint": "logs/rsl_rl/hrs_x2_recovery/2026-09-21_15-20-26_final_3000_env/model_399.pt",
+  "checkpoint": "reports/checkpoints/x2_recovery_model_399.pt",
   "exported_policy": "reports/exported/policy.pt",
   "seeds": [
     101,
@@ -40,8 +40,8 @@
       },
       "maximum_strict_stable_s": 0.0,
       "maximum_pelvis_height_m": 0.1896,
-      "maximum_upright_score": 0.9998,
-      "maximum_two_foot_contact_s": 0.7,
+      "maximum_upright_score": 0.9862,
+      "maximum_two_foot_contact_s": 5.0,
       "best_height_snapshot": {
         "pelvis_height_m": 0.1896,
         "tilt_metric": 1.0,
@@ -53,24 +53,24 @@
         "max_other_body_force_n": 0.0
       },
       "best_upright_snapshot": {
-        "pelvis_height_m": 0.0648,
-        "tilt_metric": 0.0178,
-        "projected_gravity_z": -0.9998,
-        "linear_speed_m_s": 0.0149,
-        "angular_speed_rad_s": 1.5143,
-        "left_foot_force_n": 39.97,
-        "right_foot_force_n": 22.08,
-        "max_other_body_force_n": 416.24
+        "pelvis_height_m": 0.0698,
+        "tilt_metric": 0.1653,
+        "projected_gravity_z": -0.9862,
+        "linear_speed_m_s": 0.0087,
+        "angular_speed_rad_s": 0.1367,
+        "left_foot_force_n": 33.73,
+        "right_foot_force_n": 41.76,
+        "max_other_body_force_n": 278.11
       },
       "failure_reason": "timeout before 0.5 s strict stable stance",
-      "pelvis_height_m": 0.0945,
-      "tilt_metric": 0.2435,
-      "projected_gravity_z": -0.9699,
-      "linear_speed_m_s": 0.0096,
-      "angular_speed_rad_s": 0.2037,
-      "left_foot_force_n": 0.0,
-      "right_foot_force_n": 60.76,
-      "max_other_body_force_n": 725.01
+      "pelvis_height_m": 0.0679,
+      "tilt_metric": 0.1684,
+      "projected_gravity_z": -0.9857,
+      "linear_speed_m_s": 0.0122,
+      "angular_speed_rad_s": 0.1545,
+      "left_foot_force_n": 35.32,
+      "right_foot_force_n": 38.2,
+      "max_other_body_force_n": 276.75
     },
     {
       "episode": 2,
@@ -89,8 +89,8 @@
       },
       "maximum_strict_stable_s": 0.0,
       "maximum_pelvis_height_m": 0.1905,
-      "maximum_upright_score": 0.9998,
-      "maximum_two_foot_contact_s": 0.6,
+      "maximum_upright_score": 0.9858,
+      "maximum_two_foot_contact_s": 4.8,
       "best_height_snapshot": {
         "pelvis_height_m": 0.1905,
         "tilt_metric": 1.0,
@@ -102,24 +102,24 @@
         "max_other_body_force_n": 0.0
       },
       "best_upright_snapshot": {
-        "pelvis_height_m": 0.0652,
-        "tilt_metric": 0.0194,
-        "projected_gravity_z": -0.9998,
-        "linear_speed_m_s": 0.0648,
-        "angular_speed_rad_s": 0.8352,
-        "left_foot_force_n": 15.0,
-        "right_foot_force_n": 12.46,
-        "max_other_body_force_n": 1132.93
+        "pelvis_height_m": 0.0671,
+        "tilt_metric": 0.168,
+        "projected_gravity_z": -0.9858,
+        "linear_speed_m_s": 0.0122,
+        "angular_speed_rad_s": 0.155,
+        "left_foot_force_n": 31.42,
+        "right_foot_force_n": 40.96,
+        "max_other_body_force_n": 274.6
       },
       "failure_reason": "timeout before 0.5 s strict stable stance",
-      "pelvis_height_m": 0.0948,
-      "tilt_metric": 0.2499,
-      "projected_gravity_z": -0.9683,
-      "linear_speed_m_s": 0.0111,
-      "angular_speed_rad_s": 0.2898,
-      "left_foot_force_n": 0.0,
-      "right_foot_force_n": 58.42,
-      "max_other_body_force_n": 785.65
+      "pelvis_height_m": 0.0684,
+      "tilt_metric": 0.1763,
+      "projected_gravity_z": -0.9843,
+      "linear_speed_m_s": 0.0134,
+      "angular_speed_rad_s": 0.1585,
+      "left_foot_force_n": 31.42,
+      "right_foot_force_n": 40.63,
+      "max_other_body_force_n": 274.57
     },
     {
       "episode": 3,
@@ -138,8 +138,8 @@
       },
       "maximum_strict_stable_s": 0.0,
       "maximum_pelvis_height_m": 0.1894,
-      "maximum_upright_score": 0.9998,
-      "maximum_two_foot_contact_s": 0.5,
+      "maximum_upright_score": 0.9863,
+      "maximum_two_foot_contact_s": 4.95,
       "best_height_snapshot": {
         "pelvis_height_m": 0.1894,
         "tilt_metric": 1.0,
@@ -151,24 +151,24 @@
         "max_other_body_force_n": 0.0
       },
       "best_upright_snapshot": {
-        "pelvis_height_m": 0.0651,
-        "tilt_metric": 0.0221,
-        "projected_gravity_z": -0.9998,
-        "linear_speed_m_s": 0.2127,
-        "angular_speed_rad_s": 1.7738,
-        "left_foot_force_n": 29.93,
-        "right_foot_force_n": 9.42,
-        "max_other_body_force_n": 441.83
+        "pelvis_height_m": 0.0686,
+        "tilt_metric": 0.1652,
+        "projected_gravity_z": -0.9863,
+        "linear_speed_m_s": 0.0098,
+        "angular_speed_rad_s": 0.1425,
+        "left_foot_force_n": 30.16,
+        "right_foot_force_n": 39.68,
+        "max_other_body_force_n": 281.35
       },
       "failure_reason": "timeout before 0.5 s strict stable stance",
-      "pelvis_height_m": 0.0944,
-      "tilt_metric": 0.2446,
-      "projected_gravity_z": -0.9696,
-      "linear_speed_m_s": 0.0085,
-      "angular_speed_rad_s": 0.2349,
-      "left_foot_force_n": 0.0,
-      "right_foot_force_n": 57.94,
-      "max_other_body_force_n": 758.6
+      "pelvis_height_m": 0.0688,
+      "tilt_metric": 0.1747,
+      "projected_gravity_z": -0.9846,
+      "linear_speed_m_s": 0.0131,
+      "angular_speed_rad_s": 0.1673,
+      "left_foot_force_n": 31.86,
+      "right_foot_force_n": 39.56,
+      "max_other_body_force_n": 281.94
     },
     {
       "episode": 4,
@@ -187,8 +187,8 @@
       },
       "maximum_strict_stable_s": 0.0,
       "maximum_pelvis_height_m": 0.1905,
-      "maximum_upright_score": 1.0,
-      "maximum_two_foot_contact_s": 0.6,
+      "maximum_upright_score": 0.9864,
+      "maximum_two_foot_contact_s": 5.0,
       "best_height_snapshot": {
         "pelvis_height_m": 0.1905,
         "tilt_metric": 1.0,
@@ -200,24 +200,24 @@
         "max_other_body_force_n": 0.0
       },
       "best_upright_snapshot": {
-        "pelvis_height_m": 0.0648,
-        "tilt_metric": 0.0059,
-        "projected_gravity_z": -1.0,
-        "linear_speed_m_s": 0.0569,
-        "angular_speed_rad_s": 0.7018,
-        "left_foot_force_n": 22.03,
-        "right_foot_force_n": 16.1,
-        "max_other_body_force_n": 1202.26
+        "pelvis_height_m": 0.0678,
+        "tilt_metric": 0.1646,
+        "projected_gravity_z": -0.9864,
+        "linear_speed_m_s": 0.0107,
+        "angular_speed_rad_s": 0.1461,
+        "left_foot_force_n": 31.54,
+        "right_foot_force_n": 40.38,
+        "max_other_body_force_n": 281.93
       },
       "failure_reason": "timeout before 0.5 s strict stable stance",
-      "pelvis_height_m": 0.0959,
-      "tilt_metric": 0.2611,
-      "projected_gravity_z": -0.9653,
-      "linear_speed_m_s": 0.0095,
-      "angular_speed_rad_s": 0.2847,
-      "left_foot_force_n": 0.0,
-      "right_foot_force_n": 60.15,
-      "max_other_body_force_n": 765.02
+      "pelvis_height_m": 0.0679,
+      "tilt_metric": 0.1728,
+      "projected_gravity_z": -0.985,
+      "linear_speed_m_s": 0.0135,
+      "angular_speed_rad_s": 0.1631,
+      "left_foot_force_n": 32.83,
+      "right_foot_force_n": 39.4,
+      "max_other_body_force_n": 281.95
     },
     {
       "episode": 5,
@@ -236,8 +236,8 @@
       },
       "maximum_strict_stable_s": 0.0,
       "maximum_pelvis_height_m": 0.1902,
-      "maximum_upright_score": 0.9998,
-      "maximum_two_foot_contact_s": 0.55,
+      "maximum_upright_score": 0.9867,
+      "maximum_two_foot_contact_s": 5.5,
       "best_height_snapshot": {
         "pelvis_height_m": 0.1902,
         "tilt_metric": 1.0,
@@ -249,24 +249,24 @@
         "max_other_body_force_n": 0.0
       },
       "best_upright_snapshot": {
-        "pelvis_height_m": 0.0641,
-        "tilt_metric": 0.0176,
-        "projected_gravity_z": -0.9998,
-        "linear_speed_m_s": 0.0494,
-        "angular_speed_rad_s": 0.6883,
-        "left_foot_force_n": 21.28,
-        "right_foot_force_n": 11.85,
-        "max_other_body_force_n": 764.47
+        "pelvis_height_m": 0.0686,
+        "tilt_metric": 0.1628,
+        "projected_gravity_z": -0.9867,
+        "linear_speed_m_s": 0.0089,
+        "angular_speed_rad_s": 0.1327,
+        "left_foot_force_n": 31.46,
+        "right_foot_force_n": 40.63,
+        "max_other_body_force_n": 280.97
       },
       "failure_reason": "timeout before 0.5 s strict stable stance",
-      "pelvis_height_m": 0.0932,
-      "tilt_metric": 0.2322,
-      "projected_gravity_z": -0.9727,
-      "linear_speed_m_s": 0.008,
-      "angular_speed_rad_s": 0.229,
-      "left_foot_force_n": 0.0,
-      "right_foot_force_n": 67.0,
-      "max_other_body_force_n": 758.82
+      "pelvis_height_m": 0.0688,
+      "tilt_metric": 0.1714,
+      "projected_gravity_z": -0.9852,
+      "linear_speed_m_s": 0.0136,
+      "angular_speed_rad_s": 0.1657,
+      "left_foot_force_n": 32.19,
+      "right_foot_force_n": 39.97,
+      "max_other_body_force_n": 279.16
     }
   ]
 }

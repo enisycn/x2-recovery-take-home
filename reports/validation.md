@@ -15,20 +15,21 @@ ISAAC_PYTHON=<USER_HOME>/miniconda3/envs/codex/bin/python \
 HRS_CPUSET='<HOST_CPUSET>' HRS_NICE=15 \
 ./scripts/train_isaac.sh \
   --max_iterations 400 --num_envs 3000 --device cuda:0 \
-  --seed 42 --run_name final_3000_env
+  --seed 46 --run_name v5b_full_contact_balanced
 ```
 
-Observed: exit code 0 after 400 optimizer iterations and 38,400,000 simulator transitions. The run sustained about 11,500 transitions/s during the final iterations and used about 5 GB of GPU memory. Its mean episode reward rose to 59.37. The standing-reset mixture reached zero near iteration 85 and the orientation-gated lift force reached zero near iteration 128, leaving about 272 fully unassisted iterations. Despite the rising total reward, `standing_on_feet` and every post-standing term remained zero at the end. The committed outputs are:
+Observed: exit code 0 after 400 optimizer iterations and 14,400,000 simulator transitions. The run sustained about 20,000–22,000 transitions/s, with roughly 1.5–1.8 s collection and 0.09 s PPO learning per iteration, and used about 5 GB of GPU memory. The 400 updates took about 12 minutes after startup. The final actor has 168 observations and 31 actions; its checkpoint contains finite actor/critic tensors and a 14.4-million-sample observation normalizer. The fixed-seed action I/O audit reports no non-finite observation, no target outside the imported soft limits, action standard deviation 0.332–0.467, and 6.7% of deterministic raw actions outside ±1 before the smooth `tanh` map (versus 87% in the discarded hard-clip branch). The committed outputs are:
 
 - `reports/checkpoints/x2_recovery_model_399.pt`;
 - `reports/isaac_training_reward.png` and its scalar CSV;
+- `reports/x2_policy_io_audit.json`;
 - TorchScript and ONNX exports in `reports/exported/`.
 
 ## Strict five-episode Isaac evaluation
 
 ```bash
 ./scripts/evaluate_isaac.sh \
-  logs/rsl_rl/hrs_x2_recovery/2026-09-21_15-20-26_final_3000_env/model_399.pt \
+  reports/checkpoints/x2_recovery_model_399.pt \
   --output reports/isaac_evaluation.json --device cuda:0
 ```
 
@@ -36,15 +37,15 @@ Evaluation disables standing starts, lift assistance, observation noise and doma
 
 | Episode | Seed | Result | Max pelvis (m) | Max upright | Longest two-foot contact (s) | Max strict stance (s) |
 | ---: | ---: | --- | ---: | ---: | ---: | ---: |
-| 1 | 101 | failed | 0.1896 | 0.9998 | 0.70 | 0.00 |
-| 2 | 102 | failed | 0.1905 | 0.9998 | 0.60 | 0.00 |
-| 3 | 103 | failed | 0.1894 | 0.9998 | 0.50 | 0.00 |
-| 4 | 104 | failed | 0.1905 | 1.0000 | 0.60 | 0.00 |
-| 5 | 105 | failed | 0.1902 | 0.9998 | 0.55 | 0.00 |
+| 1 | 101 | failed | 0.1896 | 0.9862 | 5.00 | 0.00 |
+| 2 | 102 | failed | 0.1905 | 0.9858 | 4.80 | 0.00 |
+| 3 | 103 | failed | 0.1894 | 0.9863 | 4.95 | 0.00 |
+| 4 | 104 | failed | 0.1905 | 0.9864 | 5.00 | 0.00 |
+| 5 | 105 | failed | 0.1902 | 0.9867 | 5.50 | 0.00 |
 
-Final result: **0/5 successful recoveries**. The robot learned to rotate its pelvis upright and sometimes touched both feet, but it never raised the pelvis above its roughly 0.190 m initial height. Terminal pelvis height was 0.0932–0.0959 m, one foot carried no force, and maximum non-foot contact was 725.01–785.65 N. The failure is therefore a low, body-supported upright local optimum rather than a frame, collision-floor or success-detector error.
+Final result: **0/5 successful recoveries**. The robot learned a reproducible feet-loaded sitting behavior: both feet remain in contact for 4.8–5.5 s and upright score reaches about 0.986. It never raises the pelvis above the roughly 0.190 m initial supine height; terminal pelvis is 0.0679–0.0688 m and terminal non-foot support is 274–282 N. The failure is therefore a stable seated local optimum rather than a frame, floor, contact-sensor, limit or success-detector error.
 
-The present curriculum mixes only the two endpoints: supine and straight standing. Three thousand parallel environments increase sample throughput, but 400 iterations still provide only 400 policy updates and no intermediate kneeling or rising states. The evidence-supported next experiment is a phase-based reference-pose curriculum that samples the missing contact transitions, followed by an unassisted fine-tuning phase and evaluation on untouched seeds. Relaxing the success predicate would conceal the failure and was not done.
+The investigation corrected five concrete causes before selecting this checkpoint: head-height/upward-velocity reward exploits, per-substep accumulation of a relative action, a curriculum measured in aggregate transitions, a hard action clip that produced saturated network output, and foot-only contact observations. Nine collision-audited reference poses, whole-body contacts, smooth `tanh` actions and weak bilateral/sagittal regularization improved the result from transient foot contact to stable two-foot sitting. Assisted follow-up runs reached high-pelvis states, but lost them as force vanished. HumanUP's evidence-supported next step is motion discovery followed by a dedicated imitation/refinement stage at a much larger update budget. Relaxing the predicate would conceal the failure and was not done; the assignment explicitly permits zero successes when explained.
 
 ## ROS 2 build and runtime
 
@@ -84,4 +85,4 @@ ISAAC_PYTHON=<USER_HOME>/miniconda3/envs/codex/bin/python ./scripts/test_isaac_f
 ISAAC_PYTHON=<USER_HOME>/miniconda3/envs/codex/bin/python ./scripts/check_runtime_isolation.sh
 ```
 
-Observed: compilation and shell syntax passed; ROS tests reported `8 passed`; the independent formula suite reported `13 passed`; and runtime isolation passed. The repository also passes `git diff --check` and `git fsck` after the final artifact commit.
+Observed: compilation and shell syntax passed; ROS tests reported `8 passed`; the independent formula suite reported `14 passed`; and runtime isolation passed. The repository also passes `git diff --check` and `git fsck` after the final artifact commit.
