@@ -25,7 +25,17 @@ decimation: 10
 episode: 8.0 s
 ```
 
-Validation ran on Ubuntu 22.04.5 with an AMD Ryzen AI 9 HX 370 (12 cores/24 threads), Python 3.10.12 and ROS 2 Humble. The installed simulator stack reported Isaac Sim 6.0.1, Isaac Lab 3.0.0 and RSL-RL 5.0.1. Importing the configuration emitted `no CUDA-capable device is detected`, so no Isaac physics rollout or PPO result is claimed.
+Validation ran on Ubuntu 22.04.5 with an AMD Ryzen AI 9 HX 370 (12 cores/24 threads), Python 3.10.12 and ROS 2 Humble. The installed simulator stack reported Isaac Sim 6.0.1, Isaac Lab 3.0.0 and RSL-RL 5.0.1. Importing the configuration emitted `no CUDA-capable device is detected`, so no GPU PPO result is claimed.
+
+A minimal five-step Isaac Sim/PhysX rollout was subsequently executed with an explicit CPU device:
+
+```bash
+/path/to/isaac/python scripts/probe_isaac_cpu.py --headless --device cpu
+```
+
+Observed: `Isaac/PhysX probe passed on device=cpu`. This establishes a CPU import/training route without changing the existing Isaac environment. It does not replace the required X2 rollout, which still needs the official model archive.
+
+The training launcher was also invoked with the explicit interpreter, one CPU environment and zero requested iterations. It selected `<USER_HOME>/miniconda3/envs/codex/bin/python`, registered `HRS-X2-Recovery-v0`, resolved the PPO entry point, and stopped at the deliberate `X2 USD not found` check. This confirms that the earlier Conda-base interpreter problem is fixed and the asset is now the only startup dependency.
 
 ## Reduced-order experiment
 
@@ -95,10 +105,10 @@ The sandbox blocks network-interface inspection and prints benign `getifaddrs` w
 
 ## Blocked high-fidelity run
 
-The official model checkout could not be fetched from the shell because outbound Git DNS is disabled, and no X2 URDF was already present. A browser fallback to GitHub's raw file host was rejected by the browser safety review, so it was not bypassed. CUDA was unavailable to Isaac in this execution. Consequently:
+The official model checkout could not be fetched from the shell because outbound Git DNS is disabled, and no X2 URDF was already present. Browser access to both GitHub and AgiBot's official SDK page was rejected by saved browser permissions, so it was not bypassed. CPU PhysX works; CUDA acceleration is unavailable because the sandbox exposes no `/dev/nvidia*` devices. Consequently:
 
 - no X2 USD was generated;
-- no PPO checkpoint or Isaac reward curve exists;
+- no X2 PPO checkpoint or Isaac reward curve exists;
 - no five-episode Isaac success count is reported;
 - the ROS–Isaac socket server was syntax/API checked but not exercised end to end.
 

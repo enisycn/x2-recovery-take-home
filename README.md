@@ -2,7 +2,7 @@
 
 This repository implements the HRS take-home as a self-contained external Isaac Lab task and ROS 2 Humble package. The main path is an AgiBot X2 Ultra v1.3.0 floating-base model in Isaac Lab/PhysX, trained with RSL-RL PPO. A small NumPy model remains as a clearly labelled CPU test harness for training plumbing and ROS interface validation.
 
-The repository never installs files into an existing robot workspace. Isaac Lab is invoked as a runtime, the AgiBot source model and converted USD stay under this repository, ROS builds into this repository, and the ROS–Isaac bridge uses one local Unix socket.
+The repository never installs files into an existing robot workspace. Isaac Lab is invoked through an explicitly selected, existing Python interpreter, the AgiBot source model and converted USD stay under this repository, ROS builds into this repository, and the ROS–Isaac bridge uses one local Unix socket.
 
 The asset fetcher accepts only AgiBotTech's official HTTPS repository at reviewed commit `77f43eb`, disables submodules and Git hooks, verifies the origin and revision, and deletes a failed download before it can be imported. It only receives public model files; no upload or outward copy of local robot data is performed.
 
@@ -14,13 +14,14 @@ ROS and Isaac deliberately run in different processes and Python environments. R
 | --- | --- |
 | External Isaac Lab 3.0 task loads against the local API | Validated without starting physics |
 | Official X2 download and repo-local URDF→USD conversion | Implemented; download unavailable in the execution sandbox |
-| PPO training and strict five-episode Isaac evaluation | Implemented; not run because the sandbox exposes no CUDA device or X2 meshes |
+| PPO training and strict five-episode Isaac evaluation | Implemented; not run because the official X2 archive is not locally available |
+| Isaac Sim/PhysX CPU startup and stepping | Validated for five physics steps without changing the existing environment |
 | Reduced-order training experiment | Run; checkpoint and reward plot committed |
 | Reduced-order five-episode evaluation | 5/5; explicitly not a rigid-body or hardware claim |
 | ROS build, launch, acceptance/busy behavior, telemetry, success and timeout failure | Validated |
 | ROS connection to the Isaac policy process | Implemented through local IPC; socket execution blocked by the sandbox |
 
-See [the validation record](reports/validation.md) for commands and observed outputs and [the evidence map](docs/evidence.md) for the research behind each design choice.
+See [the validation record](reports/validation.md) for commands and observed outputs, [the root-cause record](docs/root_cause.md) for environment findings, and [the evidence map](docs/evidence.md) for the research behind each design choice.
 
 ## Repository layout
 
@@ -45,12 +46,21 @@ Validation used Ubuntu 22.04.5, ROS 2 Humble, Python 3.10.12 and an AMD Ryzen AI
 git clone <submission-url> hrs_x2_take_home
 cd hrs_x2_take_home
 
-# Point at an existing Isaac Lab checkout. The scripts execute it read-only.
-export ISAACLAB_ROOT=/absolute/path/to/IsaacLab
+# Select an existing Isaac environment. The scripts do not modify it.
+export ISAAC_PYTHON=/absolute/path/to/isaac/environment/bin/python
 
 ./scripts/fetch_agibot_model.sh
 ./scripts/import_x2_isaac.sh
 ```
+
+If browser policy blocks GitHub but the official ZIP has been downloaded manually from AgiBot's [SDK page](https://x2-aimdk.agibot.com/zh-cn/latest/get_sdk/index.html), stage it without executing archive content:
+
+```bash
+./scripts/stage_agibot_archive.py /absolute/path/to/agibot_x2_urdf.zip
+./scripts/import_x2_isaac.sh
+```
+
+The staging script rejects path traversal, symlinks, oversized archives, an unexpected robot identity, incomplete kinematics, and missing mesh references. It records archive and URDF SHA-256 hashes before the importer accepts the model.
 
 The selected asset is AgiBot's official `X2_URDF-v1.3.0/x2_ultra_simple_collision.urdf`. AgiBot identifies v1.3.0 as the original flagship “X2 Ultra” model and v1.4.0 as the upgraded “X2 Ultra -N”; the take-home names X2 without the `-N` hardware identifier. Confirm the neck nameplate and switch models before hardware transfer if HRS uses the newer variant. Conversion merges fixed joints, keeps a floating base, enables self-collision, applies the Humanoid schema, and writes an instanceable USD to `assets/isaac/`. Mesh and inertial data are not hand-edited. Joint torque, speed and position limits originate in the official URDF and remain in the generated USD. Upstream assets are fetched at setup time under their Mulan PSL v2 license and are not committed here.
 
@@ -67,6 +77,12 @@ Verify the runtime boundary on a workstation that has both stacks:
 ```bash
 ISAAC_PYTHON=/absolute/path/to/isaac/environment/bin/python \
   ./scripts/check_runtime_isolation.sh
+```
+
+The installed Isaac/PhysX stack can be checked on CPU without changing that environment:
+
+```bash
+"$ISAAC_PYTHON" scripts/probe_isaac_cpu.py --headless --device cpu
 ```
 
 ## Isaac Lab environment
@@ -112,7 +128,10 @@ The staged task reward follows HoST's height-dependent righting/rising/standing 
 The RSL-RL setup uses 2,048 environments, 32 steps per environment, 1,500 maximum iterations, ELU MLPs `[512, 256, 128]`, learning rate `3e-4`, clip `0.2`, discount `0.99`, GAE lambda `0.95`, five learning epochs and four mini-batches. The seed is 42.
 
 ```bash
-./scripts/train_isaac.sh --num_envs 2048 --seed 42
+./scripts/train_isaac.sh --num_envs 2048 --seed 42 --device cuda:0
+
+# Device-isolated or CPU-only machine: slower, but uses the same X2 task.
+./scripts/train_isaac.sh --num_envs 64 --seed 42 --device cpu
 
 # Play a checkpoint; Isaac Lab also exports policy.pt and policy.onnx.
 ./scripts/play_isaac.sh logs/rsl_rl/hrs_x2_recovery/<run>/model_<iteration>.pt
@@ -172,8 +191,8 @@ ros2 launch x2_recovery_ros x2_recovery.launch.py \
 For the Isaac policy, run the simulator process in the Isaac Python environment and ROS in the Humble environment. This avoids mixing incompatible Python runtimes:
 
 ```bash
-# Terminal 1: Isaac environment
-export ISAACLAB_ROOT=/absolute/path/to/IsaacLab
+# Terminal 1: existing Isaac environment
+export ISAAC_PYTHON=/absolute/path/to/isaac/environment/bin/python
 ./scripts/serve_isaac_policy.sh /absolute/path/to/exported/policy.pt
 
 # Terminal 2: ROS Humble environment
