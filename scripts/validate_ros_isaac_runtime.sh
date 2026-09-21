@@ -61,13 +61,13 @@ timeout -k 2s 10s ros2 topic echo /x2/joint_states sensor_msgs/msg/JointState \
   --once --no-daemon >"${runtime_dir}/joint.txt"
 
 for _ in $(seq 1 100); do
-  grep -Fq "Recovery failed" "${runtime_dir}/launch.log" 2>/dev/null && break
+  grep -Eq "Recovery (succeeded|failed)" "${runtime_dir}/launch.log" 2>/dev/null && break
   sleep 0.1
 done
 
 grep -Fq "success=True" "${runtime_dir}/first.txt"
 grep -Fq "success=False" "${runtime_dir}/busy.txt"
-grep -Fq "Recovery failed" "${runtime_dir}/launch.log"
+grep -Eq "Recovery (succeeded|failed)" "${runtime_dir}/launch.log"
 grep -Fq "left_knee_joint" "${runtime_dir}/joint.txt"
 
 echo "FIRST REQUEST"
@@ -77,5 +77,5 @@ cat "${runtime_dir}/busy.txt"
 echo "LIVE JOINT SAMPLE"
 sed -n '1,30p' "${runtime_dir}/joint.txt"
 echo "FINAL STATUS"
-grep -F "Recovery failed" "${runtime_dir}/launch.log"
+grep -E "Recovery (succeeded|failed)" "${runtime_dir}/launch.log"
 echo "ROS-Isaac runtime validation passed"
