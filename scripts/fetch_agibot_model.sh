@@ -4,12 +4,12 @@ set -euo pipefail
 project_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 model_dir="${project_dir}/models/agibot_x2_urdf"
 official_url="https://github.com/AgibotTech/agibot_x2_urdf.git"
-# The official repository had one commit when reviewed on 2026-09-21.
-pinned_commit="77f43eb"
+# Current official main, reviewed before use on 2026-09-21.
+pinned_commit="60c5de582c523cd188f563819e62d34cfdc3d2d0"
 
 if [[ -d "${model_dir}/.git" ]]; then
   origin="$(git -C "${model_dir}" remote get-url origin)"
-  revision="$(git -C "${model_dir}" rev-parse --short=7 HEAD)"
+  revision="$(git -C "${model_dir}" rev-parse HEAD)"
   if [[ "${origin}" == "${official_url}" && "${revision}" == "${pinned_commit}" ]]; then
     echo "Verified official model already present: ${model_dir}"
     exit 0
@@ -24,7 +24,7 @@ git -c protocol.file.allow=never -c core.hooksPath=/dev/null clone \
   "${official_url}" "${model_dir}"
 
 origin="$(git -C "${model_dir}" remote get-url origin)"
-revision="$(git -C "${model_dir}" rev-parse --short=7 HEAD)"
+revision="$(git -C "${model_dir}" rev-parse HEAD)"
 if [[ "${origin}" != "${official_url}" || "${revision}" != "${pinned_commit}" ]]; then
   echo "Downloaded model failed origin/revision verification; it will not be used." >&2
   rm -rf "${model_dir}"

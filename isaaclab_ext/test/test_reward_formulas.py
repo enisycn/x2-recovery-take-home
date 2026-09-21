@@ -2,11 +2,11 @@
 
 from __future__ import annotations
 
+import math
 from types import SimpleNamespace
 
 import torch
 
-from isaaclab.utils import math as math_utils
 from x2_recovery_isaac import mdp
 
 
@@ -58,6 +58,21 @@ def test_minus_ninety_degree_pitch_is_supine() -> None:
     assert torch.allclose(world_forward, torch.tensor([0.0, 0.0, 1.0]), atol=1.0e-6)
 
 
+def test_audited_reset_and_standing_heights_match_collision_geometry() -> None:
+    # Values are recomputed from every official collision mesh by
+    # scripts/audit_x2_geometry.py; this guards accidental reset regressions.
+    supine_extent_below_pelvis = 0.1803006679
+    standing_extent_below_pelvis = 0.6749500000
+    assert 0.190 - supine_extent_below_pelvis > 0.005
+    assert abs(0.68 - standing_extent_below_pelvis) < 0.01
+
+
+def test_shared_floor_covers_the_full_parallel_environment_grid() -> None:
+    # The global floor must cover every origin in the 2048-env clone grid.
+    required_side = math.ceil(math.sqrt(2048)) * 2.5 + 2.0
+    assert 200.0 >= required_side
+
+
 def test_staged_reward_matches_righting_rising_standing_equations() -> None:
     heights = torch.tensor([0.28, 0.50, 0.68])
     gravity = torch.tensor([[1.0, 0.0, 0.0], [0.8660254, 0.0, -0.5], [0.0, 0.0, -1.0]])
@@ -66,8 +81,8 @@ def test_staged_reward_matches_righting_rising_standing_equations() -> None:
     actual = mdp.staged_recovery_progress(env, target_height=0.68)
     expected = torch.tensor(
         [
-            0.65 * 0.5 + 0.35 * (0.28 / 0.68),
-            0.45 * 0.75 + 0.55 * (0.50 / 0.68),
+            0.80 * 0.5 + 0.20 * (0.28 / 0.68),
+            0.40 * 0.75 + 0.60 * (0.50 / 0.68),
             0.30 + 0.70,
         ]
     )
@@ -82,10 +97,38 @@ def test_upright_and_height_exponentials_peak_at_the_target() -> None:
 
     upright = mdp.upright_exp(env, std=0.25)
     height = mdp.base_height_exp(env, target_height=0.68, std=0.12)
+    height_progress = mdp.base_height_progress(env, target_height=0.68)
     assert torch.isclose(upright[0], torch.tensor(1.0))
     assert upright[1] < 1.0e-6
     assert torch.isclose(height[0], torch.tensor(1.0))
     assert height[1] < height[0]
+    assert torch.allclose(height_progress, torch.tensor([1.0, 0.0]))
+
+
+def test_humanup_discovery_and_host_post_stand_terms() -> None:
+    heights = torch.tensor([0.19, 0.68])
+    gravity = torch.tensor([[1.0, 0.0, 0.0], [0.0, 0.0, -1.0]])
+    linear = torch.tensor([[0.0, 0.0, 0.1], [0.1, 0.2, 0.0]])
+    angular = torch.tensor([[0.0, 0.0, 0.0], [0.1, 0.2, 0.3]])
+    env = SimpleNamespace(scene=FakeScene(fake_robot(heights, gravity, linear, angular)))
+
+    assert torch.allclose(mdp.humanup_base_height(env), torch.exp(heights) - 1.0)
+    assert mdp.humanup_height_increase(env).tolist() == [1.0, 0.0]
+    assert torch.allclose(mdp.humanup_body_upright(env), torch.tensor([1.0, torch.e]))
+    assert mdp.host_post_base_height(env, stage_height=0.62, target_height=0.68).tolist() == [0.0, 1.0]
+    assert mdp.host_post_base_orientation(env, stage_height=0.62).tolist() == [0.0, 1.0]
+    assert torch.allclose(mdp.base_linear_velocity_l2(env), torch.tensor([0.01, 0.05]))
+    assert torch.allclose(mdp.base_angular_velocity_l2(env), torch.tensor([0.0, 0.14]))
+
+
+def test_inverted_pose_gets_no_height_reward_and_is_penalized() -> None:
+    heights = torch.tensor([0.68, 0.68])
+    gravity = torch.tensor([[0.0, 0.0, -1.0], [0.0, 0.0, 1.0]])
+    env = SimpleNamespace(scene=FakeScene(fake_robot(heights, gravity)))
+
+    assert mdp.base_height_progress(env, target_height=0.68).tolist() == [1.0, 0.0]
+    assert mdp.base_height_exp(env, target_height=0.68, std=0.12).tolist() == [1.0, 0.0]
+    assert mdp.inverted_orientation(env).tolist() == [0.0, 1.0]
 
 
 def test_strict_success_rejects_inversion_missing_foot_and_other_support() -> None:
@@ -110,15 +153,48 @@ def test_strict_success_rejects_inversion_missing_foot_and_other_support() -> No
     assert result.tolist() == [True, False, False, False]
 
 
-def test_action_scale_limit_mapping_and_ema_are_bounded() -> None:
-    """Check raw action -> central 85% of soft limits -> alpha=.25 EMA."""
+def test_relative_action_holds_at_zero_and_clips_final_target() -> None:
+    """Check HoST's q_target=q_current+beta*a with beta=.25."""
 
-    raw = torch.tensor([[-1.0, 1.0]])
+    current = torch.tensor([[0.10, 1.90]])
+    raw = torch.tensor([[0.0, 2.0]])
     lower = torch.tensor([[-2.0, -2.0]])
     upper = torch.tensor([[2.0, 2.0]])
-    target = math_utils.unscale_transform((0.85 * raw).clamp(-1.0, 1.0), lower, upper)
-    filtered = 0.25 * target + 0.75 * torch.zeros_like(target)
+    delta = (0.25 * raw).clamp(-0.25, 0.25)
+    target = torch.clamp(current + delta, min=lower, max=upper)
 
-    assert torch.allclose(target, torch.tensor([[-1.7, 1.7]]), atol=1.0e-6)
-    assert torch.allclose(filtered, torch.tensor([[-0.425, 0.425]]), atol=1.0e-6)
+    assert torch.isclose(target[0, 0], current[0, 0])
+    assert torch.isclose(target[0, 1], upper[0, 1])
     assert torch.all(target >= lower) and torch.all(target <= upper)
+
+
+def test_x2_knee_soft_margin_still_permits_near_extension() -> None:
+    hard_lower, hard_upper, factor = 0.0, 2.407, 0.98
+    midpoint = 0.5 * (hard_lower + hard_upper)
+    half_soft_range = 0.5 * factor * (hard_upper - hard_lower)
+    soft_lower = midpoint - half_soft_range
+    assert 0.0 < soft_lower < 0.03
+
+
+def test_reset_workaround_invalidates_all_root_frame_buffers() -> None:
+    names = (
+        "_projected_gravity_b",
+        "_heading_w",
+        "_root_link_lin_vel_b",
+        "_root_link_ang_vel_b",
+        "_root_com_lin_vel_b",
+        "_root_com_ang_vel_b",
+    )
+    data = SimpleNamespace(
+        **{name: SimpleNamespace(timestamp=123.0) for name in names}
+    )
+    mdp._invalidate_root_derived_buffers(SimpleNamespace(data=data))
+    assert all(getattr(data, name).timestamp == -1.0 for name in names)
+
+
+def test_training_assistance_schedules_reach_zero() -> None:
+    assert mdp.linear_anneal(0.5, 0.0, 0, 16_000) == 0.5
+    assert mdp.linear_anneal(0.5, 0.0, 8_000, 16_000) == 0.25
+    assert mdp.linear_anneal(0.5, 0.0, 16_000, 16_000) == 0.0
+    assert mdp.linear_anneal(200.0, 0.0, 12_000, 24_000) == 100.0
+    assert mdp.linear_anneal(200.0, 0.0, 30_000, 24_000) == 0.0

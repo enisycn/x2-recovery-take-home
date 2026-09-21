@@ -26,9 +26,12 @@ import gymnasium as gym  # noqa: E402
 import torch  # noqa: E402
 
 import x2_recovery_isaac  # noqa: E402,F401
-from isaaclab.managers import SceneEntityCfg  # noqa: E402
 from x2_recovery_isaac import mdp  # noqa: E402
-from x2_recovery_isaac.env_cfg import FEET, X2RecoveryPlayEnvCfg  # noqa: E402
+from x2_recovery_isaac.env_cfg import (  # noqa: E402
+    ALL_CONTACT_SENSORS,
+    FOOT_CONTACT_SENSORS,
+    X2RecoveryPlayEnvCfg,
+)
 
 
 STABLE_STEPS = 10
@@ -43,7 +46,7 @@ def _policy_observation(observation):
     return observation["policy"] if isinstance(observation, dict) else observation
 
 
-def serve_attempt(stream, env, policy, feet_cfg, all_cfg, request: dict) -> None:
+def serve_attempt(stream, env, policy, request: dict) -> None:
     if request.get("command") != "start":
         raise ValueError("expected command=start")
     seed = int(request["seed"])
@@ -57,9 +60,14 @@ def serve_attempt(stream, env, policy, feet_cfg, all_cfg, request: dict) -> None
 
     for step in range(1, max_steps + 1):
         started = time.monotonic()
-        with torch.inference_mode():
+        # no_grad keeps Isaac's action/history buffers mutable across resets.
+        with torch.no_grad():
             instant = bool(
-                mdp.strict_success(unwrapped, feet_cfg=feet_cfg, all_bodies_cfg=all_cfg)[0].item()
+                mdp.strict_success(
+                    unwrapped,
+                    feet_sensor_names=FOOT_CONTACT_SENSORS,
+                    all_sensor_names=ALL_CONTACT_SENSORS,
+                )[0].item()
             )
             consecutive_stable = consecutive_stable + 1 if instant else 0
             _write(
@@ -102,10 +110,6 @@ def main() -> None:
 
     config = X2RecoveryPlayEnvCfg()
     env = gym.make("HRS-X2-Recovery-Play-v0", cfg=config)
-    feet_cfg = SceneEntityCfg("contact_forces", body_names=FEET)
-    all_cfg = SceneEntityCfg("contact_forces", body_names=".*")
-    feet_cfg.resolve(env.unwrapped.scene)
-    all_cfg.resolve(env.unwrapped.scene)
     policy = torch.jit.load(str(policy_path), map_location=env.unwrapped.device).eval()
 
     with socket.socket(socket.AF_UNIX, socket.SOCK_STREAM) as server:
@@ -125,8 +129,6 @@ def main() -> None:
                             stream,
                             env,
                             policy,
-                            feet_cfg,
-                            all_cfg,
                             json.loads(raw_request.decode("utf-8")),
                         )
                     except Exception as exc:

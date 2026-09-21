@@ -9,7 +9,7 @@ urdf_path="${project_dir}/models/agibot_x2_urdf/X2_URDF-v1.3.0/x2_ultra_simple_c
 output_dir="${project_dir}/assets/isaac"
 manifest_path="${project_dir}/models/agibot_x2_urdf/.hrs-source.json"
 official_url="https://github.com/AgibotTech/agibot_x2_urdf.git"
-pinned_commit="77f43eb"
+pinned_commit="60c5de582c523cd188f563819e62d34cfdc3d2d0"
 
 if [[ ! -f "${urdf_path}" ]]; then
   echo "Missing ${urdf_path}; run scripts/fetch_agibot_model.sh first." >&2
@@ -18,7 +18,7 @@ fi
 
 if [[ -d "${project_dir}/models/agibot_x2_urdf/.git" ]]; then
   origin="$(git -C "${project_dir}/models/agibot_x2_urdf" remote get-url origin)"
-  revision="$(git -C "${project_dir}/models/agibot_x2_urdf" rev-parse --short=7 HEAD)"
+  revision="$(git -C "${project_dir}/models/agibot_x2_urdf" rev-parse HEAD)"
   if [[ "${origin}" != "${official_url}" || "${revision}" != "${pinned_commit}" ]]; then
     echo "Refusing to import an unverified Git origin or revision." >&2
     exit 1

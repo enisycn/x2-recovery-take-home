@@ -64,7 +64,7 @@ def validate_model(source_root: Path) -> dict[str, int | str]:
     if not urdf_path.is_file():
         raise ValueError(f"missing expected official model: {EXPECTED_URDF}")
     root = ET.parse(urdf_path).getroot()
-    if root.tag != "robot" or root.attrib.get("name") != "x2_ultra":
+    if root.tag != "robot" or root.attrib.get("name") != "x2_ultra_simple_collision":
         raise ValueError("unexpected URDF robot identity")
     links = root.findall("link")
     joints = root.findall("joint")
@@ -87,7 +87,7 @@ def validate_model(source_root: Path) -> dict[str, int | str]:
         raise ValueError(f"missing referenced meshes, first entry: {missing_meshes[0]}")
 
     return {
-        "robot": "x2_ultra",
+        "robot": "x2_ultra_simple_collision",
         "links": len(links),
         "joints": len(joints),
         "collisions": len(collisions),

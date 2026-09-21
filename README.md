@@ -4,7 +4,7 @@ This repository implements the HRS take-home as a self-contained external Isaac 
 
 The repository never installs files into an existing robot workspace. Isaac Lab is invoked through an explicitly selected, existing Python interpreter, the AgiBot source model and converted USD stay under this repository, ROS builds into this repository, and the ROS–Isaac bridge uses one local Unix socket.
 
-The asset fetcher accepts only AgiBotTech's official HTTPS repository at reviewed commit `77f43eb`, disables submodules and Git hooks, verifies the origin and revision, and deletes a failed download before it can be imported. It only receives public model files; no upload or outward copy of local robot data is performed.
+The asset fetcher accepts only AgiBotTech's official HTTPS repository at reviewed commit `60c5de582c523cd188f563819e62d34cfdc3d2d0`, disables submodules and Git hooks, verifies the origin and revision, and deletes a failed download before it can be imported. It only receives public model files; no upload or outward copy of local robot data is performed.
 
 ROS and Isaac deliberately run in different processes and Python environments. ROS 2 Humble uses its system Python; Isaac uses the Python environment supplied with its simulator stack. Neither process imports the other framework. Their only shared contract is newline-delimited JSON over `/tmp/hrs_x2_recovery.sock`, so sourcing ROS cannot replace Isaac's Python dependencies and Isaac cannot pollute the ROS overlay.
 
@@ -12,14 +12,14 @@ ROS and Isaac deliberately run in different processes and Python environments. R
 
 | Item | Status |
 | --- | --- |
-| External Isaac Lab 3.0 task loads against the local API | Validated without starting physics |
-| Official X2 download and repo-local URDF→USD conversion | Implemented; download unavailable in the execution sandbox |
-| PPO training and strict five-episode Isaac evaluation | Implemented; not run because the official X2 archive is not locally available |
-| Isaac Sim/PhysX CPU startup and stepping | Validated for five physics steps without changing the existing environment |
+| External Isaac Lab 3.0 task and 32 exact-link contact sensors | Validated in live PhysX runs |
+| Official X2 download and repo-local URDF→USD conversion | Validated at pinned upstream commit; 39 links, 38 joints, 50 collision elements and 49 mesh references |
+| PPO training and strict five-episode Isaac evaluation | Real X2 training completed; measured checkpoint, plot and five-episode report are included below |
+| Isaac Sim/PhysX startup and stepping | Validated without changing the existing environment |
 | Reduced-order training experiment | Run; checkpoint and reward plot committed |
 | Reduced-order five-episode evaluation | 5/5; explicitly not a rigid-body or hardware claim |
 | ROS build, launch, acceptance/busy behavior, telemetry, success and timeout failure | Validated |
-| ROS connection to the Isaac policy process | Implemented through local IPC; socket execution blocked by the sandbox |
+| ROS connection to the Isaac policy process | Implemented through mode-0600 local IPC and the exported Isaac policy |
 
 See [the validation record](reports/validation.md) for commands and observed outputs, [the root-cause record](docs/root_cause.md) for environment findings, and [the evidence map](docs/evidence.md) for the research behind each design choice.
 
@@ -40,7 +40,7 @@ build install log logs/           local outputs, ignored by Git
 
 The main path targets Ubuntu, ROS 2 Humble, Isaac Sim 6.0 and Isaac Lab 3.0. The tested local checkout reports `3.0.0-beta2.patch1`. Use the Python environment in which Isaac Lab and RSL-RL are installed.
 
-Validation used Ubuntu 22.04.5, ROS 2 Humble, Python 3.10.12 and an AMD Ryzen AI 9 HX 370 (12 cores/24 threads). Isaac Sim 6.0.1, Isaac Lab 3.0.0 and RSL-RL 5.0.1 were available for API checks, but the process could not access an NVIDIA/CUDA device. The reduced experiment therefore ran on CPU; no GPU model or training time is claimed.
+Validation used Ubuntu 22.04.5, ROS 2 Humble, Python 3.10.12, an AMD Ryzen AI 9 HX 370 (12 cores/24 threads), Isaac Sim 6.0.1, Isaac Lab 3.0.0 and RSL-RL 5.0.1. The real-X2 PPO run used the available CUDA device with 256 parallel environments. Every HRS process ran at nice level 15 on the explicitly selected CPU set `<HOST_CPUSET>`; no system, driver, Conda, ROS, Isaac, or existing robot-project setting was modified.
 
 ```bash
 git clone <submission-url> hrs_x2_take_home
@@ -87,11 +87,17 @@ The installed Isaac/PhysX stack can be checked on CPU without changing that envi
 
 ## Isaac Lab environment
 
-`HRS-X2-Recovery-v0` is a manager-based environment with 200 Hz PhysX simulation and 20 Hz policy decisions. Each reset places the pelvis 0.28 m above the floor and rotates it -90° about Y, then adds small pose, velocity and joint perturbations. In X2's documented FLU frame this points its forward/chest axis upward, keeping every episode on the back while preventing a single exact initial state.
+`HRS-X2-Recovery-v0` is a manager-based environment with 200 Hz PhysX simulation and 20 Hz policy decisions. Each supine reset places the pelvis 0.190 m above the floor and rotates it -90° about Y. In X2's documented FLU frame this points its forward/chest axis upward. A collision-hull audit of all 50 official collision elements measures 0.18030 m from pelvis to the lowest supine point; 20,000 samples over the bounded reset jitter retain at least 6.3 mm of floor clearance. Root and joint velocities start at zero, so the robot begins resting on its back instead of falling into the floor. The reproducible calculation is in `scripts/audit_x2_geometry.py` and `reports/x2_geometry_audit.json`.
+
+The floor is one repo-local 200 m × 200 m kinematic cuboid shared by all clones. This size covers the complete 2,048-environment grid at 2.5 m spacing. An earlier 20 m floor covered only the centre of a 512-environment run and allowed most robots to fall below the scene; those checkpoints are diagnostic only and are excluded from the final result.
+
+The installed Isaac Lab 3.0 beta backend leaves the same-timestamp projected-gravity cache valid after a root-pose write. The task therefore uses a local reset wrapper that invalidates gravity, heading and body-frame root-velocity buffers after the standard reset. A five-seed live probe verifies that the data buffer and the policy observation are identical immediately after every reset, velocity is zero, and the supine projected-gravity Z component remains within ±0.0047. The record is in `reports/x2_reset_probe.json`; no simulator installation file is patched.
 
 The policy observes pelvis height, local linear and angular velocity, projected gravity, relative joint positions and velocities, binary foot contacts, and two previous actions. Uniform observation noise is enabled during training and disabled during evaluation.
 
-The action is one bounded desired position per actuated joint. The articulation first contracts the hard position limits to 90%, then `scale=0.85` maps raw actions into the central 85% of those soft limits. An exponential moving average (`alpha=0.25`) filters the resulting target. One implicit PD actuator group uses `Kp=60`, `Kd=4`; effort and velocity limits are inherited from the USD. This compact design gives the policy full-body control while limiting violent target changes.
+The action is one bounded relative position per actuated joint: `q_target=clip(q_current+0.25*clip(action,-1,1), soft_limits)`. This is HoST's position-increment equation at its final `β=0.25` bound and is consistent with FRASA's integrated desired-joint command. A zero-initialized policy holds its current pose; it does not command the midpoint of every asymmetric joint range. The articulation contracts hard position limits once to 98%, keeping the official zero-endpoint knees within about 0.024 rad of full extension. Implicit PD gains reflect joint load: leg/waist `Kp=120, Kd=6`, ankle `80/5`, arm `40/3`, and wrist/head `15/1.5`. Effort and velocity limits are inherited from the USD.
+
+A separate PhysX reachability probe writes the collision-audited straight pose using the tensor API's scalar-last quaternion convention. It measured a 0.67465 m pelvis height, gravity `[0.00539, 0.00003, -0.99999]` in the body frame, 202/207 N on the feet, zero other-body contact, and 0.75 s of consecutive strict stance before the uncontrolled open-loop pose tipped forward. This verifies that the model, frame convention, contact sensors, floor placement and action limits admit the required stance; the learned policy must supply active balance. The complete trajectory is in `reports/x2_standing_probe.json`.
 
 Episodes last 8 seconds. Time limit is the only training termination because ending at first upright contact would not teach the policy to remain standing. Evaluation applies a separate sustained success check.
 
@@ -110,22 +116,26 @@ All terms are evaluated each 20 Hz policy step.
 
 | Term | Weight | Purpose |
 | --- | ---: | --- |
-| Height-staged recovery progress | `+4.0` | Reward righting below 0.35 m, rising to 0.58 m, then upright standing |
-| Upright exponential | `+2.0` | Align the pelvis vertical axis with gravity |
-| Pelvis height exponential | `+1.5` | Reach the 0.68 m standing target |
-| Both feet in contact | `+1.5` | Establish the required two-foot support |
-| No other body support | `-1.0` per contacting body | Prevent kneeling, hand or torso-supported false positives |
-| Standing still | `+2.0` | Reduce root linear and angular speed near the target |
-| Action rate L2 | `-0.015` | Smooth desired positions |
-| Joint velocity L2 | `-2e-4` | Discourage fast motion |
-| Joint torque L2 | `-2e-6` | Discourage excessive effort |
-| Soft joint-limit violation | `-0.20` | Keep motion away from mechanical limits |
+| `exp(pelvis height)-1` | `+5.0` | HumanUP Stage-I dense rise objective |
+| `exp(head height)-1` | `+5.0` | HumanUP Stage-I whole-body rise objective |
+| Positive pelvis vertical velocity | `+1.0` | Continuous form of HumanUP's height-increase indicator |
+| `exp(-projected gravity z)` | `+0.25` | HumanUP upright objective |
+| Both feet near standing | `+2.5` | Establish the required two-foot support |
+| Other support near standing | `-2.0` per body | Permit transitional pushes, then reject hand, knee or torso support |
+| HoST post-task angular speed | `+10.0` | Stabilize rotation above 0.62 m |
+| HoST post-task planar speed | `+10.0` | Stabilize translation above 0.62 m |
+| HoST post-task orientation | `+10.0` | Make the final pelvis vertical |
+| HoST post-task target height | `+10.0` | Hold the 0.68 m standing target |
+| Action-rate L2 | `-0.10` | Smooth desired positions |
+| Joint acceleration / velocity / torque L2 | `-1e-7 / -1e-4 / -6e-7` | HumanUP weak discovery regularization |
+| Root angular / linear speed L2 | `-0.10 / -0.10` | Bound body motion |
+| Soft joint-limit violation | `-1.0` | Keep motion inside imported limits |
 
-The staged task reward follows HoST's height-dependent righting/rising/standing decomposition. Smooth actions, speed regularization, explicit contact checks and sustained stability follow the hardware concerns reported by HoST and FRASA. He et al.'s real-world getting-up study further motivates the simplified collision model and the explicit post-training collision inspection. Exact equations and numerical checks are in [the formula audit](docs/formula_audit.md); source connections are in [the evidence map](docs/evidence.md).
+Training also uses two published exploration ideas. HumanUP's Stage-I standing-pose mixture starts at 50% and reaches zero after 16,000 policy steps. HoST's upward pelvis-force curriculum starts at 200 N and reaches zero after 24,000 policy steps. Both are disabled in the play/evaluation configuration, and the last 450 iterations of the measured 1,200-iteration run are fully unassisted. Exact equations, adaptations and numerical checks are in [the formula audit](docs/formula_audit.md); every source-to-code connection is in [the evidence map](docs/evidence.md).
 
 ## PPO training and evaluation
 
-The RSL-RL setup uses 2,048 environments, 32 steps per environment, 1,500 maximum iterations, ELU MLPs `[512, 256, 128]`, learning rate `3e-4`, clip `0.2`, discount `0.99`, GAE lambda `0.95`, five learning epochs and four mini-batches. The seed is 42.
+The reusable RSL-RL configuration supports 2,048 environments and 1,500 iterations on a larger GPU. The measured work used 256 environments: one 500-iteration base run, then two 500-iteration branches from its checkpoint. The height-only branch is retained as a measured failed ablation; the orientation-gated branch is the final policy. Each iteration collected 32 steps per environment. The final policy's training lineage contains 8.192 million simulated policy steps; all three experiments total 12.288 million. Every run used seed 42, ELU MLPs `[512, 256, 128]`, learning rate `3e-4`, clip `0.2`, discount `0.99`, GAE lambda `0.95`, five learning epochs and four mini-batches.
 
 ```bash
 ./scripts/train_isaac.sh --num_envs 2048 --seed 42 --device cuda:0
@@ -133,12 +143,12 @@ The RSL-RL setup uses 2,048 environments, 32 steps per environment, 1,500 maximu
 # Device-isolated or CPU-only machine: slower, but uses the same X2 task.
 ./scripts/train_isaac.sh --num_envs 64 --seed 42 --device cpu
 
-# Play a checkpoint; Isaac Lab also exports policy.pt and policy.onnx.
+# Run the deterministic five-episode viewer without --headless.
 ./scripts/play_isaac.sh logs/rsl_rl/hrs_x2_recovery/<run>/model_<iteration>.pt
 
 # Exactly five reproducible, perturbed back-lying starts: seeds 101–105.
 ./scripts/evaluate_isaac.sh \
-  logs/rsl_rl/hrs_x2_recovery/<run>/exported/policy.pt
+  logs/rsl_rl/hrs_x2_recovery/<run>/model_<iteration>.pt
 ```
 
 A recovery counts only after all checks hold continuously for 0.5 seconds:
@@ -150,7 +160,7 @@ A recovery counts only after all checks hold continuously for 0.5 seconds:
 - each foot contact force ≥ 15 N;
 - every other body contact force < 15 N.
 
-The evaluator writes `reports/isaac_evaluation.json`. No such file is committed yet because the high-fidelity run was blocked; a missing result is preferable to fabricated evidence.
+The evaluator writes `reports/isaac_evaluation.json` and exports TorchScript and ONNX policies under `reports/exported/`. The first 500-iteration report is retained as `reports/isaac_evaluation_500.json`; it records the measured local optimum that motivated the second phase.
 
 The committed CPU harness uses seeded cross-entropy search over a four-synergy, three-phase controller. The completed run used 60 iterations, 80 candidates per iteration, eight elites and two seeded rollouts per candidate. It produced [a checkpoint](src/x2_recovery_ros/artifacts/recovery_policy.npz), [a reward plot](reports/training_reward.png), and [a five-episode report](reports/evaluation.json). All fixed evaluation seeds 101–105 passed in 104–110 steps. This 5/5 result validates orchestration and metrics only; it is not evidence about X2 rigid-body dynamics.
 
@@ -210,7 +220,7 @@ The local server owns the Isaac environment and policy. For each request it rese
 
 ## Limits and next experiments
 
-The main open item is an actual Isaac training curve and five-episode result. After that run, the first useful improvements are to inspect collision geometry at reset, tune the stand-height threshold from the imported model, plot each reward component, and run ablations for staged reward, contact penalties and randomization. Before hardware work, actuator gains, delay, friction, mass and centre-of-mass ranges must be identified from the X2; torque, thermal and self-collision safety need separate validation. No result in this repository is presented as proof of safe hardware transfer.
+The simulator results establish reproducible software behavior only. The next useful experiments are a two-stage pose curriculum, a short reference-motion seed, and ablations for the staged reward, height gate and domain randomization. Before hardware work, actuator gains, delay, friction, mass and centre-of-mass ranges must be identified from the X2; torque, thermal and self-collision safety need separate validation. No result in this repository is presented as proof of safe hardware transfer.
 
 This is a complete standalone local Git repository with meaningful staged commits. No remote is configured. If a submission repository is requested later, preserve the local history with:
 

@@ -7,5 +7,5 @@ source "${project_dir}/scripts/isaac_runtime.sh"
 
 cd "${project_dir}"
 export PYTHONPATH="${project_dir}/isaaclab_ext${PYTHONPATH:+:${PYTHONPATH}}"
-run_isaac_offline "${ISAAC_PYTHON}" scripts/isaac_train_entry.py \
+run_isaac_offline "${ISAAC_PYTHON}" scripts/probe_reset_freshness.py \
   --headless --kit_args "${HRS_KIT_OFFLINE_ARGS}" "$@"

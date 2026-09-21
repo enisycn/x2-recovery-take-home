@@ -1,0 +1,133 @@
+{
+  "backend": "Isaac Lab 3.0 / PhysX",
+  "seeds": [
+    101,
+    102,
+    103,
+    104,
+    105
+  ],
+  "all_resets_fresh_and_supine": true,
+  "resets": [
+    {
+      "seed": 101,
+      "pelvis_height_m": 0.18963,
+      "root_quaternion_xyzw": [
+        0.7076914,
+        0.0068034,
+        -0.7064787,
+        -0.0038169
+      ],
+      "projected_gravity_data": [
+        0.9998859,
+        0.0150153,
+        0.0017467
+      ],
+      "projected_gravity_observation": [
+        0.9998859,
+        0.0150153,
+        0.0017467
+      ],
+      "data_observation_max_error": 0.0,
+      "root_linear_speed_m_s": 0.0,
+      "root_angular_speed_rad_s": 0.0,
+      "passes": true
+    },
+    {
+      "seed": 102,
+      "pelvis_height_m": 0.190476,
+      "root_quaternion_xyzw": [
+        0.7066644,
+        0.004519,
+        -0.7074988,
+        -0.0071045
+      ],
+      "projected_gravity_data": [
+        0.9998643,
+        0.0164354,
+        -0.0012101
+      ],
+      "projected_gravity_observation": [
+        0.9998643,
+        0.0164354,
+        -0.0012101
+      ],
+      "data_observation_max_error": 0.0,
+      "root_linear_speed_m_s": 0.0,
+      "root_angular_speed_rad_s": 0.0,
+      "passes": true
+    },
+    {
+      "seed": 103,
+      "pelvis_height_m": 0.189377,
+      "root_quaternion_xyzw": [
+        0.7070612,
+        0.0023078,
+        -0.7071483,
+        -0.0007751
+      ],
+      "projected_gravity_data": [
+        0.9999906,
+        0.0043599,
+        -0.0001185
+      ],
+      "projected_gravity_observation": [
+        0.9999906,
+        0.0043599,
+        -0.0001185
+      ],
+      "data_observation_max_error": 0.0,
+      "root_linear_speed_m_s": 0.0,
+      "root_angular_speed_rad_s": 0.0,
+      "passes": true
+    },
+    {
+      "seed": 104,
+      "pelvis_height_m": 0.190455,
+      "root_quaternion_xyzw": [
+        0.7054697,
+        0.0001804,
+        -0.7087389,
+        0.0013406
+      ],
+      "projected_gravity_data": [
+        0.9999881,
+        -0.0016358,
+        -0.0046251
+      ],
+      "projected_gravity_observation": [
+        0.9999881,
+        -0.0016358,
+        -0.0046251
+      ],
+      "data_observation_max_error": 0.0,
+      "root_linear_speed_m_s": 0.0,
+      "root_angular_speed_rad_s": 0.0,
+      "passes": true
+    },
+    {
+      "seed": 105,
+      "pelvis_height_m": 0.190187,
+      "root_quaternion_xyzw": [
+        0.7073113,
+        0.0017457,
+        -0.7068871,
+        -0.0043035
+      ],
+      "projected_gravity_data": [
+        0.9999635,
+        0.0085558,
+        0.0005842
+      ],
+      "projected_gravity_observation": [
+        0.9999635,
+        0.0085558,
+        0.0005842
+      ],
+      "data_observation_max_error": 0.0,
+      "root_linear_speed_m_s": 0.0,
+      "root_angular_speed_rad_s": 0.0,
+      "passes": true
+    }
+  ]
+}
