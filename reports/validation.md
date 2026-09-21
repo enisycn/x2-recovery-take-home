@@ -1,119 +1,87 @@
 # Validation record
 
-Updated on 21 September 2026. Results below distinguish executed checks from code that could not be run in the sandbox.
+Updated on 21 September 2026. Every result below was executed on the target workstation. No result from the reduced CPU harness is presented as an X2 rigid-body result.
 
-## Static and unit checks
+## System and isolation
 
-```bash
-/usr/bin/python3 -m compileall -q isaaclab_ext src/x2_recovery_ros/x2_recovery_ros scripts
-bash -n scripts/*.sh
-PYTHONPATH="$PWD/src/x2_recovery_ros" /usr/bin/python3 -m pytest -q src/x2_recovery_ros/test
-ISAAC_PYTHON=/path/to/isaac/bin/python ./scripts/check_runtime_isolation.sh
-ISAAC_PYTHON=/path/to/isaac/bin/python ./scripts/test_isaac_formulas.sh
-```
+Validation used Ubuntu 22.04.5, ROS 2 Humble, Python 3.10.12, Isaac Sim 6.0.1, Isaac Lab 3.0.0, RSL-RL 5.0.1 and an NVIDIA GeForce RTX 5080 Laptop GPU. HRS processes ran at nice level 15 on CPU set `<HOST_CPUSET>`. `scripts/check_runtime_isolation.sh` confirmed that system Python imports ROS but not Isaac Lab, while the selected Isaac Python 3.12.13 imports Isaac Lab but not `rclpy`. The two processes exchange newline JSON through a local mode-0600 Unix socket.
 
-Observed: Python and shell checks passed; ROS tests reported `7 passed, 1 skipped`, and the independent Isaac equation suite reported `5 passed`. The runtime-isolation check confirmed distinct Python executables: ROS imported `rclpy` but could not see Isaac Lab, while the Isaac interpreter imported Isaac Lab but could not see `rclpy`. The skipped test exercises a real Unix socket, and the execution sandbox rejects `AF_UNIX` creation with `EPERM`. The IPC path therefore still requires an end-to-end run on the target workstation.
+The official AgiBot X2 Ultra v1.3.0 simplified-collision URDF is pinned at upstream commit `60c5de582c523cd188f563819e62d34cfdc3d2d0`. The imported floating-base model has 39 links, 38 joints, 50 collision elements, 49 mesh references and 41.966521 kg total mass. Geometry, live reset, curriculum and standing-reachability reports are committed alongside this record.
 
-The Isaac task and PPO registration loaded with the machine's Isaac Lab 3.0 Python environment:
-
-```text
-Gym tasks: HRS-X2-Recovery-v0, HRS-X2-Recovery-Play-v0
-experiment: hrs_x2_recovery
-num_envs: 2048
-simulation dt: 0.005 s
-decimation: 10
-episode: 8.0 s
-```
-
-Validation ran on Ubuntu 22.04.5 with an AMD Ryzen AI 9 HX 370 (12 cores/24 threads), Python 3.10.12 and ROS 2 Humble. The installed simulator stack reported Isaac Sim 6.0.1, Isaac Lab 3.0.0 and RSL-RL 5.0.1. Importing the configuration emitted `no CUDA-capable device is detected`, so no GPU PPO result is claimed.
-
-A minimal five-step Isaac Sim/PhysX rollout was subsequently executed with an explicit CPU device:
+## PPO experiment
 
 ```bash
-/path/to/isaac/python scripts/probe_isaac_cpu.py --headless --device cpu
+ISAAC_PYTHON=<USER_HOME>/miniconda3/envs/codex/bin/python \
+HRS_CPUSET='<HOST_CPUSET>' HRS_NICE=15 \
+./scripts/train_isaac.sh \
+  --max_iterations 400 --num_envs 3000 --device cuda:0 \
+  --seed 42 --run_name final_3000_env
 ```
 
-Observed: `Isaac/PhysX probe passed on device=cpu`. This establishes a CPU import/training route without changing the existing Isaac environment. It does not replace the required X2 rollout, which still needs the official model archive.
+Observed: exit code 0 after 400 optimizer iterations and 38,400,000 simulator transitions. The run sustained about 11,500 transitions/s during the final iterations and used about 5 GB of GPU memory. Its mean episode reward rose to 59.37. The standing-reset mixture reached zero near iteration 85 and the orientation-gated lift force reached zero near iteration 128, leaving about 272 fully unassisted iterations. Despite the rising total reward, `standing_on_feet` and every post-standing term remained zero at the end. The committed outputs are:
 
-The training launcher was also invoked with the explicit interpreter, one CPU environment and zero requested iterations. It selected `<USER_HOME>/miniconda3/envs/codex/bin/python`, registered `HRS-X2-Recovery-v0`, resolved the PPO entry point, and stopped at the deliberate `X2 USD not found` check. This confirms that the earlier Conda-base interpreter problem is fixed and the asset is now the only startup dependency.
+- `reports/checkpoints/x2_recovery_model_399.pt`;
+- `reports/isaac_training_reward.png` and its scalar CSV;
+- TorchScript and ONNX exports in `reports/exported/`.
 
-## Reduced-order experiment
+## Strict five-episode Isaac evaluation
 
 ```bash
-./scripts/run_training.sh --seed 7 --iterations 60 --population 80
-./scripts/run_evaluation.sh
+./scripts/evaluate_isaac.sh \
+  logs/rsl_rl/hrs_x2_recovery/2026-09-21_15-20-26_final_3000_env/model_399.pt \
+  --output reports/isaac_evaluation.json --device cuda:0
 ```
 
-The committed training run used seeded cross-entropy policy search: 60 iterations, population 80, eight elites, two rollouts per candidate and seed 7. Candidate selection used five separate validation seeds (90001–90005); the evaluation seeds below were not used for fitting or selection. The held-out evaluation is in `reports/evaluation.json`.
+Evaluation disables standing starts, lift assistance, observation noise and domain randomization. Each seed begins in a reproducibly perturbed, collision-audited supine pose. Success requires 0.5 continuous seconds with pelvis height at least 0.62 m, projected-gravity XY norm at most 0.15 and Z at most -0.98, root speeds at most 0.20 m/s and 0.35 rad/s, at least 15 N on each foot, and less than 15 N on every other body.
 
-| Episode | Seed | Result | Steps | Return | Failure |
-| ---: | ---: | --- | ---: | ---: | --- |
-| 1 | 101 | success | 109 | 61.63 | |
-| 2 | 102 | success | 110 | 61.69 | |
-| 3 | 103 | success | 109 | 61.58 | |
-| 4 | 104 | success | 104 | 61.12 | |
-| 5 | 105 | success | 106 | 61.31 | |
+| Episode | Seed | Result | Max pelvis (m) | Max upright | Longest two-foot contact (s) | Max strict stance (s) |
+| ---: | ---: | --- | ---: | ---: | ---: | ---: |
+| 1 | 101 | failed | 0.1896 | 0.9998 | 0.70 | 0.00 |
+| 2 | 102 | failed | 0.1905 | 0.9998 | 0.60 | 0.00 |
+| 3 | 103 | failed | 0.1894 | 0.9998 | 0.50 | 0.00 |
+| 4 | 104 | failed | 0.1905 | 1.0000 | 0.60 | 0.00 |
+| 5 | 105 | failed | 0.1902 | 0.9998 | 0.55 | 0.00 |
 
-All five episodes reached the CPU harness's stable, upright, two-foot, unsupported predicate within the 6.0 s timeout. The 5/5 count is a CPU orchestration baseline, not an X2 rigid-body result.
+Final result: **0/5 successful recoveries**. The robot learned to rotate its pelvis upright and sometimes touched both feet, but it never raised the pelvis above its roughly 0.190 m initial height. Terminal pelvis height was 0.0932–0.0959 m, one foot carried no force, and maximum non-foot contact was 725.01–785.65 N. The failure is therefore a low, body-supported upright local optimum rather than a frame, collision-floor or success-detector error.
 
-## ROS 2 Humble
+The present curriculum mixes only the two endpoints: supine and straight standing. Three thousand parallel environments increase sample throughput, but 400 iterations still provide only 400 policy updates and no intermediate kneeling or rising states. The evidence-supported next experiment is a phase-based reference-pose curriculum that samples the missing contact transitions, followed by an unassisted fine-tuning phase and evaluation on untouched seeds. Relaxing the success predicate would conceal the failure and was not done.
+
+## ROS 2 build and runtime
 
 Fresh build:
 
 ```bash
-source /opt/ros/humble/setup.bash
-colcon build --symlink-install --packages-select x2_recovery_ros
+./scripts/build_ros.sh
 ```
 
 Observed: `1 package finished`.
 
-The repeatable runtime check launches both nodes, exercises success and timeout paths, and keeps Fast DDS on shared memory without opening a network port:
+The deterministic CPU harness validates both ROS terminal paths:
 
 ```bash
 ./scripts/validate_ros_runtime.sh
 ```
 
-Observed first response:
+Observed: the first request returned `success=True, message='Recovery accepted'`; the concurrent request returned `success=False, message='Recovery already running'`; live joint states were received; the normal scenario reached `SUCCEEDED` in 109 steps; and `policy_mode:=zero timeout_sec:=0.5` reached `FAILED` in 10 steps.
 
-```text
-success=True, message='Recovery accepted'
+The exported PPO policy was then exercised through the actual Isaac server:
+
+```bash
+ISAAC_PYTHON=<USER_HOME>/miniconda3/envs/codex/bin/python \
+HRS_CPUSET='<HOST_CPUSET>' HRS_NICE=15 \
+./scripts/validate_ros_isaac_runtime.sh reports/exported/policy.pt
 ```
 
-An immediate second call returned:
+Observed: the first `/x2/start_recovery` request was accepted; an immediate second request was rejected as busy; `/x2/joint_states` returned a timestamped sample with all 31 simulator joints; and the real Isaac episode reached `FAILED` after 60 policy steps with `timeout before 0.5 s strict stable stance`. The command ended with `ROS-Isaac runtime validation passed`.
 
-```text
-success=False, message='Recovery already running'
+## Automated checks
+
+```bash
+/usr/bin/python3 -m compileall -q isaaclab_ext src/x2_recovery_ros/x2_recovery_ros scripts
+bash -n scripts/*.sh
+PYTHONPATH="$PWD/src/x2_recovery_ros" /usr/bin/python3 -m pytest -q src/x2_recovery_ros/test
+ISAAC_PYTHON=<USER_HOME>/miniconda3/envs/codex/bin/python ./scripts/test_isaac_formulas.sh
+ISAAC_PYTHON=<USER_HOME>/miniconda3/envs/codex/bin/python ./scripts/check_runtime_isolation.sh
 ```
 
-Live telemetry was read from the running episode:
-
-```text
-name: [left_hip_pitch_joint, left_knee_joint, left_ankle_pitch_joint,
-       right_hip_pitch_joint, right_knee_joint, right_ankle_pitch_joint]
-position: [0.2330, 0.3466, -0.0289, 0.2330, 0.3466, -0.0289]
-status: RUNNING
-```
-
-The node and telemetry log then reached `SUCCEEDED`; the recovery node reported 109 steps. With `policy_mode:=zero timeout_sec:=0.5`, it reported:
-
-```text
-Recovery failed in 10 steps: timeout before stable two-foot stance
-status=FAILED
-```
-
-The sandbox blocks network-interface inspection and prints benign `getifaddrs` warnings. `config/fastdds_shm.xml` disables UDP/TCP transports; the launch and CLI processes share one sandbox namespace, and the local service/topic checks passed without a network port.
-
-## Blocked high-fidelity run
-
-The official model checkout could not be fetched from the shell because outbound Git DNS is disabled, and no X2 URDF was already present. Browser access to both GitHub and AgiBot's official SDK page was rejected by saved browser permissions, so it was not bypassed. CPU PhysX works; CUDA acceleration is unavailable because the sandbox exposes no `/dev/nvidia*` devices. Consequently:
-
-- no X2 USD was generated;
-- no X2 PPO checkpoint or Isaac reward curve exists;
-- no five-episode Isaac success count is reported;
-- the ROS–Isaac socket server was syntax/API checked but not exercised end to end.
-
-The exact commands to complete those checks on the intended workstation are in the README.
-
-## Repository state
-
-The standalone local repository has meaningful staged commits and passes `git fsck`. It has no configured remote, and no existing robot workspace was read into or copied into this repository.
+Observed: compilation and shell syntax passed; ROS tests reported `8 passed`; the independent formula suite reported `13 passed`; and runtime isolation passed. The repository also passes `git diff --check` and `git fsck` after the final artifact commit.

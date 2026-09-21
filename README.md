@@ -14,12 +14,12 @@ ROS and Isaac deliberately run in different processes and Python environments. R
 | --- | --- |
 | External Isaac Lab 3.0 task and 32 exact-link contact sensors | Validated in live PhysX runs |
 | Official X2 download and repo-local URDF→USD conversion | Validated at pinned upstream commit; 39 links, 38 joints, 50 collision elements and 49 mesh references |
-| PPO training and strict five-episode Isaac evaluation | Real X2 training completed; measured checkpoint, plot and five-episode report are included below |
+| PPO training and strict five-episode Isaac evaluation | Completed: 38.4 M transitions, checkpoint/plot committed, strict result 0/5 with measured failure analysis |
 | Isaac Sim/PhysX startup and stepping | Validated without changing the existing environment |
 | Reduced-order training experiment | Run; checkpoint and reward plot committed |
 | Reduced-order five-episode evaluation | 5/5; explicitly not a rigid-body or hardware claim |
 | ROS build, launch, acceptance/busy behavior, telemetry, success and timeout failure | Validated |
-| ROS connection to the Isaac policy process | Implemented through mode-0600 local IPC and the exported Isaac policy |
+| ROS connection to the Isaac policy process | Validated through mode-0600 local IPC: accepted request, busy rejection, 31-joint telemetry and measured `FAILED` timeout |
 
 See [the validation record](reports/validation.md) for commands and observed outputs, [the root-cause record](docs/root_cause.md) for environment findings, and [the evidence map](docs/evidence.md) for the research behind each design choice.
 
@@ -40,7 +40,7 @@ build install log logs/           local outputs, ignored by Git
 
 The main path targets Ubuntu, ROS 2 Humble, Isaac Sim 6.0 and Isaac Lab 3.0. The tested local checkout reports `3.0.0-beta2.patch1`. Use the Python environment in which Isaac Lab and RSL-RL are installed.
 
-Validation used Ubuntu 22.04.5, ROS 2 Humble, Python 3.10.12, an AMD Ryzen AI 9 HX 370 (12 cores/24 threads), Isaac Sim 6.0.1, Isaac Lab 3.0.0 and RSL-RL 5.0.1. The real-X2 PPO run used the available CUDA device with 256 parallel environments. Every HRS process ran at nice level 15 on the explicitly selected CPU set `<HOST_CPUSET>`; no system, driver, Conda, ROS, Isaac, or existing robot-project setting was modified.
+Validation used Ubuntu 22.04.5, ROS 2 Humble, Python 3.10.12, an AMD Ryzen AI 9 HX 370 (12 cores/24 threads), Isaac Sim 6.0.1, Isaac Lab 3.0.0, RSL-RL 5.0.1 and an NVIDIA GeForce RTX 5080 Laptop GPU. The final real-X2 PPO run used 3,000 parallel environments. Every HRS process ran at nice level 15 on the explicitly selected CPU set `<HOST_CPUSET>`; no system, driver, Conda, ROS, Isaac, or existing robot-project setting was modified.
 
 ```bash
 git clone <submission-url> hrs_x2_take_home
@@ -161,7 +161,11 @@ A recovery counts only after all checks hold continuously for 0.5 seconds:
 - each foot contact force ≥ 15 N;
 - every other body contact force < 15 N.
 
-The evaluator writes `reports/isaac_evaluation.json` and exports TorchScript and ONNX policies under `reports/exported/`. The first 500-iteration report is retained as `reports/isaac_evaluation_500.json`; it records the measured local optimum that motivated the second phase.
+The final deterministic evaluation produced **0/5 successful recoveries**. Across seeds 101–105, maximum pelvis height was 0.1894–0.1905 m, maximum upright score was 0.9998–1.0000, and two-foot contact lasted at most 0.50–0.70 s. The policy therefore learned to rotate the pelvis upright and sometimes touch both feet, but never lifted above the initial supine pelvis height; terminal non-foot support reached 725–786 N. The exact per-seed states are in [the Isaac evaluation report](reports/isaac_evaluation.json).
+
+This result isolates the remaining learning problem. The official model can stand: the independent PhysX reachability probe held every strict condition for 0.75 s at 0.67465 m. The final PPO task instead mixed only supine and straight-standing reset endpoints, so 3,000 parallel environments supplied more samples without supplying the intermediate kneeling and rising contact states. The next experiment should use HumanUP's discovered/reference motion as a phase-conditioned pose curriculum, train the missing transitions, then remove that curriculum for an unassisted fine-tune. Evaluation seeds must remain outside model selection.
+
+The evaluator writes `reports/isaac_evaluation.json` and exports TorchScript and ONNX policies under `reports/exported/`. Only the final audited run is part of the submission result; earlier reports remain local diagnostics.
 
 The committed CPU harness uses seeded cross-entropy search over a four-synergy, three-phase controller. The completed run used 60 iterations, 80 candidates per iteration, eight elites and two seeded rollouts per candidate. It produced [a checkpoint](src/x2_recovery_ros/artifacts/recovery_policy.npz), [a reward plot](reports/training_reward.png), and [a five-episode report](reports/evaluation.json). All fixed evaluation seeds 101–105 passed in 104–110 steps. This 5/5 result validates orchestration and metrics only; it is not evidence about X2 rigid-body dynamics.
 
@@ -221,7 +225,7 @@ The local server owns the Isaac environment and policy. For each request it rese
 
 ## Limits and next experiments
 
-The simulator results establish reproducible software behavior only. The next useful experiments are a two-stage pose curriculum, a short reference-motion seed, and ablations for the staged reward, height gate and domain randomization. Before hardware work, actuator gains, delay, friction, mass and centre-of-mass ranges must be identified from the X2; torque, thermal and self-collision safety need separate validation. No result in this repository is presented as proof of safe hardware transfer.
+The simulator results establish reproducible software behavior only. The measured policy is not ready for hardware: it scored 0/5 and still uses heavy non-foot support. The next useful experiment is a two-stage pose/reference-motion curriculum followed by ablations for the staged reward, height gate and domain randomization. Before hardware work, actuator gains, delay, friction, mass and centre-of-mass ranges must be identified from the X2; torque, thermal and self-collision safety need separate validation. No result in this repository is presented as proof of safe hardware transfer.
 
 This is a complete standalone local Git repository with meaningful staged commits. No remote is configured. If a submission repository is requested later, preserve the local history with:
 

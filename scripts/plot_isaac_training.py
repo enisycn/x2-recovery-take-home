@@ -54,7 +54,9 @@ def main() -> None:
 
     args.csv.parent.mkdir(parents=True, exist_ok=True)
     with args.csv.open("w", newline="", encoding="utf-8") as stream:
-        writer = csv.writer(stream)
+        # Keep the committed artifact platform-neutral and friendly to Git's
+        # whitespace checks instead of csv.writer's default CRLF dialect.
+        writer = csv.writer(stream, lineterminator="\n")
         writer.writerow(("phase", "iteration", "mean_reward"))
         for label, steps, rewards, _ in series:
             writer.writerows((label, int(step), float(value)) for step, value in zip(steps, rewards))
