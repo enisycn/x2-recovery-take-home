@@ -69,8 +69,8 @@ def test_audited_reset_and_standing_heights_match_collision_geometry() -> None:
 
 
 def test_shared_floor_covers_the_full_parallel_environment_grid() -> None:
-    # The global floor must cover every origin in the 2048-env clone grid.
-    required_side = math.ceil(math.sqrt(2048)) * 2.5 + 2.0
+    # The global floor must cover every origin in the 4096-env clone grid.
+    required_side = math.ceil(math.sqrt(4096)) * 2.5 + 2.0
     assert 200.0 >= required_side
 
 
@@ -204,3 +204,5 @@ def test_training_assistance_schedules_reach_zero() -> None:
     assert mdp.linear_anneal(0.5, 0.0, 16_000, 16_000) == 0.0
     assert mdp.linear_anneal(200.0, 0.0, 12_000, 24_000) == 100.0
     assert mdp.linear_anneal(200.0, 0.0, 30_000, 24_000) == 0.0
+    assert mdp.linear_anneal(0.5, 0.0, 8_192_000, 8_192_000) == 0.0
+    assert mdp.linear_anneal(247.0, 0.0, 12_288_000, 12_288_000) == 0.0

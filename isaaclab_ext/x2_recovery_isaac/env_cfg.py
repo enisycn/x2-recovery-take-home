@@ -24,7 +24,7 @@ from .relative_action import BoundedRelativeJointPositionActionCfg
 from .x2_robot_cfg import X2_CFG
 
 
-MAX_CONFIGURED_ENVS = 2048
+MAX_CONFIGURED_ENVS = 4096
 ENV_SPACING_M = 2.5
 GROUND_SIDE_M = 200.0
 _required_ground_side = math.ceil(math.sqrt(MAX_CONFIGURED_ENVS)) * ENV_SPACING_M + 2.0
@@ -101,7 +101,7 @@ class X2RecoverySceneCfg(InteractiveSceneCfg):
         init_state=AssetBaseCfg.InitialStateCfg(pos=(0.0, 0.0, -0.05)),
         spawn=sim_utils.CuboidCfg(
             # This prim is shared by every cloned environment.  Cover the
-            # entire 2048-env grid, not just the central 20 m patch.
+            # entire 4096-env grid, not just the central 20 m patch.
             size=(GROUND_SIDE_M, GROUND_SIDE_M, 0.10),
             rigid_props=sim_utils.RigidBodyPropertiesCfg(kinematic_enabled=True),
             collision_props=sim_utils.CollisionPropertiesCfg(),
@@ -249,11 +249,12 @@ class EventsCfg:
                 "pitch": (0.0, 0.0),
                 "yaw": (0.0, 0.0),
             },
-            # HumanUP Stage-I mixes standing starts into discovery.  The mix
-            # disappears by iteration ~500 (32 control steps/iteration).
+            # HumanUP Stage-I mixes standing starts into discovery. Measure
+            # this schedule in aggregate transitions so larger GPU batches do
+            # not unnecessarily prolong the assisted stage.
             "standing_probability_start": 0.50,
             "standing_probability_end": 0.0,
-            "standing_probability_anneal_steps": 16_000,
+            "standing_probability_anneal_transitions": 8_192_000,
             # X2's audited standing root is 0.68 m versus 0.19 m supine.
             "standing_height_offset": 0.49,
         },
@@ -273,7 +274,7 @@ class EventsCfg:
         params={
             "start_force_n": HOST_ASSIST_FORCE_N,
             "end_force_n": 0.0,
-            "anneal_steps": 24_000,
+            "anneal_transitions": 12_288_000,
             "orientation_threshold": 0.80,
             "asset_cfg": SceneEntityCfg("robot", body_names="pelvis"),
         },

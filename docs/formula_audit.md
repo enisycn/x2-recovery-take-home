@@ -23,7 +23,7 @@ The zero action therefore holds the current pose, while repeated bounded increme
 
 ## Task rewards and curriculum
 
-Let `h_b` and `h_h` be pelvis and head height, `g_b` projected gravity in the pelvis frame, `v` and `ω` root linear and angular velocity, and `I[·]` an indicator. Upright gives `g_b=(0,0,-1)`. The dense discovery group follows HumanUP Stage-I Appendix Table II:
+Let `h_b` and `h_h` be pelvis and head height, `g_b` projected gravity in the pelvis frame, `v` and `ω` root linear and angular velocity, `K` the aggregate simulator transition count across all parallel environments, and `I[·]` an indicator. Upright gives `g_b=(0,0,-1)`. The dense discovery group follows HumanUP Stage-I Appendix Table II:
 
 \[
 r_{base}=\exp(h_b)-1, \qquad
@@ -80,21 +80,21 @@ The discovery and regularization weights come from HumanUP Table II; the post-ta
 Two training-only curricula address sparse contact exploration. The probability of a safe straight standing reset is
 
 \[
-p_{stand}(k)=0.5\max(1-k/16000,0),
+p_{stand}(K)=0.5\max(1-K/8{,}192{,}000,0),
 \]
 
 following HumanUP's Stage-I mixture of standing poses. HoST's official cross-robot guidance scales the pull to about 60% of robot weight and applies it only after the trunk becomes near vertical. The pinned X2 URDF has total mass 41.966521 kg, so the world-up pelvis force is
 
 \[
-F_z(k)=0.60(41.966521)(9.81)\max(1-k/24000,0)
+F_z(K)=0.60(41.966521)(9.81)\max(1-K/12{,}288{,}000,0)
 I[-g_{b,z}\geq0.80]\;\mathrm{N}.
 \]
 
 It begins at 247.015 N. The orientation gate leaves the initial supine ground reaction unchanged and assists only the ground-sitting/rising phase.
 
-Both are exactly zero for the last part of the 1,200-iteration run. The play/evaluation configuration disables them regardless of checkpoint iteration, so they cannot help a reported episode.
+With 3,000 environments and 32 policy steps per PPO iteration, standing starts end after about 85 iterations and force assistance after 128. The last roughly 272 iterations of the 400-iteration final run are therefore unassisted. The play/evaluation configuration disables both regardless of checkpoint iteration, so they cannot help a reported episode.
 
-The first branches are retained as diagnostic evidence: a 500-iteration policy became upright but stayed low, and a height-dominant branch found an inverted bridge. A later 512-environment audit found that the original single 20 m floor covered only the central part of the approximately 58 m clone grid. The corrected shared floor is 200 m square and covers the configured 2,048-environment grid; a numerical test guards that geometry. Those earlier checkpoints cannot be treated as valid final experiments.
+The first branches are retained as diagnostic evidence: a 500-iteration policy became upright but stayed low, and a height-dominant branch found an inverted bridge. A later 512-environment audit found that the original single 20 m floor covered only the central part of the approximately 58 m clone grid. The corrected shared floor is 200 m square and covers the configured 4,096-environment grid; a numerical test guards that geometry. Those earlier checkpoints cannot be treated as valid final experiments.
 
 ## Strict evaluation predicate
 

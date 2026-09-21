@@ -449,7 +449,7 @@ def reset_root_state_recovery_curriculum(
     velocity_range: dict[str, tuple[float, float]],
     standing_probability_start: float,
     standing_probability_end: float,
-    standing_probability_anneal_steps: int,
+    standing_probability_anneal_transitions: int,
     standing_height_offset: float,
     asset_cfg: SceneEntityCfg = SceneEntityCfg("robot"),
 ) -> None:
@@ -469,12 +469,12 @@ def reset_root_state_recovery_curriculum(
         velocity_range=velocity_range,
         asset_cfg=asset_cfg,
     )
-    step = int(getattr(env, "common_step_counter", 0))
+    transition = int(getattr(env, "common_step_counter", 0)) * int(env.scene.num_envs)
     probability = linear_anneal(
         standing_probability_start,
         standing_probability_end,
-        step,
-        standing_probability_anneal_steps,
+        transition,
+        standing_probability_anneal_transitions,
     )
     if probability <= 0.0:
         return
@@ -498,7 +498,7 @@ def apply_vertical_force_curriculum(
     env_ids: torch.Tensor,
     start_force_n: float,
     end_force_n: float,
-    anneal_steps: int,
+    anneal_transitions: int,
     orientation_threshold: float,
     asset_cfg: SceneEntityCfg = SceneEntityCfg("robot", body_names="pelvis"),
 ) -> None:
@@ -509,8 +509,8 @@ def apply_vertical_force_curriculum(
     robot: Articulation = env.scene[asset_cfg.name]
     if env_ids is None:
         env_ids = torch.arange(env.scene.num_envs, device=robot.device)
-    step = int(getattr(env, "common_step_counter", 0))
-    magnitude = linear_anneal(start_force_n, end_force_n, step, anneal_steps)
+    transition = int(getattr(env, "common_step_counter", 0)) * int(env.scene.num_envs)
+    magnitude = linear_anneal(start_force_n, end_force_n, transition, anneal_transitions)
     body_ids = asset_cfg.body_ids
     quaternions = robot.data.body_quat_w.torch[env_ids][:, body_ids, :]
     world_force = torch.zeros((*quaternions.shape[:-1], 3), device=robot.device)
