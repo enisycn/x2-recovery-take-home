@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Plot measured RSL-RL reward from diagnostic and final X2 runs."""
+"""Plot measured RSL-RL reward from the final X2 run and optional diagnostics."""
 
 from __future__ import annotations
 
@@ -34,18 +34,19 @@ def moving_average(values: np.ndarray, window: int = 20) -> np.ndarray:
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--initial", type=Path, required=True)
-    parser.add_argument("--corrected", type=Path, required=True)
+    parser.add_argument("--initial", type=Path)
+    parser.add_argument("--corrected", type=Path)
     parser.add_argument("--orientation-gated", type=Path)
     parser.add_argument("--final", type=Path, required=True)
     parser.add_argument("--output", type=Path, default=Path("reports/isaac_training_reward.png"))
     parser.add_argument("--csv", type=Path, default=Path("reports/isaac_training_reward.csv"))
     args = parser.parse_args()
 
-    runs = [
-        ("initial", args.initial, "#1d4ed8"),
-        ("height_only_branch", args.corrected, "#c2410c"),
-    ]
+    runs = []
+    if args.initial is not None:
+        runs.append(("initial", args.initial, "#1d4ed8"))
+    if args.corrected is not None:
+        runs.append(("height_only_branch", args.corrected, "#c2410c"))
     if args.orientation_gated is not None:
         runs.append(("orientation_gated_diagnostic", args.orientation_gated, "#7c3aed"))
     runs.append(("final_audited", args.final, "#15803d"))

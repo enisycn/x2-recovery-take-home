@@ -74,6 +74,11 @@ ALL_CONTACT_SENSORS = (
     "contact_head_pitch_link",
 )
 
+# Sum of the masses in the pinned official X2 Ultra v1.3.0 URDF. HoST's
+# official cross-robot guidance recommends a pull near 60% of robot weight.
+X2_TOTAL_MASS_KG = 41.966521
+HOST_ASSIST_FORCE_N = mdp.scaled_assist_force_n(X2_TOTAL_MASS_KG)
+
 
 def _contact_sensor(relative_body_path: str) -> ContactSensorCfg:
     """Create an exact-path sensor for one link in X2's hierarchical USD."""
@@ -266,9 +271,10 @@ class EventsCfg:
         mode="interval",
         interval_range_s=(0.05, 0.05),
         params={
-            "start_force_n": 200.0,
+            "start_force_n": HOST_ASSIST_FORCE_N,
             "end_force_n": 0.0,
             "anneal_steps": 24_000,
+            "orientation_threshold": 0.80,
             "asset_cfg": SceneEntityCfg("robot", body_names="pelvis"),
         },
     )

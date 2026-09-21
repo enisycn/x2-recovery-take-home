@@ -411,6 +411,16 @@ def linear_anneal(start: float, end: float, step: int, duration_steps: int) -> f
     return start + fraction * (end - start)
 
 
+def scaled_assist_force_n(
+    mass_kg: float,
+    weight_fraction: float = 0.60,
+    gravity_m_s2: float = 9.81,
+) -> float:
+    """Scale HoST's exploration pull by robot weight."""
+
+    return weight_fraction * mass_kg * gravity_m_s2
+
+
 def reset_root_state_uniform_fresh(
     env: ManagerBasedRLEnv,
     env_ids: torch.Tensor,
@@ -489,6 +499,7 @@ def apply_vertical_force_curriculum(
     start_force_n: float,
     end_force_n: float,
     anneal_steps: int,
+    orientation_threshold: float,
     asset_cfg: SceneEntityCfg = SceneEntityCfg("robot", body_names="pelvis"),
 ) -> None:
     """Apply HoST's annealed world-up exploration force at the pelvis."""
@@ -503,7 +514,12 @@ def apply_vertical_force_curriculum(
     body_ids = asset_cfg.body_ids
     quaternions = robot.data.body_quat_w.torch[env_ids][:, body_ids, :]
     world_force = torch.zeros((*quaternions.shape[:-1], 3), device=robot.device)
-    world_force[..., 2] = magnitude
+    # HoST enables the pull only after the trunk is near vertical (the
+    # ground-sitting/rising phase). Applying it while supine would reduce the
+    # useful ground reaction during righting.
+    upright_score = -robot.data.projected_gravity_b.torch[env_ids, 2]
+    active = (upright_score >= orientation_threshold).to(dtype=world_force.dtype)
+    world_force[..., 2] = magnitude * active[:, None]
     local_force = quat_apply_inverse(quaternions.reshape(-1, 4), world_force.reshape(-1, 3)).reshape_as(world_force)
     torques = torch.zeros_like(local_force)
     robot.set_external_force_and_torque(

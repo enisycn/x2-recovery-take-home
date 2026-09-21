@@ -132,7 +132,7 @@ All terms are evaluated each 20 Hz policy step.
 | Root angular / linear speed L2 | `-0.10 / -0.10` | Bound body motion |
 | Soft joint-limit violation | `-1.0` | Keep motion inside imported limits |
 
-Training also uses two published exploration ideas. HumanUP's Stage-I standing-pose mixture starts at 50% and reaches zero after 16,000 policy steps. HoST's upward pelvis-force curriculum starts at 200 N and reaches zero after 24,000 policy steps. Both are disabled in the play/evaluation configuration, and the last 450 iterations of the measured 1,200-iteration run are fully unassisted. Exact equations, adaptations and numerical checks are in [the formula audit](docs/formula_audit.md); every source-to-code connection is in [the evidence map](docs/evidence.md).
+Training also uses two published exploration ideas. HumanUP's Stage-I standing-pose mixture starts at 50% and reaches zero after 16,000 policy steps. HoST's official cross-robot guidance scales its upward pull to about 60% of robot weight and enables it only after the trunk is near vertical. For the 41.966521 kg X2 this is 247.015 N when `-g_b,z≥0.80`, linearly reaching zero after 24,000 policy steps. Both curricula are disabled in play/evaluation, and the last 450 iterations of the measured 1,200-iteration run are fully unassisted. Exact equations, adaptations and numerical checks are in [the formula audit](docs/formula_audit.md); every source-to-code connection is in [the evidence map](docs/evidence.md).
 
 ## PPO training and evaluation
 

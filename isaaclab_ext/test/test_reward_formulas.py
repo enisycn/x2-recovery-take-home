@@ -74,6 +74,11 @@ def test_shared_floor_covers_the_full_parallel_environment_grid() -> None:
     assert 200.0 >= required_side
 
 
+def test_host_assist_force_is_sixty_percent_of_x2_weight() -> None:
+    force = mdp.scaled_assist_force_n(41.966521)
+    assert math.isclose(force, 247.014942606, rel_tol=0.0, abs_tol=1.0e-9)
+
+
 def test_staged_reward_matches_righting_rising_standing_equations() -> None:
     heights = torch.tensor([0.28, 0.50, 0.68])
     gravity = torch.tensor([[1.0, 0.0, 0.0], [0.8660254, 0.0, -0.5], [0.0, 0.0, -1.0]])

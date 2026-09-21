@@ -83,11 +83,14 @@ Two training-only curricula address sparse contact exploration. The probability 
 p_{stand}(k)=0.5\max(1-k/16000,0),
 \]
 
-following HumanUP's Stage-I mixture of standing poses. HoST's world-up pelvis force is implemented as
+following HumanUP's Stage-I mixture of standing poses. HoST's official cross-robot guidance scales the pull to about 60% of robot weight and applies it only after the trunk becomes near vertical. The pinned X2 URDF has total mass 41.966521 kg, so the world-up pelvis force is
 
 \[
-F_z(k)=200\max(1-k/24000,0)\;\mathrm{N}.
+F_z(k)=0.60(41.966521)(9.81)\max(1-k/24000,0)
+I[-g_{b,z}\geq0.80]\;\mathrm{N}.
 \]
+
+It begins at 247.015 N. The orientation gate leaves the initial supine ground reaction unchanged and assists only the ground-sitting/rising phase.
 
 Both are exactly zero for the last part of the 1,200-iteration run. The play/evaluation configuration disables them regardless of checkpoint iteration, so they cannot help a reported episode.
 
