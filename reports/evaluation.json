@@ -10,17 +10,17 @@
     "other_body_support": false,
     "stable_duration_sec": 0.4
   },
-  "successful_recoveries": 4,
+  "successful_recoveries": 5,
   "total_episodes": 5,
   "episodes": [
     {
       "episode": 1,
       "seed": 101,
       "success": true,
-      "steps": 119,
-      "return": 62.4101,
-      "final_height_m": 0.6681,
-      "final_pitch_rad": -0.1044,
+      "steps": 109,
+      "return": 61.6347,
+      "final_height_m": 0.6776,
+      "final_pitch_rad": -0.0733,
       "both_feet_contact": true,
       "other_body_support": false,
       "failure_reason": ""
@@ -29,10 +29,10 @@
       "episode": 2,
       "seed": 102,
       "success": true,
-      "steps": 120,
-      "return": 62.5017,
-      "final_height_m": 0.6692,
-      "final_pitch_rad": -0.1009,
+      "steps": 110,
+      "return": 61.6886,
+      "final_height_m": 0.678,
+      "final_pitch_rad": -0.0721,
       "both_feet_contact": true,
       "other_body_support": false,
       "failure_reason": ""
@@ -41,10 +41,10 @@
       "episode": 3,
       "seed": 103,
       "success": true,
-      "steps": 118,
-      "return": 62.2483,
-      "final_height_m": 0.6683,
-      "final_pitch_rad": -0.1037,
+      "steps": 109,
+      "return": 61.5826,
+      "final_height_m": 0.6764,
+      "final_pitch_rad": -0.0772,
       "both_feet_contact": true,
       "other_body_support": false,
       "failure_reason": ""
@@ -53,10 +53,10 @@
       "episode": 4,
       "seed": 104,
       "success": true,
-      "steps": 118,
-      "return": 62.3424,
-      "final_height_m": 0.6691,
-      "final_pitch_rad": -0.1011,
+      "steps": 104,
+      "return": 61.1247,
+      "final_height_m": 0.6766,
+      "final_pitch_rad": -0.0765,
       "both_feet_contact": true,
       "other_body_support": false,
       "failure_reason": ""
@@ -64,14 +64,14 @@
     {
       "episode": 5,
       "seed": 105,
-      "success": false,
-      "steps": 120,
-      "return": 7.5162,
-      "final_height_m": 0.6666,
-      "final_pitch_rad": -0.1092,
+      "success": true,
+      "steps": 106,
+      "return": 61.3079,
+      "final_height_m": 0.6767,
+      "final_pitch_rad": -0.0761,
       "both_feet_contact": true,
       "other_body_support": false,
-      "failure_reason": "timeout before stable two-foot stance"
+      "failure_reason": ""
     }
   ]
 }

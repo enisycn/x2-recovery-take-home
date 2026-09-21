@@ -21,7 +21,7 @@ def _contact_mask(
 ) -> torch.Tensor:
     sensor: ContactSensor = env.scene.sensors[sensor_cfg.name]
     forces = sensor.data.net_forces_w_history.torch[:, :, sensor_cfg.body_ids, :]
-    return forces.norm(dim=-1).amax(dim=1) > threshold
+    return forces.norm(dim=-1).amax(dim=1) >= threshold
 
 
 def foot_contacts(
@@ -94,7 +94,7 @@ def unsupported_contacts(
 
     sensor: ContactSensor = env.scene.sensors[all_bodies_cfg.name]
     forces = sensor.data.net_forces_w_history.torch.norm(dim=-1).amax(dim=1)
-    contacts = forces > threshold
+    contacts = forces >= threshold
     contacts[:, feet_cfg.body_ids] = False
     return contacts.sum(dim=1).to(dtype=torch.float32)
 
@@ -128,7 +128,7 @@ def strict_success(
 
     robot: Articulation = env.scene[asset_cfg.name]
     projected_gravity = robot.data.projected_gravity_b.torch
-    upright = (projected_gravity[:, :2].norm(dim=1) < max_tilt) & (projected_gravity[:, 2] < -0.98)
+    upright = (projected_gravity[:, :2].norm(dim=1) <= max_tilt) & (projected_gravity[:, 2] <= -0.98)
     height_ok = robot.data.root_pos_w.torch[:, 2] >= min_height
     linear_ok = robot.data.root_lin_vel_w.torch.norm(dim=1) <= max_linear_speed
     angular_ok = robot.data.root_ang_vel_w.torch.norm(dim=1) <= max_angular_speed

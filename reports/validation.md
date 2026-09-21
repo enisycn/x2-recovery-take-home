@@ -1,6 +1,6 @@
 # Validation record
 
-Recorded on 20 September 2026. Results below distinguish executed checks from code that could not be run in the sandbox.
+Updated on 21 September 2026. Results below distinguish executed checks from code that could not be run in the sandbox.
 
 ## Static and unit checks
 
@@ -9,9 +9,10 @@ Recorded on 20 September 2026. Results below distinguish executed checks from co
 bash -n scripts/*.sh
 PYTHONPATH="$PWD/src/x2_recovery_ros" /usr/bin/python3 -m pytest -q src/x2_recovery_ros/test
 ISAAC_PYTHON=/path/to/isaac/bin/python ./scripts/check_runtime_isolation.sh
+ISAAC_PYTHON=/path/to/isaac/bin/python ./scripts/test_isaac_formulas.sh
 ```
 
-Observed: Python and shell checks passed; `7 passed, 1 skipped`. The runtime-isolation check confirmed distinct Python executables: ROS imported `rclpy` but could not see Isaac Lab, while the Isaac interpreter imported Isaac Lab but could not see `rclpy`. The skipped test exercises a real Unix socket, and the execution sandbox rejects `AF_UNIX` creation with `EPERM`. The IPC path therefore still requires an end-to-end run on the target workstation.
+Observed: Python and shell checks passed; ROS tests reported `7 passed, 1 skipped`, and the independent Isaac equation suite reported `5 passed`. The runtime-isolation check confirmed distinct Python executables: ROS imported `rclpy` but could not see Isaac Lab, while the Isaac interpreter imported Isaac Lab but could not see `rclpy`. The skipped test exercises a real Unix socket, and the execution sandbox rejects `AF_UNIX` creation with `EPERM`. The IPC path therefore still requires an end-to-end run on the target workstation.
 
 The Isaac task and PPO registration loaded with the machine's Isaac Lab 3.0 Python environment:
 
@@ -29,21 +30,21 @@ Validation ran on Ubuntu 22.04.5 with an AMD Ryzen AI 9 HX 370 (12 cores/24 thre
 ## Reduced-order experiment
 
 ```bash
-./scripts/run_training.sh
+./scripts/run_training.sh --seed 7 --iterations 60 --population 80
 ./scripts/run_evaluation.sh
 ```
 
-The committed training run used seeded cross-entropy policy search: 18 iterations, population 40, eight elites, two rollouts per candidate and seed 7. The held-out evaluation is in `reports/evaluation.json`.
+The committed training run used seeded cross-entropy policy search: 60 iterations, population 80, eight elites, two rollouts per candidate and seed 7. Candidate selection used five separate validation seeds (90001–90005); the evaluation seeds below were not used for fitting or selection. The held-out evaluation is in `reports/evaluation.json`.
 
 | Episode | Seed | Result | Steps | Return | Failure |
 | ---: | ---: | --- | ---: | ---: | --- |
-| 1 | 101 | success | 119 | 62.41 | |
-| 2 | 102 | success | 120 | 62.50 | |
-| 3 | 103 | success | 118 | 62.25 | |
-| 4 | 104 | success | 118 | 62.34 | |
-| 5 | 105 | failed | 120 | 7.52 | timeout before stable two-foot stance |
+| 1 | 101 | success | 109 | 61.63 | |
+| 2 | 102 | success | 110 | 61.69 | |
+| 3 | 103 | success | 109 | 61.58 | |
+| 4 | 104 | success | 104 | 61.12 | |
+| 5 | 105 | success | 106 | 61.31 | |
 
-Episode 5 reached a two-foot, unsupported pose but accumulated only 0.30 s of stable time before the 6.0 s timeout; the harness requires 0.40 s. The 4/5 count is a CPU orchestration baseline, not an X2 rigid-body result.
+All five episodes reached the CPU harness's stable, upright, two-foot, unsupported predicate within the 6.0 s timeout. The 5/5 count is a CPU orchestration baseline, not an X2 rigid-body result.
 
 ## ROS 2 Humble
 
@@ -56,12 +57,10 @@ colcon build --symlink-install --packages-select x2_recovery_ros
 
 Observed: `1 package finished`.
 
-Launch and request:
+The repeatable runtime check launches both nodes, exercises success and timeout paths, and keeps Fast DDS on shared memory without opening a network port:
 
 ```bash
-source install/setup.bash
-ros2 launch x2_recovery_ros x2_recovery.launch.py
-ros2 service call /x2/start_recovery std_srvs/srv/Trigger '{}'
+./scripts/validate_ros_runtime.sh
 ```
 
 Observed first response:
@@ -81,22 +80,22 @@ Live telemetry was read from the running episode:
 ```text
 name: [left_hip_pitch_joint, left_knee_joint, left_ankle_pitch_joint,
        right_hip_pitch_joint, right_knee_joint, right_ankle_pitch_joint]
-position: [0.4282, 0.6322, -0.1244, 0.4282, 0.6322, -0.1244]
+position: [0.2330, 0.3466, -0.0289, 0.2330, 0.3466, -0.0289]
 status: RUNNING
 ```
 
-The node and telemetry log then reached `SUCCEEDED`; the recovery node reported 119 steps. With `policy_mode:=zero timeout_sec:=0.5`, it reported:
+The node and telemetry log then reached `SUCCEEDED`; the recovery node reported 109 steps. With `policy_mode:=zero timeout_sec:=0.5`, it reported:
 
 ```text
 Recovery failed in 10 steps: timeout before stable two-foot stance
 status=FAILED
 ```
 
-The sandbox blocks UDP sockets, so Fast DDS printed UDP transport warnings; shared-memory transport still carried the local service and topic data. CLI discovery was run with `--no-daemon` where supported.
+The sandbox blocks network-interface inspection and prints benign `getifaddrs` warnings. `config/fastdds_shm.xml` disables UDP/TCP transports; the launch and CLI processes share one sandbox namespace, and the local service/topic checks passed without a network port.
 
 ## Blocked high-fidelity run
 
-The official model checkout could not be fetched from the shell because outbound Git access is disabled, and no X2 URDF was already present. CUDA was unavailable to Isaac in this execution. Consequently:
+The official model checkout could not be fetched from the shell because outbound Git DNS is disabled, and no X2 URDF was already present. A browser fallback to GitHub's raw file host was rejected by the browser safety review, so it was not bypassed. CUDA was unavailable to Isaac in this execution. Consequently:
 
 - no X2 USD was generated;
 - no PPO checkpoint or Isaac reward curve exists;
@@ -105,6 +104,6 @@ The official model checkout could not be fetched from the shell because outbound
 
 The exact commands to complete those checks on the intended workstation are in the README.
 
-## GitHub submission state
+## Repository state
 
-The standalone local repository contains six meaningful commits and passes `git fsck`. It has no configured remote: GitHub CLI was unavailable, and browser access to create the repository was denied by the execution environment. The two commands required after creating the destination repository are recorded in the README; they preserve the complete local history.
+The standalone local repository has meaningful staged commits and passes `git fsck`. It has no configured remote, and no existing robot workspace was read into or copied into this repository.

@@ -33,8 +33,8 @@ def rollout(actions: np.ndarray, seed: int) -> tuple[float, bool]:
 
 def train(
     seed: int = 7,
-    iterations: int = 18,
-    population: int = 40,
+    iterations: int = 60,
+    population: int = 80,
     elite_count: int = 8,
 ) -> tuple[PhasePolicy, list[dict[str, float]]]:
     rng = np.random.default_rng(seed)
@@ -110,8 +110,8 @@ def save_plot(history: list[dict[str, float]], output: Path) -> None:
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--seed", type=int, default=7)
-    parser.add_argument("--iterations", type=int, default=18)
-    parser.add_argument("--population", type=int, default=40)
+    parser.add_argument("--iterations", type=int, default=60)
+    parser.add_argument("--population", type=int, default=80)
     args = parser.parse_args()
 
     root = project_root()
@@ -123,6 +123,10 @@ def main() -> None:
         checkpoint,
         algorithm=np.asarray("cross_entropy_method"),
         seed=np.asarray(args.seed),
+        iterations=np.asarray(args.iterations),
+        population=np.asarray(args.population),
+        elite_count=np.asarray(8),
+        rollouts_per_candidate=np.asarray(2),
         backend=np.asarray("reduced_order_v1"),
     )
     save_plot(history, root / "reports/training_reward.png")

@@ -4,7 +4,7 @@
 | --- | --- |
 | Choose an X2 URDF and simulator | Official X2 Ultra v1.3.0 simplified-collision URDF; Isaac Lab 3.0/PhysX; fetch and conversion scripts |
 | Floating base and flat floor | `X2_CFG` leaves the root free; `X2RecoverySceneCfg` supplies a 20 m plane |
-| Start on the back without intersection | 0.28 m pelvis height, +90° Y rotation and narrow reset jitter; visual check remains required after asset import |
+| Start on the back without intersection | 0.28 m pelvis height, -90° Y rotation and narrow reset jitter; visual check remains required after asset import |
 | Respect joint and actuator limits | URDF limits preserved in USD; actions map to 90% soft limits; simulator enforces effort and speed limits |
 | Observations, actions, reward and ending | `env_cfg.py`, `mdp.py`, README design and reward tables |
 | RL experiment and checkpoint/plot | PPO experiment is configured; sandbox-blocked run is disclosed; reduced harness checkpoint and plot are committed |

@@ -4,6 +4,8 @@ This repository implements the HRS take-home as a self-contained external Isaac 
 
 The repository never installs files into an existing robot workspace. Isaac Lab is invoked as a runtime, the AgiBot source model and converted USD stay under this repository, ROS builds into this repository, and the ROS–Isaac bridge uses one local Unix socket.
 
+The asset fetcher accepts only AgiBotTech's official HTTPS repository at reviewed commit `77f43eb`, disables submodules and Git hooks, verifies the origin and revision, and deletes a failed download before it can be imported. It only receives public model files; no upload or outward copy of local robot data is performed.
+
 ROS and Isaac deliberately run in different processes and Python environments. ROS 2 Humble uses its system Python; Isaac uses the Python environment supplied with its simulator stack. Neither process imports the other framework. Their only shared contract is newline-delimited JSON over `/tmp/hrs_x2_recovery.sock`, so sourcing ROS cannot replace Isaac's Python dependencies and Isaac cannot pollute the ROS overlay.
 
 ## What is validated
@@ -14,7 +16,7 @@ ROS and Isaac deliberately run in different processes and Python environments. R
 | Official X2 download and repo-local URDF→USD conversion | Implemented; download unavailable in the execution sandbox |
 | PPO training and strict five-episode Isaac evaluation | Implemented; not run because the sandbox exposes no CUDA device or X2 meshes |
 | Reduced-order training experiment | Run; checkpoint and reward plot committed |
-| Reduced-order five-episode evaluation | 4/5; explicitly not a rigid-body or hardware claim |
+| Reduced-order five-episode evaluation | 5/5; explicitly not a rigid-body or hardware claim |
 | ROS build, launch, acceptance/busy behavior, telemetry, success and timeout failure | Validated |
 | ROS connection to the Isaac policy process | Implemented through local IPC; socket execution blocked by the sandbox |
 
@@ -56,7 +58,7 @@ For the CPU harness only:
 
 ```bash
 /usr/bin/python3 -m pip install -r requirements.txt
-./scripts/run_training.sh
+./scripts/run_training.sh --seed 7 --iterations 60 --population 80
 ./scripts/run_evaluation.sh
 ```
 
@@ -73,7 +75,7 @@ ISAAC_PYTHON=/absolute/path/to/isaac/environment/bin/python \
 
 The policy observes pelvis height, local linear and angular velocity, projected gravity, relative joint positions and velocities, binary foot contacts, and two previous actions. Uniform observation noise is enabled during training and disabled during evaluation.
 
-The action is one bounded desired position per actuated joint. Values are mapped to 90% soft joint limits and filtered with an exponential moving average (`alpha=0.25`). One implicit PD actuator group uses `Kp=60`, `Kd=4`; effort and velocity limits are inherited from the USD. This compact design gives the policy full-body control while limiting violent target changes.
+The action is one bounded desired position per actuated joint. The articulation first contracts the hard position limits to 90%, then `scale=0.85` maps raw actions into the central 85% of those soft limits. An exponential moving average (`alpha=0.25`) filters the resulting target. One implicit PD actuator group uses `Kp=60`, `Kd=4`; effort and velocity limits are inherited from the USD. This compact design gives the policy full-body control while limiting violent target changes.
 
 Episodes last 8 seconds. Time limit is the only training termination because ending at first upright contact would not teach the policy to remain standing. Evaluation applies a separate sustained success check.
 
@@ -103,7 +105,7 @@ All terms are evaluated each 20 Hz policy step.
 | Joint torque L2 | `-2e-6` | Discourage excessive effort |
 | Soft joint-limit violation | `-0.20` | Keep motion away from mechanical limits |
 
-The staged task reward follows HoST's height-dependent righting/rising/standing decomposition. Smooth actions, speed regularization, explicit contact checks and sustained stability follow the hardware concerns reported by HoST and FRASA. He et al.'s real-world getting-up study further motivates the simplified collision model and the explicit post-training collision inspection. Exact connections and primary sources are documented in [docs/evidence.md](docs/evidence.md).
+The staged task reward follows HoST's height-dependent righting/rising/standing decomposition. Smooth actions, speed regularization, explicit contact checks and sustained stability follow the hardware concerns reported by HoST and FRASA. He et al.'s real-world getting-up study further motivates the simplified collision model and the explicit post-training collision inspection. Exact equations and numerical checks are in [the formula audit](docs/formula_audit.md); source connections are in [the evidence map](docs/evidence.md).
 
 ## PPO training and evaluation
 
@@ -131,7 +133,7 @@ A recovery counts only after all checks hold continuously for 0.5 seconds:
 
 The evaluator writes `reports/isaac_evaluation.json`. No such file is committed yet because the high-fidelity run was blocked; a missing result is preferable to fabricated evidence.
 
-The committed CPU harness uses seeded cross-entropy search over a four-synergy, three-phase controller. It produced [a checkpoint](src/x2_recovery_ros/artifacts/recovery_policy.npz), [a reward plot](reports/training_reward.png), and [a five-episode report](reports/evaluation.json). Seeds 101–104 passed. Seed 105 reached the pose but held it for only 0.30 s before the 6.0 s timeout, below the harness's 0.40 s threshold. This 4/5 result validates orchestration and metrics only.
+The committed CPU harness uses seeded cross-entropy search over a four-synergy, three-phase controller. The completed run used 60 iterations, 80 candidates per iteration, eight elites and two seeded rollouts per candidate. It produced [a checkpoint](src/x2_recovery_ros/artifacts/recovery_policy.npz), [a reward plot](reports/training_reward.png), and [a five-episode report](reports/evaluation.json). All fixed evaluation seeds 101–105 passed in 104–110 steps. This 5/5 result validates orchestration and metrics only; it is not evidence about X2 rigid-body dynamics.
 
 ## ROS 2
 
@@ -151,6 +153,14 @@ ros2 topic echo /x2/recovery_status std_msgs/msg/String \
   --qos-durability transient_local
 ros2 topic echo /x2/joint_states sensor_msgs/msg/JointState
 ```
+
+Run the complete local success, busy-request, telemetry and timeout smoke test with:
+
+```bash
+./scripts/validate_ros_runtime.sh
+```
+
+The validation script loads `config/fastdds_shm.xml`, which disables UDP/TCP and keeps DDS traffic in host-local shared memory.
 
 The default launch uses the deterministic CPU harness so the ROS contract can be tested without a GPU. Timeout behavior is directly configurable:
 
@@ -183,7 +193,7 @@ The local server owns the Isaac environment and policy. For each request it rese
 
 The main open item is an actual Isaac training curve and five-episode result. After that run, the first useful improvements are to inspect collision geometry at reset, tune the stand-height threshold from the imported model, plot each reward component, and run ablations for staged reward, contact penalties and randomization. Before hardware work, actuator gains, delay, friction, mass and centre-of-mass ranges must be identified from the X2; torque, thermal and self-collision safety need separate validation. No result in this repository is presented as proof of safe hardware transfer.
 
-This is a complete standalone local Git repository with six meaningful commits. No GitHub remote is configured because the execution environment did not provide GitHub CLI access and browser access was denied. Create the destination repository, then preserve the history with:
+This is a complete standalone local Git repository with meaningful staged commits. No remote is configured. If a submission repository is requested later, preserve the local history with:
 
 ```bash
 git remote add origin git@github.com:<account>/hrs_x2_take_home.git
