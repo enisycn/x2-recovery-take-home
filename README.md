@@ -159,6 +159,8 @@ This result isolates the remaining learning problem. The official model can stan
 
 The evaluator writes `reports/isaac_evaluation.json` and exports TorchScript and ONNX policies under `reports/exported/`. Only the final audited run is part of the submission result; earlier reports remain local diagnostics.
 
+Two labelled GIFs make the distinction visual: [the final PPO attempt](reports/gifs/x2_final_policy_attempt.gif) is a real supine rollout and is explicitly marked unsuccessful; [the standing reachability probe](reports/gifs/x2_standing_reachability_only.gif) starts from an imposed straight stance and is explicitly marked as a model/action-path check rather than a recovery result. They are generated directly from Isaac by `scripts/render_isaac_gifs.sh`.
+
 The committed CPU harness uses seeded cross-entropy search over a four-synergy, three-phase controller. The completed run used 60 iterations, 80 candidates per iteration, eight elites and two seeded rollouts per candidate. It produced [a checkpoint](src/x2_recovery_ros/artifacts/recovery_policy.npz), [a reward plot](reports/training_reward.png), and [a five-episode report](reports/evaluation.json). All fixed evaluation seeds 101–105 passed in 104–110 steps. This 5/5 result validates orchestration and metrics only; it is not evidence about X2 rigid-body dynamics.
 
 ## ROS 2
