@@ -44,9 +44,10 @@ def fake_robot(
 
 
 def test_minus_ninety_degree_pitch_is_supine() -> None:
-    """The configured quaternion maps X-forward/chest to world-up."""
+    """The configured scalar-last XYZW quaternion maps X-forward to world-up."""
 
-    w, x, y, z = 2.0**-0.5, 0.0, -(2.0**-0.5), 0.0
+    quaternion_xyzw = (0.0, -(2.0**-0.5), 0.0, 2.0**-0.5)
+    x, y, z, w = quaternion_xyzw
     rotation = torch.tensor(
         [
             [1 - 2 * (y * y + z * z), 2 * (x * y - z * w), 2 * (x * z + y * w)],

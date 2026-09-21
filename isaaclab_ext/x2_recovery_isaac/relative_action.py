@@ -33,4 +33,3 @@ class BoundedRelativeJointPositionActionCfg(RelativeJointPositionActionCfg):
     """Configuration for the bounded relative position action."""
 
     class_type: type[ActionTerm] = BoundedRelativeJointPositionAction
-

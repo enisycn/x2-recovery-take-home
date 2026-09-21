@@ -4,10 +4,10 @@ This note makes the recovery equations reviewable independently of a simulator r
 
 ## Frame and action transform
 
-AgiBot documents an FLU body frame: X forward, Y left and Z up. The reset quaternion
+AgiBot documents an FLU body frame: X forward, Y left and Z up. The installed Isaac Lab 3.0 `InitialStateCfg` and root-state tensor APIs both store quaternions in scalar-last XYZW order. The reset quaternion
 
 \[
-q=(w,x,y,z)=(\sqrt{1/2},0,-\sqrt{1/2},0)
+q=(x,y,z,w)=(0,-\sqrt{1/2},0,\sqrt{1/2})
 \]
 
 is a -90° rotation about Y. It maps the local forward/chest vector `(1,0,0)` to world-up `(0,0,1)`, so the back faces the floor. Applying the full zero-joint kinematic tree to every official collision mesh gives a 0.1803007 m supine extent below the pelvis and a 0.6749500 m standing extent. The 0.190 m reset and bounded jitter therefore start just above the floor; the 0.68 m standing target puts the feet about 5.05 mm above the mathematical plane before contact compliance.
@@ -37,6 +37,14 @@ r_{upright}=\exp(-g_{b,z}).
 
 HumanUP defines the progress term as `I[h_b(t)>h_b(t-1)]`; because the simulator exposes velocity at every 0.05 s policy instant, `I[v_z>0]` is its continuous-time equivalent. A two-foot term is enabled as the pelvis rises from 0.58 m to the 0.68 m target. Non-foot contacts are allowed during pushing but receive a linearly increasing penalty over the same interval. Both use a 15 N force threshold and a three-sample contact history.
 
+HoST's task-orientation component is represented by the signed upright target
+
+\[
+r_{orient}=\exp\!\left(-((1+g_{b,z})/0.10)^2\right).
+\]
+
+Its effective weight is 2.5 after HoST's task-group multiplier. This term distinguishes upright `g_{b,z}=-1` from an inverted pose `g_{b,z}=+1`; the later HoST tilt-only post term cannot distinguish those two signs by itself.
+
 Above the X2 final-stage boundary `h_b>0.62`, the HoST Table VI post-task terms become active:
 
 \[
@@ -52,7 +60,7 @@ r_h=\exp(-20(h_b-0.68)^2).
 The configured reward rate is
 
 \[
-5r_{base}+5r_{head}+r_{\Delta h}+0.25r_{upright}
+5r_{base}+5r_{head}+r_{\Delta h}+0.25r_{upright}+2.5r_{orient}
 +2.5r_{feet}-2c_{other}
 +10(r_{\omega}+r_v+r_g+r_h)
 \]

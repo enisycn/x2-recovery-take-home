@@ -85,12 +85,14 @@ X2_CFG = ArticulationCfg(
     ),
     # X2 uses ROS FLU axes (X forward, Y left, Z up). Rotating -90 degrees
     # about Y points the chest/forward axis upward and places the back down.
+    # This installed Isaac Lab release stores InitialStateCfg quaternions in
+    # scalar-last XYZW order, as does its root-state tensor API.
     init_state=ArticulationCfg.InitialStateCfg(
         # Collision-hull audit: the supine model extends 0.18030 m below the
         # pelvis.  A 0.190 m root height leaves millimetres of clearance under
         # the bounded reset jitter instead of dropping the robot from 0.10 m.
         pos=(0.0, 0.0, 0.190),
-        rot=(0.7071068, 0.0, -0.7071068, 0.0),
+        rot=(0.0, -0.7071068, 0.0, 0.7071068),
         joint_pos={".*": 0.0},
         joint_vel={".*": 0.0},
     ),

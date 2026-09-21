@@ -285,6 +285,9 @@ class RewardsCfg:
     )
     height_increase = RewTerm(func=mdp.humanup_height_increase, weight=1.0)
     upright = RewTerm(func=mdp.humanup_body_upright, weight=0.25)
+    # HoST's task-orientation term has group weight 2.5.  Unlike its later
+    # tilt-only post term, this signed target rejects a 180-degree inversion.
+    base_orientation = RewTerm(func=mdp.upright_exp, weight=2.5, params={"std": 0.10})
     standing_on_feet = RewTerm(
         func=mdp.both_feet_when_high,
         weight=2.5,

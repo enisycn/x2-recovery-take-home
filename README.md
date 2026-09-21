@@ -87,7 +87,7 @@ The installed Isaac/PhysX stack can be checked on CPU without changing that envi
 
 ## Isaac Lab environment
 
-`HRS-X2-Recovery-v0` is a manager-based environment with 200 Hz PhysX simulation and 20 Hz policy decisions. Each supine reset places the pelvis 0.190 m above the floor and rotates it -90° about Y. In X2's documented FLU frame this points its forward/chest axis upward. A collision-hull audit of all 50 official collision elements measures 0.18030 m from pelvis to the lowest supine point; 20,000 samples over the bounded reset jitter retain at least 6.3 mm of floor clearance. Root and joint velocities start at zero, so the robot begins resting on its back instead of falling into the floor. The reproducible calculation is in `scripts/audit_x2_geometry.py` and `reports/x2_geometry_audit.json`.
+`HRS-X2-Recovery-v0` is a manager-based environment with 200 Hz PhysX simulation and 20 Hz policy decisions. Each supine reset places the pelvis 0.190 m above the floor and rotates it -90° about Y with the installed runtime's scalar-last `XYZW=(0,-0.7071,0,0.7071)` convention. In X2's documented FLU frame this points its forward/chest axis upward. A collision-hull audit of all 50 official collision elements measures 0.18030 m from pelvis to the lowest supine point; 20,000 samples over the bounded reset jitter retain at least 6.3 mm of floor clearance. Root and joint velocities start at zero, so the robot begins resting on its back instead of falling into the floor. The reproducible calculation is in `scripts/audit_x2_geometry.py` and `reports/x2_geometry_audit.json`.
 
 The floor is one repo-local 200 m × 200 m kinematic cuboid shared by all clones. This size covers the complete 2,048-environment grid at 2.5 m spacing. An earlier 20 m floor covered only the centre of a 512-environment run and allowed most robots to fall below the scene; those checkpoints are diagnostic only and are excluded from the final result.
 
@@ -120,6 +120,7 @@ All terms are evaluated each 20 Hz policy step.
 | `exp(head height)-1` | `+5.0` | HumanUP Stage-I whole-body rise objective |
 | Positive pelvis vertical velocity | `+1.0` | Continuous form of HumanUP's height-increase indicator |
 | `exp(-projected gravity z)` | `+0.25` | HumanUP upright objective |
+| Signed upright target | `+2.5` | HoST task-orientation weight; reject inverted high poses |
 | Both feet near standing | `+2.5` | Establish the required two-foot support |
 | Other support near standing | `-2.0` per body | Permit transitional pushes, then reject hand, knee or torso support |
 | HoST post-task angular speed | `+10.0` | Stabilize rotation above 0.62 m |

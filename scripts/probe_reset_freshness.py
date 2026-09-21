@@ -19,8 +19,10 @@ launcher = AppLauncher(args)
 simulation_app = launcher.app
 
 import gymnasium as gym  # noqa: E402
+import torch  # noqa: E402
 
 import x2_recovery_isaac  # noqa: E402,F401
+from isaaclab.utils.math import quat_apply  # noqa: E402
 from x2_recovery_isaac.env_cfg import X2RecoveryPlayEnvCfg  # noqa: E402
 
 
@@ -42,6 +44,8 @@ def main() -> None:
             )
             gravity_data = robot.data.projected_gravity_b.torch[0]
             gravity_observation = policy_observation[0, 7:10]
+            local_forward = torch.tensor([[1.0, 0.0, 0.0]], device=env.unwrapped.device)
+            world_forward = quat_apply(robot.data.root_quat_w.torch[0:1], local_forward)[0]
             record = {
                 "seed": seed,
                 "pelvis_height_m": round(
@@ -57,6 +61,9 @@ def main() -> None:
                 "projected_gravity_observation": [
                     round(float(value), 7) for value in gravity_observation.tolist()
                 ],
+                "world_forward_axis": [
+                    round(float(value), 7) for value in world_forward.tolist()
+                ],
                 "data_observation_max_error": float(
                     (gravity_data - gravity_observation).abs().max().item()
                 ),
@@ -69,6 +76,7 @@ def main() -> None:
             }
             record["passes"] = (
                 abs(record["projected_gravity_data"][2]) <= 0.01
+                and record["world_forward_axis"][2] >= 0.99
                 and record["data_observation_max_error"] <= 1.0e-6
                 and record["root_linear_speed_m_s"] <= 1.0e-6
                 and record["root_angular_speed_rad_s"] <= 1.0e-6

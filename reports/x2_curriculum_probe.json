@@ -1,0 +1,15 @@
+{
+  "backend": "Isaac Lab 3.0 / PhysX",
+  "seed": 42,
+  "num_envs": 64,
+  "policy_steps_observed": 5,
+  "standing_initial": 25,
+  "supine_initial": 39,
+  "standing_initial_gravity_z_mean": -0.9999570846557617,
+  "standing_initial_gravity_z_max": -0.9997341632843018,
+  "supine_initial_forward_z_min": 0.999801516532898,
+  "supine_initial_abs_gravity_z_max": 0.004914651624858379,
+  "standing_retained_after_five_steps": 25,
+  "standing_both_feet_after_five_steps": 25,
+  "passes": true
+}

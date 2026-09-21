@@ -15,7 +15,8 @@ source /opt/ros/humble/setup.bash
 source "${project_dir}/install/setup.bash"
 set -u
 export PYTHONNOUSERSITE=1
-export ROS_DOMAIN_ID="${ROS_DOMAIN_ID:-93}"
+base_domain_id="${ROS_DOMAIN_ID:-93}"
+export ROS_DOMAIN_ID="${base_domain_id}"
 export ROS_LOG_DIR="${runtime_dir}/ros_logs"
 export FASTRTPS_DEFAULT_PROFILES_FILE="${project_dir}/config/fastdds_shm.xml"
 mkdir -p "${ROS_LOG_DIR}"
@@ -62,6 +63,7 @@ stop_launch() {
 success_log="${runtime_dir}/success.log"
 ros2 launch x2_recovery_ros x2_recovery.launch.py >"${success_log}" 2>&1 &
 launch_pid="$!"
+wait_for_log "X2 recovery ready" "${success_log}"
 wait_for_service
 
 echo "SUCCESS CASE: first request"
@@ -75,10 +77,15 @@ wait_for_log "Recovery succeeded" "${success_log}"
 grep -F "Recovery succeeded" "${success_log}"
 stop_launch
 
+# Discovery leases from the just-stopped success nodes can briefly remain in
+# the graph.  Use a fresh valid DDS domain so the timeout request is provably
+# handled by the new zero-policy node rather than a retiring success node.
+export ROS_DOMAIN_ID="$(( (base_domain_id + 1) % 233 ))"
 failure_log="${runtime_dir}/failure.log"
 ros2 launch x2_recovery_ros x2_recovery.launch.py \
   policy_mode:=zero timeout_sec:=0.5 >"${failure_log}" 2>&1 &
 launch_pid="$!"
+wait_for_log "X2 recovery ready" "${failure_log}"
 wait_for_service
 
 echo "FAILURE CASE: request"
