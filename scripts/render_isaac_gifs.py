@@ -13,7 +13,7 @@ from isaaclab.app import AppLauncher
 
 parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument("--checkpoint", type=Path, required=True)
-parser.add_argument("--environment", choices=("humanup_rise", "simple_v2", "symmetric_v3"), default="humanup_rise")
+parser.add_argument("--environment", choices=("humanup_rise", "simple_v2", "symmetric_v3", "relaxed_v4"), default="humanup_rise")
 parser.add_argument("--output_dir", type=Path, default=Path("reports/gifs"))
 AppLauncher.add_app_launcher_args(parser)
 args = parser.parse_args()
@@ -33,7 +33,7 @@ from x2_recovery_isaac.agents.rsl_rl_ppo_cfg import X2HumanUpCurriculumPPORunner
 from x2_recovery_isaac.env_cfg import X2HumanUpRiseEnvCfg  # noqa: E402
 
 
-from x2_recovery_isaac.simple_cfg import X2SimpleRecoveryEnvCfg, X2SimplePPORunnerCfg, X2SymmetricRecoveryEnvCfg, X2SymmetricPPORunnerCfg
+from x2_recovery_isaac.simple_cfg import X2RelaxedRecoveryEnvCfg, X2RelaxedPPORunnerCfg, X2SimpleRecoveryEnvCfg, X2SimplePPORunnerCfg, X2SymmetricRecoveryEnvCfg, X2SymmetricPPORunnerCfg
 from x2_recovery_isaac import mdp
 from x2_recovery_isaac.env_cfg import foot_contact_cfg, all_contact_cfg
 
@@ -77,7 +77,7 @@ def main() -> None:
     checkpoint = args.checkpoint.expanduser().resolve(strict=True)
     output_dir = args.output_dir.expanduser().resolve()
 
-    cfg = {"simple_v2": X2SimpleRecoveryEnvCfg, "symmetric_v3": X2SymmetricRecoveryEnvCfg, "humanup_rise": X2HumanUpRiseEnvCfg}[args.environment]()
+    cfg = {"simple_v2": X2SimpleRecoveryEnvCfg, "symmetric_v3": X2SymmetricRecoveryEnvCfg, "relaxed_v4": X2RelaxedRecoveryEnvCfg, "humanup_rise": X2HumanUpRiseEnvCfg}[args.environment]()
     cfg.scene.num_envs = 1
     cfg.scene.env_spacing = 3.0
     cfg.sim.device = args.device
@@ -94,7 +94,7 @@ def main() -> None:
     cfg.viewer.eye = (2.7, 2.7, 1.65)
     cfg.viewer.lookat = (0.0, 0.0, 0.65)
 
-    agent_cfg = {"simple_v2": X2SimplePPORunnerCfg, "symmetric_v3": X2SymmetricPPORunnerCfg, "humanup_rise": X2HumanUpCurriculumPPORunnerCfg}[args.environment]()
+    agent_cfg = {"simple_v2": X2SimplePPORunnerCfg, "symmetric_v3": X2SymmetricPPORunnerCfg, "relaxed_v4": X2RelaxedPPORunnerCfg, "humanup_rise": X2HumanUpCurriculumPPORunnerCfg}[args.environment]()
     agent_cfg.device = args.device
     agent_cfg = handle_deprecated_rsl_rl_cfg(agent_cfg, importlib.metadata.version("rsl-rl-lib"))
 

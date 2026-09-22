@@ -41,7 +41,7 @@ parser.add_argument(
 )
 parser.add_argument(
     "--phase",
-    choices=("recovery", "standing", "rise", "humanup_discovery", "humanup_standing", "humanup_rise", "simple_v2", "symmetric_v3"),
+    choices=("recovery", "standing", "rise", "humanup_discovery", "humanup_standing", "humanup_rise", "simple_v2", "symmetric_v3", "relaxed_v4"),
     default="recovery",
     help="Training curriculum phase.",
 )
@@ -114,13 +114,13 @@ from x2_recovery_isaac.env_cfg import (  # noqa: E402
 )
 
 
-from x2_recovery_isaac.simple_cfg import X2SimpleRecoveryEnvCfg, X2SimplePPORunnerCfg, X2SymmetricRecoveryEnvCfg, X2SymmetricPPORunnerCfg
+from x2_recovery_isaac.simple_cfg import X2RelaxedRecoveryEnvCfg, X2RelaxedPPORunnerCfg, X2SimpleRecoveryEnvCfg, X2SimplePPORunnerCfg, X2SymmetricRecoveryEnvCfg, X2SymmetricPPORunnerCfg
 
 
 def main() -> Path:
     env_cfg_type = {
         "simple_v2": X2SimpleRecoveryEnvCfg,
-        "symmetric_v3": X2SymmetricRecoveryEnvCfg,
+        "symmetric_v3": X2SymmetricRecoveryEnvCfg, "relaxed_v4": X2RelaxedRecoveryEnvCfg,
         "recovery": X2RecoveryEnvCfg,
         "standing": X2StandingEnvCfg,
         "rise": X2RiseEnvCfg,
@@ -194,7 +194,9 @@ def main() -> Path:
     env_cfg.sim.device = args.device
     env_cfg.seed = args.seed
 
-    if args.phase == "symmetric_v3":
+    if args.phase == "relaxed_v4":
+        agent_cfg = X2RelaxedPPORunnerCfg()
+    elif args.phase == "symmetric_v3":
         agent_cfg = X2SymmetricPPORunnerCfg()
     elif args.phase == "simple_v2":
         agent_cfg = X2SimplePPORunnerCfg()

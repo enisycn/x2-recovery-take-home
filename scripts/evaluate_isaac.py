@@ -15,7 +15,7 @@ from isaaclab.app import AppLauncher
 parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument("--checkpoint", type=Path, required=True, help="RSL-RL model checkpoint")
 parser.add_argument("--seeds", type=int, nargs="+", default=[101,102,103,104,105])
-parser.add_argument("--environment", choices=("humanup_rise", "simple_v2", "symmetric_v3"), default="humanup_rise")
+parser.add_argument("--environment", choices=("humanup_rise", "simple_v2", "symmetric_v3", "relaxed_v4"), default="humanup_rise")
 parser.add_argument("--output", type=Path, default=Path("reports/isaac_evaluation.json"))
 AppLauncher.add_app_launcher_args(parser)
 args = parser.parse_args()
@@ -40,7 +40,7 @@ from x2_recovery_isaac.env_cfg import (  # noqa: E402
     foot_contact_cfg,
 )
 
-from x2_recovery_isaac.simple_cfg import X2SimpleRecoveryEnvCfg, X2SimplePPORunnerCfg, X2SymmetricRecoveryEnvCfg, X2SymmetricPPORunnerCfg
+from x2_recovery_isaac.simple_cfg import X2RelaxedRecoveryEnvCfg, X2RelaxedPPORunnerCfg, X2SimpleRecoveryEnvCfg, X2SimplePPORunnerCfg, X2SymmetricRecoveryEnvCfg, X2SymmetricPPORunnerCfg
 
 SEEDS = tuple(args.seeds)
 STABLE_STEPS = 10  # 0.5 s at the 20 Hz policy rate, as in the FRASA check.
@@ -126,7 +126,7 @@ def _failure_mode(max_height: float, max_stable_s: float, ended_early: bool) -> 
 
 def main() -> None:
     checkpoint = args.checkpoint.expanduser().resolve(strict=True)
-    cfg = {"simple_v2": X2SimpleRecoveryEnvCfg, "symmetric_v3": X2SymmetricRecoveryEnvCfg, "humanup_rise": X2HumanUpRiseEnvCfg}[args.environment]()
+    cfg = {"simple_v2": X2SimpleRecoveryEnvCfg, "symmetric_v3": X2SymmetricRecoveryEnvCfg, "relaxed_v4": X2RelaxedRecoveryEnvCfg, "humanup_rise": X2HumanUpRiseEnvCfg}[args.environment]()
     cfg.scene.num_envs = 1
     cfg.scene.env_spacing = 3.0
     cfg.sim.device = args.device
@@ -142,7 +142,7 @@ def main() -> None:
     reset_params["reference_probability_start"] = 0.0
     reset_params["reference_probability_end"] = 0.0
 
-    agent_cfg = {"simple_v2": X2SimplePPORunnerCfg, "symmetric_v3": X2SymmetricPPORunnerCfg, "humanup_rise": X2HumanUpCurriculumPPORunnerCfg}[args.environment]()
+    agent_cfg = {"simple_v2": X2SimplePPORunnerCfg, "symmetric_v3": X2SymmetricPPORunnerCfg, "relaxed_v4": X2RelaxedPPORunnerCfg, "humanup_rise": X2HumanUpCurriculumPPORunnerCfg}[args.environment]()
     agent_cfg.device = args.device
     agent_cfg = handle_deprecated_rsl_rl_cfg(
         agent_cfg, importlib.metadata.version("rsl-rl-lib")
@@ -151,7 +151,7 @@ def main() -> None:
     env = RslRlVecEnvWrapper(gym_env, clip_actions=agent_cfg.clip_actions)
     task = env.unwrapped
     stable_steps = round(0.5 / task.step_dt)
-    observation_width = {"simple_v2": 168, "symmetric_v3": 122, "humanup_rise": 1148}[args.environment]
+    observation_width = {"simple_v2": 168, "symmetric_v3": 122, "relaxed_v4": 122, "humanup_rise": 1148}[args.environment]
     action_width = task.action_manager.total_action_dim
     feet_cfg = foot_contact_cfg()
     all_bodies_cfg = all_contact_cfg()
@@ -204,6 +204,8 @@ def main() -> None:
 
             consecutive_strict = maximum_consecutive_strict = 0
             consecutive_two_feet = maximum_consecutive_two_feet = 0
+            consecutive_relaxed = 0
+            last_two_seconds = []
             criterion_counts = {name: 0 for name in initial_snapshot["criteria"]}
             success = ended_early = False
             steps = 0
@@ -220,6 +222,13 @@ def main() -> None:
                 episode_done = bool(done[0].item())
                 terminal_snapshot = task.terminal_snapshot if episode_done else snapshot(task)
                 strict = bool(terminal_snapshot["strict"])
+                joints = terminal_snapshot["joint_position_rad"]
+                shoulder_error = max(abs(joints[f"{side}_shoulder_pitch_joint"]) for side in ("left", "right"))
+                elbow_error = max(abs(joints[f"{side}_elbow_joint"] + .15) for side in ("left", "right"))
+                relaxed = strict and shoulder_error <= .30 and elbow_error <= .30
+                consecutive_relaxed = consecutive_relaxed + 1 if relaxed else 0
+                if steps > max_steps - round(2.0 / task.step_dt):
+                    last_two_seconds.append((shoulder_error, elbow_error, relaxed))
                 consecutive_strict = consecutive_strict + 1 if strict else 0
                 maximum_consecutive_strict = max(maximum_consecutive_strict, consecutive_strict)
                 two_feet = bool(terminal_snapshot["criteria"]["both_feet"])
@@ -251,6 +260,14 @@ def main() -> None:
                 "maximum_strict_stable_s": round(max_stable_s, 3),
                 "final_strict_stable_s": round(consecutive_strict * task.step_dt, 3),
                 "standing_at_episode_end": consecutive_strict >= stable_steps,
+                "final_relaxed_stable_s": round(consecutive_relaxed * task.step_dt, 3),
+                "relaxed_at_episode_end": consecutive_relaxed >= stable_steps,
+                "last_two_seconds_arm_posture": {
+                    "sample_count": len(last_two_seconds),
+                    "max_abs_shoulder_pitch_rad": max((row[0] for row in last_two_seconds), default=None),
+                    "max_elbow_target_error_rad": max((row[1] for row in last_two_seconds), default=None),
+                    "strict_and_relaxed_fraction": sum(row[2] for row in last_two_seconds) / len(last_two_seconds) if last_two_seconds else 0.0,
+                },
                 "maximum_pelvis_height_m": round(maximum_height, 4),
                 "maximum_upright_score": round(maximum_upright, 4),
                 "maximum_two_foot_contact_s": round(maximum_consecutive_two_feet * task.step_dt, 3),
@@ -292,6 +309,11 @@ def main() -> None:
                 "domain_randomization": False,
                 "policy_rate_hz": round(1.0 / task.step_dt),
                 "episode_limit_s": cfg.episode_length_s,
+            },
+            "arm_posture_definition": {
+                "shoulder_pitch_target_rad": 0.0, "elbow_target_rad": -0.15,
+                "maximum_joint_error_rad": .30, "requires_strict_stance": True,
+                "stable_duration_s": .5,
             },
             "success_definition": {
                 **SUCCESS_LIMITS,

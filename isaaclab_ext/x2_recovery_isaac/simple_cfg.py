@@ -113,3 +113,32 @@ class X2SymmetricRecoveryEnvCfg(X2SimpleRecoveryEnvCfg):
 @configclass
 class X2SymmetricPPORunnerCfg(X2SimplePPORunnerCfg):
     experiment_name='hrs_x2_symmetric_v3'
+
+
+@configclass
+class X2RelaxedRecoveryEnvCfg(X2SymmetricRecoveryEnvCfg):
+    """Preserve v3 recovery, refine only stable final arm posture."""
+
+    def __post_init__(self):
+        super().__post_init__()
+        from isaaclab.managers import SceneEntityCfg
+        self.rewards.relaxed_arms = RewTerm(
+            func=mdp.relaxed_arms_when_stable, weight=20.0,
+            params={
+                "shoulder_cfg": SceneEntityCfg("robot", joint_names=[".*_shoulder_pitch_joint"]),
+                "elbow_cfg": SceneEntityCfg("robot", joint_names=[".*_elbow_joint"]),
+                "feet_cfg": foot_contact_cfg(), "all_bodies_cfg": all_contact_cfg(),
+                "variance": 2.0,
+            })
+
+
+@configclass
+class X2RelaxedPPORunnerCfg(X2SymmetricPPORunnerCfg):
+    experiment_name = "hrs_x2_relaxed_v4"
+    save_interval = 50
+
+    def __post_init__(self):
+        super().__post_init__()
+        self.algorithm.learning_rate = 1.0e-4
+        self.algorithm.schedule = "fixed"
+        self.algorithm.entropy_coef = 0.001

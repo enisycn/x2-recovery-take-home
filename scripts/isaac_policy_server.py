@@ -15,7 +15,7 @@ from isaaclab.app import AppLauncher
 
 parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument("--policy", type=Path, required=True, help="Exported RSL-RL policy.pt")
-parser.add_argument("--environment", choices=("humanup_rise", "simple_v2", "symmetric_v3"), default="humanup_rise")
+parser.add_argument("--environment", choices=("humanup_rise", "simple_v2", "symmetric_v3", "relaxed_v4"), default="humanup_rise")
 parser.add_argument("--socket", default="/tmp/hrs_x2_recovery.sock")
 AppLauncher.add_app_launcher_args(parser)
 args = parser.parse_args()
@@ -35,7 +35,7 @@ from x2_recovery_isaac.env_cfg import (  # noqa: E402
 )
 
 
-from x2_recovery_isaac.simple_cfg import X2SimpleRecoveryEnvCfg, X2SymmetricRecoveryEnvCfg
+from x2_recovery_isaac.simple_cfg import X2RelaxedRecoveryEnvCfg, X2SimpleRecoveryEnvCfg, X2SymmetricRecoveryEnvCfg
 
 
 
@@ -76,7 +76,14 @@ def serve_attempt(stream, env, policy, request: dict, feet_cfg, all_bodies_cfg) 
             observation, _, terminated, truncated, _ = env.step(action)
             done = bool(terminated[0] or truncated[0])
             state = unwrapped.terminal_snapshot if done else measured_state(unwrapped)
-            consecutive_stable = consecutive_stable + 1 if state["strict"] else 0
+            ready = state["strict"]
+            if args.environment == "relaxed_v4":
+                joints = dict(zip(robot.joint_names, state["joint_positions"], strict=True))
+                ready = ready and all(
+                    abs(joints[f"{side}_shoulder_pitch_joint"]) <= .30
+                    and abs(joints[f"{side}_elbow_joint"] + .15) <= .30
+                    for side in ("left", "right"))
+            consecutive_stable = consecutive_stable + 1 if ready else 0
             _write(stream, {"type": "step", "step": step,
                 "joint_names": list(robot.joint_names), "joint_positions": state["joint_positions"]})
             if consecutive_stable >= stable_steps:
@@ -107,11 +114,9 @@ def main() -> None:
     socket_path = Path(args.socket).expanduser().resolve()
     socket_path.unlink(missing_ok=True)
 
-    # Deployment uses the same 1,148-value HumanUP observation and bounded
-    # relative action contract as training/evaluation.  Keep one deterministic
-    # true-supine environment: the ROS bridge must report the learned result,
-    # never a curriculum-reference start or an assisted attempt.
-    config = {"simple_v2": X2SimpleRecoveryEnvCfg, "symmetric_v3": X2SymmetricRecoveryEnvCfg, "humanup_rise": X2HumanUpRiseEnvCfg}[args.environment]()
+    # Keep the selected observation/action contract and a true supine reset.
+    # v4 additionally waits for relaxed arm posture before reporting success.
+    config = {"simple_v2": X2SimpleRecoveryEnvCfg, "symmetric_v3": X2SymmetricRecoveryEnvCfg, "relaxed_v4": X2RelaxedRecoveryEnvCfg, "humanup_rise": X2HumanUpRiseEnvCfg}[args.environment]()
     config.sim.device = args.device
     config.scene.num_envs = 1
     config.scene.env_spacing = 3.0

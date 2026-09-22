@@ -1119,3 +1119,26 @@ def apply_humanup_height_scaled_force(
 
 # Re-export standard Isaac Lab MDP terms through one task-local module.
 from isaaclab.envs.mdp import *  # noqa: E402,F403
+
+
+def relaxed_arms_when_stable(
+    env: ManagerBasedRLEnv,
+    shoulder_cfg: SceneEntityCfg,
+    elbow_cfg: SceneEntityCfg,
+    feet_cfg: SceneEntityCfg,
+    all_bodies_cfg: SceneEntityCfg,
+    variance: float = 2.0,
+) -> torch.Tensor:
+    """X2 post-task pose reward; zero unless strict two-foot stance holds.
+
+    HoST motivates separate post-task behavior objectives. The arm targets,
+    Gaussian width and weight are our X2 adaptation, not paper constants.
+    Zero shoulder pitch hangs the upper arms; elbows retain a 0.15-rad bend.
+    """
+    robot = env.scene[shoulder_cfg.name]
+    shoulders = robot.data.joint_pos.torch[:, shoulder_cfg.joint_ids]
+    elbows = robot.data.joint_pos.torch[:, elbow_cfg.joint_ids]
+    mse = 0.5 * (shoulders.square().mean(dim=1)
+                 + (elbows + 0.15).square().mean(dim=1))
+    gate = strict_success(env, feet_cfg=feet_cfg, all_bodies_cfg=all_bodies_cfg)
+    return gate.to(torch.float32) * torch.exp(-mse / variance)
