@@ -1,5 +1,12 @@
 # Execution and policy root-cause record
 
+**22 September re-audit:** The earlier claim that curriculum coverage is the
+sole remaining cause is withdrawn. The [no-training review](no_training_review_2026-09-22.md)
+documents a live-confirmed contact-history reset defect, loss of action
+authority near standing, episode-boundary errors in diagnostic/data collection
+tools, and experiment-configuration drift. The table below is historical;
+its claimed resolutions are not a blanket validation of the current system.
+
 Updated 21 September 2026. The investigation kept every change inside this repository. No system, driver, Conda, ROS, Isaac, CPU-isolation, or existing robot-workspace setting was changed.
 
 | Symptom | Root cause | Evidence | Resolution |

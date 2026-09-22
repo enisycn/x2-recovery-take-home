@@ -1,5 +1,13 @@
 # AgiBot X2 ground recovery
 
+**22 September diagnostic update:** The [no-training review](docs/no_training_review_2026-09-22.md)
+supersedes the earlier claim that curriculum is the sole remaining problem.
+It confirms stale contact history across resets, zero action increments at
+upright heights of 0.62 m and above, and episode-boundary errors in the
+diagnostic/imitation tools. The recorded 0/5 evaluation remains a failed
+experiment; this repository is not a completed successful recovery controller.
+No new training was run during that review.
+
 This repository implements the HRS take-home as a self-contained external Isaac Lab task and ROS 2 Humble package. The main path is an AgiBot X2 Ultra v1.3.0 floating-base model in Isaac Lab/PhysX, trained with RSL-RL PPO. A small NumPy model remains as a clearly labelled CPU test harness for training plumbing and ROS interface validation.
 
 The repository never installs files into an existing robot workspace. Isaac Lab is invoked through an explicitly selected, existing Python interpreter, the AgiBot source model and converted USD stay under this repository, ROS builds into this repository, and the ROS–Isaac bridge uses one local Unix socket.

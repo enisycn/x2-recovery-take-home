@@ -43,8 +43,8 @@ The target is computed once and held for five physics steps. Near standing, the 
 
 \[
 s(x)=x^2(3-2x),\quad
-b=s\!\left(\operatorname{clip}\frac{h-0.55}{0.62-0.55}\right)
-\operatorname{clip}\frac{-g_z-0.90}{0.10},
+b=s\!\left(\operatorname{clip}\left(\frac{h-0.55}{0.62-0.55},0,1\right)
+\operatorname{clip}\left(\frac{-g_z-0.90}{0.10},0,1\right)\right),
 \]
 
 \[
