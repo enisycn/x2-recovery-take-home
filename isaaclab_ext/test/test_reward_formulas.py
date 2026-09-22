@@ -38,6 +38,7 @@ def fake_robot(
             root_pos_w=TorchField(root_position),
             projected_gravity_b=TorchField(projected_gravity),
             root_lin_vel_w=TorchField(zeros if linear_velocity is None else linear_velocity),
+            root_lin_vel_b=TorchField(zeros if linear_velocity is None else linear_velocity),
             root_ang_vel_w=TorchField(zeros if angular_velocity is None else angular_velocity),
         )
     )
@@ -119,6 +120,28 @@ def test_height_progress_keeps_a_gradient_near_the_floor() -> None:
     assert torch.allclose(progress, torch.tensor([0.1, 0.5, 1.0]))
 
 
+def test_final_leg_pose_is_gated_and_peaks_at_standing_defaults() -> None:
+    heights = torch.tensor([0.44, 0.62, 0.68])
+    gravity = torch.tensor([[0.0, 0.0, -1.0]] * 3)
+    robot = fake_robot(heights, gravity)
+    robot.data.joint_pos = TorchField(
+        torch.tensor([[1.0] * 6, [1.0] * 6, [0.0] * 6], dtype=torch.float32)
+    )
+    robot.data.default_joint_pos = TorchField(torch.zeros((3, 6), dtype=torch.float32))
+    env = SimpleNamespace(scene=FakeScene(robot))
+    legs = SimpleNamespace(name="robot", joint_ids=list(range(6)))
+
+    actual = mdp.final_leg_pose_exp(
+        env,
+        gate_start_height=0.45,
+        target_height=0.68,
+        std=1.0,
+        asset_cfg=legs,
+    )
+    expected_mid = math.exp(-1.0) * ((0.62 - 0.45) / (0.68 - 0.45))
+    assert torch.allclose(actual, torch.tensor([0.0, expected_mid, 1.0]), atol=1.0e-6)
+
+
 def test_humanup_discovery_and_host_post_stand_terms() -> None:
     heights = torch.tensor([0.19, 0.68])
     gravity = torch.tensor([[1.0, 0.0, 0.0], [0.0, 0.0, -1.0]])
@@ -133,6 +156,27 @@ def test_humanup_discovery_and_host_post_stand_terms() -> None:
     assert mdp.host_post_base_orientation(env, stage_height=0.62).tolist() == [0.0, 1.0]
     assert torch.allclose(mdp.base_linear_velocity_l2(env), torch.tensor([0.01, 0.05]))
     assert torch.allclose(mdp.base_angular_velocity_l2(env), torch.tensor([0.0, 0.14]))
+
+
+def test_host_height_term_uses_released_absolute_error_formula() -> None:
+    heights = torch.tensor([0.57, 0.58, 0.62, 0.68])
+    gravity = torch.tensor([[0.0, 0.0, -1.0]] * 4)
+    env = SimpleNamespace(scene=FakeScene(fake_robot(heights, gravity)))
+
+    actual = mdp.host_post_base_height(env, stage_height=0.58, target_height=0.68)
+    expected = torch.tensor([0.0, 0.0, math.exp(-1.2), 1.0])
+    assert torch.allclose(actual, expected, atol=1.0e-6)
+
+
+def test_humanup_unsafe_state_is_not_a_success_termination() -> None:
+    heights = torch.tensor([0.68, -0.01, 1.21, 0.68])
+    gravity = torch.tensor([[0.0, 0.0, -1.0]] * 4)
+    linear = torch.tensor(
+        [[0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [2.51, 0.0, 0.0]]
+    )
+    env = SimpleNamespace(scene=FakeScene(fake_robot(heights, gravity, linear_velocity=linear)))
+
+    assert mdp.humanup_unsafe_state(env).tolist() == [False, True, True, True]
 
 
 def test_inverted_pose_gets_no_height_reward_and_is_penalized() -> None:
@@ -158,13 +202,70 @@ def test_strict_success_rejects_inversion_missing_foot_and_other_support() -> No
     forces[:, :, 1, 2] = 15.0
     forces[2, :, 2, 2] = 15.0
     forces[3, :, 1, 2] = 0.0
-    sensor = SimpleNamespace(data=SimpleNamespace(net_forces_w_history=TorchField(forces)))
+    sensor = SimpleNamespace(
+        data=SimpleNamespace(
+            net_forces_w_history=TorchField(forces),
+            force_matrix_w_history=TorchField(forces.unsqueeze(3)),
+        )
+    )
     env = SimpleNamespace(scene=FakeScene(fake_robot(heights, gravity), sensor))
     feet = SimpleNamespace(name="contact_forces", body_ids=[0, 1])
     all_bodies = SimpleNamespace(name="contact_forces", body_ids=[0, 1, 2])
 
     result = mdp.strict_success(env, feet_cfg=feet, all_bodies_cfg=all_bodies)
     assert result.tolist() == [True, False, False, False]
+
+
+def test_strict_stance_proximity_is_bounded_and_orders_nearby_states() -> None:
+    count, history, bodies = 3, 2, 3
+    heights = torch.tensor([0.68, 0.68, 0.44])
+    gravity = torch.tensor([[0.0, 0.0, -1.0]] * count)
+    forces = torch.zeros((count, history, bodies, 3))
+    forces[:, :, 0, 2] = 100.0
+    forces[:, :, 1, 2] = 100.0
+    forces[1, :, 2, 2] = 100.0
+    sensor = SimpleNamespace(
+        data=SimpleNamespace(
+            net_forces_w_history=TorchField(forces),
+            force_matrix_w_history=TorchField(forces.unsqueeze(3)),
+        )
+    )
+    env = SimpleNamespace(scene=FakeScene(fake_robot(heights, gravity), sensor))
+    feet = SimpleNamespace(name="contact_forces", body_ids=[0, 1])
+    all_bodies = SimpleNamespace(name="contact_forces", body_ids=[0, 1, 2])
+
+    result = mdp.strict_stance_proximity(env, feet_cfg=feet, all_bodies_cfg=all_bodies)
+    assert torch.all((0.0 <= result) & (result <= 1.0))
+    assert result[0] > result[1]
+    assert result[0] > result[2]
+    assert result[1] < 0.15
+    assert result[2] < 0.30
+    assert result[0] > 0.80
+
+
+def test_strict_success_ignores_internal_self_collision_for_support() -> None:
+    """Only floor contact, not equal/opposite link contact, is body support."""
+
+    height = torch.tensor([0.68])
+    gravity = torch.tensor([[0.0, 0.0, -1.0]])
+    ground = torch.zeros((1, 2, 3, 3))
+    ground[:, :, 0, 2] = 100.0
+    ground[:, :, 1, 2] = 100.0
+    net = ground.clone()
+    # Simulate a pelvis/hip self-collision in the unfiltered PhysX buffer.
+    net[:, :, 2, 0] = 400.0
+    sensor = SimpleNamespace(
+        data=SimpleNamespace(
+            net_forces_w_history=TorchField(net),
+            force_matrix_w_history=TorchField(ground.unsqueeze(3)),
+        )
+    )
+    env = SimpleNamespace(scene=FakeScene(fake_robot(height, gravity), sensor))
+    feet = SimpleNamespace(name="contact_forces", body_ids=[0, 1])
+    all_bodies = SimpleNamespace(name="contact_forces", body_ids=[0, 1, 2])
+
+    result = mdp.strict_success(env, feet_cfg=feet, all_bodies_cfg=all_bodies)
+    assert result.tolist() == [True]
 
 
 def test_relative_action_holds_at_zero_and_clips_final_target() -> None:

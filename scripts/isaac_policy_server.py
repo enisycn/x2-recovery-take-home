@@ -28,7 +28,7 @@ import torch  # noqa: E402
 import x2_recovery_isaac  # noqa: E402,F401
 from x2_recovery_isaac import mdp  # noqa: E402
 from x2_recovery_isaac.env_cfg import (  # noqa: E402
-    X2RecoveryPlayEnvCfg,
+    X2HumanUpRiseEnvCfg,
     all_contact_cfg,
     foot_contact_cfg,
 )
@@ -108,7 +108,21 @@ def main() -> None:
     socket_path = Path(args.socket).expanduser().resolve()
     socket_path.unlink(missing_ok=True)
 
-    config = X2RecoveryPlayEnvCfg()
+    # Deployment uses the same 1,148-value HumanUP observation and bounded
+    # relative action contract as training/evaluation.  Keep one deterministic
+    # true-supine environment: the ROS bridge must report the learned result,
+    # never a curriculum-reference start or an assisted attempt.
+    config = X2HumanUpRiseEnvCfg()
+    config.scene.num_envs = 1
+    config.scene.env_spacing = 3.0
+    config.observations.policy.enable_corruption = False
+    config.events.material = None
+    config.events.mass = None
+    config.events.pelvis_com = None
+    config.events.actuator_gains = None
+    config.events.lift_assist = None
+    config.events.reset_back_pose.params["reference_probability_start"] = 0.0
+    config.events.reset_back_pose.params["reference_probability_end"] = 0.0
     env = gym.make("HRS-X2-Recovery-Play-v0", cfg=config)
     feet_cfg = foot_contact_cfg()
     all_bodies_cfg = all_contact_cfg()

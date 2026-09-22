@@ -19,6 +19,7 @@ from isaaclab.utils.noise import UniformNoiseCfg as Unoise
 from isaaclab_physx.sensors import ContactSensorCfg
 
 from . import mdp
+from .agents.absolute_action import BoundedAbsoluteJointPositionActionCfg
 from .exact_contact_sensor import ExactPathContactSensor
 from .relative_action import BoundedRelativeJointPositionActionCfg
 from .x2_robot_cfg import X2_CFG
@@ -107,8 +108,15 @@ def _all_contacts_sensor() -> ContactSensorCfg:
     return ContactSensorCfg(
         prim_path="{ENV_REGEX_NS}/Robot/Geometry/pelvis/**",
         class_type=ExactPathContactSensor,
-        history_length=1,
+        # HumanUP's Stage-I foot-force-increase reward compares the current
+        # and preceding contact sample.  Other contact terms remain unchanged
+        # because they already reduce over the available history.
+        history_length=2,
         track_air_time=False,
+        # Success means support by the floor.  The unfiltered net-force
+        # buffer also contains X2 self-collisions, so all reward, observation,
+        # and validation contact masks use the per-partner ground matrix.
+        filter_prim_paths_expr=["/World/ground"],
     )
 
 
@@ -156,6 +164,19 @@ class ActionsCfg:
 
 
 @configclass
+class HumanUpActionsCfg:
+    """HumanUP's absolute default-centred position target for every X2 joint."""
+
+    joint_position = BoundedAbsoluteJointPositionActionCfg(
+        asset_name="robot",
+        joint_names=[".*"],
+        scale=0.5,
+        clip=None,
+        use_default_offset=True,
+    )
+
+
+@configclass
 class ObservationsCfg:
     @configclass
     class PolicyCfg(ObsGroup):
@@ -185,6 +206,34 @@ class ObservationsCfg:
             self.concatenate_terms = True
 
     policy: PolicyCfg = PolicyCfg()
+
+
+@configclass
+class HumanUpObservationsCfg:
+    """HumanUP's current proprioception, zero extrinsics, and 10-step history."""
+
+    @configclass
+    class PolicyCfg(ObsGroup):
+        proprio = ObsTerm(func=mdp.humanup_proprioception)
+        # HumanUP reserves 4 mass + 1 friction + 2*n_actions motor + 3
+        # base-velocity dimensions. Stage I disables randomization and fills
+        # this section with zeros; the history encoder is used by the actor.
+        privileged_extrinsics = ObsTerm(func=mdp.humanup_privileged_zeros, params={"dimension": 70})
+        proprio_history = ObsTerm(func=mdp.humanup_proprioception, history_length=10)
+
+        def __post_init__(self) -> None:
+            self.enable_corruption = False
+            self.concatenate_terms = True
+
+    policy: PolicyCfg = PolicyCfg()
+
+
+@configclass
+class ImitationCollectionObservationsCfg:
+    """Expose HumanUP student and legacy expert observations together."""
+
+    policy: HumanUpObservationsCfg.PolicyCfg = HumanUpObservationsCfg.PolicyCfg()
+    teacher_policy: ObservationsCfg.PolicyCfg = ObservationsCfg.PolicyCfg()
 
 
 @configclass
@@ -350,6 +399,19 @@ class RewardsCfg:
         params={"stage_height": 0.58, "target_height": 0.68},
     )
     standing_still = RewTerm(func=mdp.standing_still, weight=5.0, params={"target_height": 0.68})
+    # Optimize the same instantaneous predicate used by evaluation.  The
+    # sustained 0.5 s requirement remains evaluator state, but paying this
+    # term on every valid step makes balance duration, foot loading, velocity,
+    # and removal of hand/knee support visible to PPO instead of only to the
+    # post-training report.
+    exact_stance = RewTerm(
+        func=mdp.strict_success,
+        weight=25.0,
+        params={
+            "feet_cfg": foot_contact_cfg(),
+            "all_bodies_cfg": all_contact_cfg(),
+        },
+    )
     # HumanUP's weak Stage-I regularization.
     action_magnitude = RewTerm(func=mdp.action_l2, weight=-0.01)
     action_rate = RewTerm(func=mdp.action_rate_l2, weight=-0.02)
@@ -411,10 +473,255 @@ class RewardsCfg:
     )
 
 
+def _humanup_feet_cfg() -> SceneEntityCfg:
+    return SceneEntityCfg("robot", body_names=list(FOOT_CONTACT_BODIES), preserve_order=True)
+
+
+def _humanup_head_cfg() -> SceneEntityCfg:
+    return SceneEntityCfg("robot", body_names=["head_pitch_link"], preserve_order=True)
+
+
+def _humanup_left_cfg() -> SceneEntityCfg:
+    return SceneEntityCfg(
+        "robot",
+        joint_names=[
+            "left_hip_pitch_joint",
+            "left_hip_roll_joint",
+            "left_hip_yaw_joint",
+            "left_knee_joint",
+            "left_ankle_pitch_joint",
+            "left_ankle_roll_joint",
+            "left_shoulder_pitch_joint",
+            "left_shoulder_roll_joint",
+            "left_shoulder_yaw_joint",
+            "left_elbow_joint",
+        ],
+        preserve_order=True,
+    )
+
+
+def _humanup_right_cfg() -> SceneEntityCfg:
+    return SceneEntityCfg(
+        "robot",
+        joint_names=[
+            "right_hip_pitch_joint",
+            "right_hip_roll_joint",
+            "right_hip_yaw_joint",
+            "right_knee_joint",
+            "right_ankle_pitch_joint",
+            "right_ankle_roll_joint",
+            "right_shoulder_pitch_joint",
+            "right_shoulder_roll_joint",
+            "right_shoulder_yaw_joint",
+            "right_elbow_joint",
+        ],
+        preserve_order=True,
+    )
+
+
+@configclass
+class HumanUpStageIRewardsCfg:
+    """HumanUP official Stage-I code-release reward terms and weights.
+
+    Body/joint names and reachable height caps are the only X2-specific
+    substitutions.  The formulas and scalar weights match the official
+    ``G1WaistHumanUPCfg.rewards.scales`` configuration.
+    """
+
+    base_height_exp = RewTerm(
+        func=mdp.humanup_base_height_exp_clipped,
+        weight=5.0,
+        params={"target_height": 0.68},
+    )
+    head_height_exp = RewTerm(
+        func=mdp.humanup_head_height_exp_clipped,
+        weight=5.0,
+        params={"target_height": 1.18, "asset_cfg": _humanup_head_cfg()},
+    )
+    delta_base_height = RewTerm(func=mdp.humanup_height_increase, weight=1.0)
+    feet_contact_forces_increase = RewTerm(
+        func=mdp.humanup_feet_contact_force_increase,
+        weight=1.0,
+        params={"sensor_cfg": foot_contact_cfg()},
+    )
+    stand_on_feet = RewTerm(
+        func=mdp.humanup_stand_on_feet,
+        weight=2.5,
+        params={"sensor_cfg": foot_contact_cfg(), "feet_cfg": _humanup_feet_cfg()},
+    )
+    orientation = RewTerm(func=mdp.flat_orientation_l2, weight=-1.0)
+    body_up_exp = RewTerm(func=mdp.humanup_body_upright, weight=0.25)
+    feet_height = RewTerm(
+        func=mdp.humanup_feet_height,
+        weight=2.5,
+        params={"feet_cfg": _humanup_feet_cfg()},
+    )
+    feet_distance = RewTerm(
+        func=mdp.humanup_feet_distance,
+        weight=2.0,
+        params={"feet_cfg": _humanup_feet_cfg(), "min_distance": 0.25, "max_distance": 1.0},
+    )
+    soft_symmetry_body = RewTerm(
+        func=mdp.humanup_action_symmetry,
+        weight=-1.0,
+        params={
+            "left_cfg": _humanup_left_cfg(),
+            "right_cfg": _humanup_right_cfg(),
+            "sign_flip_indices": (1, 2, 5, 7, 8),
+            "head_cfg": _humanup_head_cfg(),
+        },
+    )
+    soft_symmetry_waist = RewTerm(
+        func=mdp.humanup_waist_action_symmetry,
+        weight=-1.0,
+        params={
+            "waist_cfg": SceneEntityCfg(
+                "robot", joint_names=["waist_yaw_joint", "waist_roll_joint"], preserve_order=True
+            ),
+            "head_cfg": _humanup_head_cfg(),
+        },
+    )
+    feet_orientation = RewTerm(
+        func=mdp.humanup_feet_orientation,
+        weight=-0.5,
+        params={"feet_cfg": _humanup_feet_cfg()},
+    )
+    foot_slip = RewTerm(
+        func=mdp.humanup_foot_slip,
+        weight=-1.0,
+        params={"sensor_cfg": foot_contact_cfg(), "feet_cfg": _humanup_feet_cfg()},
+    )
+    termination = RewTerm(func=mdp.is_terminated, weight=-500.0)
+    dof_error = RewTerm(
+        func=mdp.humanup_joint_position_error,
+        weight=-0.03,
+        params={"head_cfg": _humanup_head_cfg()},
+    )
+    base_lin_vel = RewTerm(func=mdp.humanup_base_linear_velocity_norm, weight=-0.1)
+    ang_vel = RewTerm(func=mdp.base_angular_velocity_l2, weight=-0.1)
+    dof_vel = RewTerm(func=mdp.joint_vel_l2, weight=-1.0e-4)
+    action_rate = RewTerm(func=mdp.humanup_action_rate_norm, weight=-0.1)
+    torques = RewTerm(func=mdp.humanup_joint_torque_norm, weight=-1.0e-6)
+    dof_pos_limits = RewTerm(func=mdp.joint_pos_limits, weight=-5.0)
+    dof_torque_limits = RewTerm(
+        func=mdp.humanup_joint_torque_limits,
+        weight=-0.1,
+        params={"soft_ratio": 1.0},
+    )
+    energy = RewTerm(func=mdp.humanup_energy, weight=-1.0e-4)
+    dof_acc = RewTerm(func=mdp.joint_acc_l2, weight=-1.0e-7)
+
+
+@configclass
+class HumanUpCurriculumRewardsCfg(HumanUpStageIRewardsCfg):
+    """Published Stage-I terms plus the take-home's explicit success target."""
+
+    x2_height_progress = RewTerm(
+        func=mdp.base_height_progress,
+        weight=40.0,
+        params={"target_height": 0.68},
+    )
+    x2_final_leg_pose = RewTerm(
+        func=mdp.final_leg_pose_exp,
+        weight=50.0,
+        params={
+            "gate_start_height": 0.45,
+            "target_height": 0.68,
+            "std": 1.0,
+            "asset_cfg": SceneEntityCfg(
+                "robot",
+                joint_names=[
+                    ".*_hip_pitch_joint",
+                    ".*_knee_joint",
+                    ".*_ankle_pitch_joint",
+                ],
+            ),
+        },
+    )
+    x2_final_alignment_pose = RewTerm(
+        func=mdp.final_leg_pose_exp,
+        weight=50.0,
+        params={
+            "gate_start_height": 0.55,
+            "target_height": 0.68,
+            "std": 1.0,
+            "asset_cfg": SceneEntityCfg(
+                "robot",
+                joint_names=[
+                    ".*_hip_roll_joint",
+                    ".*_hip_yaw_joint",
+                    ".*_ankle_roll_joint",
+                    "waist_.*",
+                    ".*_shoulder_.*",
+                    ".*_elbow_joint",
+                    ".*_wrist_.*",
+                    "head_.*",
+                ],
+            ),
+        },
+    )
+    x2_orientation = RewTerm(func=mdp.upright_exp, weight=2.5, params={"std": 0.25})
+    x2_both_feet = RewTerm(
+        func=mdp.both_feet_when_high,
+        weight=10.0,
+        params={
+            "sensor_cfg": foot_contact_cfg(),
+            "threshold": 15.0,
+            "gate_start_height": 0.08,
+            "target_height": 0.68,
+        },
+    )
+    x2_other_support = RewTerm(
+        func=mdp.unsupported_contacts_when_high,
+        weight=-10.0,
+        params={
+            "all_bodies_cfg": all_contact_cfg(),
+            "feet_cfg": foot_contact_cfg(),
+            "threshold": 15.0,
+            "gate_start_height": 0.45,
+            "target_height": 0.68,
+        },
+    )
+    host_post_angular_velocity = RewTerm(
+        func=mdp.host_post_base_angular_velocity, weight=50.0, params={"stage_height": 0.58}
+    )
+    host_post_linear_velocity = RewTerm(
+        func=mdp.host_post_base_linear_velocity, weight=50.0, params={"stage_height": 0.58}
+    )
+    host_post_orientation = RewTerm(
+        func=mdp.host_post_base_orientation, weight=10.0, params={"stage_height": 0.58}
+    )
+    host_post_height = RewTerm(
+        func=mdp.host_post_base_height,
+        weight=10.0,
+        params={"stage_height": 0.58, "target_height": 0.68},
+    )
+    x2_standing_still = RewTerm(func=mdp.standing_still, weight=5.0, params={"target_height": 0.68})
+    x2_stance_proximity = RewTerm(
+        func=mdp.strict_stance_proximity,
+        weight=100.0,
+        params={"feet_cfg": foot_contact_cfg(), "all_bodies_cfg": all_contact_cfg()},
+    )
+    exact_stance = RewTerm(
+        func=mdp.strict_success,
+        weight=50.0,
+        params={"feet_cfg": foot_contact_cfg(), "all_bodies_cfg": all_contact_cfg()},
+    )
+
+
 @configclass
 class TerminationsCfg:
     # Do not end when first upright: the policy must learn to remain stable.
     time_out = DoneTerm(func=mdp.time_out, time_out=True)
+
+
+@configclass
+class HumanUpTerminationsCfg(TerminationsCfg):
+    # HumanUP's released G1 task adds only broad root-state safety bounds.
+    # This is a true failure termination; the target stance is never terminal.
+    root_speed = DoneTerm(func=mdp.humanup_root_speed_too_high)
+    root_height = DoneTerm(func=mdp.humanup_root_height_out_of_bounds)
+    nonfinite_state = DoneTerm(func=mdp.root_state_nonfinite)
 
 
 @configclass
@@ -470,3 +777,142 @@ class X2RecoveryPlayEnvCfg(X2RecoveryEnvCfg):
         self.events.reset_back_pose.params["reference_probability_end"] = 0.0
         # Keep the narrow reset distribution: fixed evaluator seeds then exercise
         # five reproducible back-lying states instead of repeating one state.
+
+
+@configclass
+class X2HumanUpDiscoveryEnvCfg(X2RecoveryEnvCfg):
+    """HumanUP Stage-I reproduction with X2 body names and height caps."""
+
+    rewards: HumanUpStageIRewardsCfg = HumanUpStageIRewardsCfg()
+    observations: HumanUpObservationsCfg = HumanUpObservationsCfg()
+    actions: HumanUpActionsCfg = HumanUpActionsCfg()
+    terminations: HumanUpTerminationsCfg = HumanUpTerminationsCfg()
+
+    def __post_init__(self) -> None:
+        super().__post_init__()
+        params = self.events.reset_back_pose.params
+        # Official HumanUP mixes 10--20% standing starts during discovery.
+        params["reference_probability_start"] = 0.20
+        params["reference_probability_end"] = 0.10
+        params["reference_probability_anneal_policy_steps"] = 50_000
+        params["reference_root_height_offsets"] = (0.49000,)
+        params["reference_body_angles"] = ((0.0, 0.0, 0.0, -1.0, -1.5),)
+        params["reference_min_stage"] = 0
+        params["reference_max_stage_start"] = 0
+        params["reference_max_stage_end"] = 0
+        params["reference_stage_anneal_policy_steps"] = 1
+        # The release contains optional 1500 N drag-force utilities, but its
+        # published discovery configuration sets drag_robot_up=False.
+        self.events.lift_assist = None
+        self.episode_length_s = 10.0
+
+
+@configclass
+class X2HumanUpStandingEnvCfg(X2HumanUpDiscoveryEnvCfg):
+    """Compute-efficient standing pretraining with the HumanUP model/rewards."""
+
+    rewards: HumanUpCurriculumRewardsCfg = HumanUpCurriculumRewardsCfg()
+    actions: ActionsCfg = ActionsCfg()
+
+    def __post_init__(self) -> None:
+        super().__post_init__()
+        params = self.events.reset_back_pose.params
+        params["reference_probability_start"] = 1.0
+        params["reference_probability_end"] = 1.0
+        params["reference_probability_anneal_policy_steps"] = 1
+        self.rewards.exact_stance.weight = 200.0
+        self.episode_length_s = 4.0
+
+
+@configclass
+class X2HumanUpRiseEnvCfg(X2HumanUpDiscoveryEnvCfg):
+    """Bridge-pose curriculum retaining HumanUP observations and rewards."""
+
+    rewards: HumanUpCurriculumRewardsCfg = HumanUpCurriculumRewardsCfg()
+    actions: ActionsCfg = ActionsCfg()
+
+    def __post_init__(self) -> None:
+        super().__post_init__()
+        self.actions.joint_position.brake_start_height = 0.55
+        self.actions.joint_position.brake_end_height = 0.62
+        self.actions.joint_position.brake_min_upright = 0.90
+        self.actions.joint_position.maximum_brake = 1.00
+        params = self.events.reset_back_pose.params
+        params["reference_probability_start"] = 1.0
+        params["reference_probability_end"] = 1.0
+        params["reference_probability_anneal_policy_steps"] = 1
+        params["reference_root_height_offsets"] = (
+            0.49000, 0.41214, 0.31129, 0.20152, 0.12452, 0.06245, 0.02527, -0.04046, -0.09806
+        )
+        params["reference_body_angles"] = (
+            (0.0, 0.0, 0.0, -1.0, -1.5),
+            (-0.5, 1.0, -0.5, -1.0, -1.5),
+            (-0.78, 1.56, -0.78, -1.0, -1.5),
+            (-1.2, 1.98, -0.78, -1.0, -1.5),
+            (-1.5, 2.2, -0.7, -1.0, -1.5),
+            (-1.8, 2.3, -0.5, -1.0, -1.5),
+            (-2.0, 2.3, -0.3, -1.0, -1.5),
+            (-2.3, 2.3, 0.0, -1.0, -1.5),
+            (-1.57, 0.0, 0.0, -1.0, -1.5),
+        )
+        params["reference_min_stage"] = 0
+        params["reference_max_stage_start"] = 8
+        params["reference_max_stage_end"] = 8
+        params["reference_stage_anneal_policy_steps"] = 1
+        self.rewards.exact_stance.weight = 200.0
+
+
+@configclass
+class X2StandingEnvCfg(X2RecoveryEnvCfg):
+    """Phase 1: learn active balance from the audited straight stance."""
+
+    def __post_init__(self) -> None:
+        super().__post_init__()
+        params = self.events.reset_back_pose.params
+        params["reference_probability_start"] = 1.0
+        params["reference_probability_end"] = 1.0
+        params["reference_probability_anneal_policy_steps"] = 1
+        params["reference_root_height_offsets"] = (0.49000,)
+        params["reference_body_angles"] = ((0.0, 0.0, 0.0, -1.0, -1.5),)
+        params["reference_max_stage_start"] = 0
+        params["reference_max_stage_end"] = 0
+        params["reference_stage_anneal_policy_steps"] = 1
+        self.events.lift_assist = None
+        # This teacher phase starts inside the valid set.  A stronger exact
+        # reward teaches the actor to remain there before harder reset poses
+        # are introduced.
+        self.rewards.exact_stance.weight = 50.0
+        self.episode_length_s = 4.0
+
+
+@configclass
+class X2RiseEnvCfg(X2RecoveryEnvCfg):
+    """Phase 2: extend the standing policy into progressively deeper poses."""
+
+    def __post_init__(self) -> None:
+        super().__post_init__()
+        params = self.events.reset_back_pose.params
+        params["reference_probability_start"] = 1.0
+        params["reference_probability_end"] = 1.0
+        params["reference_probability_anneal_policy_steps"] = 1
+        # At 12 decisions/update, unlock one deeper pose roughly every 31
+        # updates and expose all nine poses after 250 updates.
+        params["reference_max_stage_start"] = 0
+        params["reference_max_stage_end"] = 8
+        params["reference_stage_anneal_policy_steps"] = 3_000
+        self.events.lift_assist = None
+        # Once a rising trajectory enters the exact evaluation set, strongly
+        # favor braking and remaining there over a high-speed pass-through.
+        self.rewards.exact_stance.weight = 100.0
+
+
+@configclass
+class X2ImitationCollectionEnvCfg(X2RiseEnvCfg):
+    """Read-only rollout environment for successful expert demonstrations."""
+
+    observations: ImitationCollectionObservationsCfg = ImitationCollectionObservationsCfg()
+
+    def __post_init__(self) -> None:
+        super().__post_init__()
+        self.observations.policy.enable_corruption = False
+        self.observations.teacher_policy.enable_corruption = False

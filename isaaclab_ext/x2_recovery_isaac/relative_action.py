@@ -45,7 +45,28 @@ class BoundedRelativeJointPositionAction(RelativeJointPositionAction):
         # flat region. A smooth tanh bound preserves a useful gradient and the
         # action-magnitude reward can regularize the actual network output.
         self._raw_actions[:] = actions
-        self._processed_actions = torch.tanh(self._raw_actions) * self._scale + self._offset
+        bounded_input = self._raw_actions
+        if self.cfg.brake_start_height is not None:
+            if self.cfg.brake_end_height <= self.cfg.brake_start_height:
+                raise ValueError("brake_end_height must exceed brake_start_height")
+            height_blend = (
+                (self._asset.data.root_pos_w.torch[:, 2] - self.cfg.brake_start_height)
+                / (self.cfg.brake_end_height - self.cfg.brake_start_height)
+            ).clamp(0.0, 1.0)
+            upright = -self._asset.data.projected_gravity_b.torch[:, 2]
+            upright_blend = (
+                (upright - self.cfg.brake_min_upright)
+                / (1.0 - self.cfg.brake_min_upright)
+            ).clamp(0.0, 1.0)
+            blend = height_blend * upright_blend
+            blend = blend.square() * (3.0 - 2.0 * blend)
+            scale = 1.0 - self.cfg.maximum_brake * blend
+            # Scale before tanh so training and the audited inference-time
+            # brake implement the same bounded raw-action transformation.
+            # Keeping ``_raw_actions`` unchanged preserves the true policy
+            # output in observations and action-rate regularization.
+            bounded_input = bounded_input * scale[:, None]
+        self._processed_actions = torch.tanh(bounded_input) * self._scale + self._offset
         current = self._asset.data.joint_pos.torch[:, self._joint_ids]
         limits = self._asset.data.soft_joint_pos_limits[:, self._joint_ids]
         self._joint_position_targets[:] = torch.clamp(
@@ -66,3 +87,7 @@ class BoundedRelativeJointPositionActionCfg(RelativeJointPositionActionCfg):
     """Configuration for the bounded relative position action."""
 
     class_type: type[ActionTerm] = BoundedRelativeJointPositionAction
+    brake_start_height: float | None = None
+    brake_end_height: float = 0.62
+    brake_min_upright: float = 0.90
+    maximum_brake: float = 0.70

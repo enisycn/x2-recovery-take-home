@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Render honest GIFs for the selected PPO policy and standing reachability probe."""
+"""Render honest GIFs for the selected HumanUP policy and reachability probe."""
 
 from __future__ import annotations
 
@@ -28,8 +28,8 @@ from rsl_rl.runners import OnPolicyRunner  # noqa: E402
 from isaaclab_rl.rsl_rl import RslRlVecEnvWrapper, handle_deprecated_rsl_rl_cfg  # noqa: E402
 
 import x2_recovery_isaac  # noqa: E402,F401
-from x2_recovery_isaac.agents.rsl_rl_ppo_cfg import X2RecoveryPPORunnerCfg  # noqa: E402
-from x2_recovery_isaac.env_cfg import X2RecoveryPlayEnvCfg  # noqa: E402
+from x2_recovery_isaac.agents.rsl_rl_ppo_cfg import X2HumanUpCurriculumPPORunnerCfg  # noqa: E402
+from x2_recovery_isaac.env_cfg import X2HumanUpRiseEnvCfg  # noqa: E402
 
 
 FONT_PATH = "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"
@@ -72,15 +72,24 @@ def main() -> None:
     checkpoint = args.checkpoint.expanduser().resolve(strict=True)
     output_dir = args.output_dir.expanduser().resolve()
 
-    cfg = X2RecoveryPlayEnvCfg()
+    cfg = X2HumanUpRiseEnvCfg()
     cfg.scene.num_envs = 1
+    cfg.scene.env_spacing = 3.0
     cfg.sim.device = args.device
+    cfg.observations.policy.enable_corruption = False
+    cfg.events.material = None
+    cfg.events.mass = None
+    cfg.events.pelvis_com = None
+    cfg.events.actuator_gains = None
+    cfg.events.lift_assist = None
+    cfg.events.reset_back_pose.params["reference_probability_start"] = 0.0
+    cfg.events.reset_back_pose.params["reference_probability_end"] = 0.0
     cfg.video_recorder.window_width = 640
     cfg.video_recorder.window_height = 360
     cfg.viewer.eye = (2.4, 2.4, 1.45)
     cfg.viewer.lookat = (0.0, 0.0, 0.45)
 
-    agent_cfg = X2RecoveryPPORunnerCfg()
+    agent_cfg = X2HumanUpCurriculumPPORunnerCfg()
     agent_cfg.device = args.device
     agent_cfg = handle_deprecated_rsl_rl_cfg(agent_cfg, importlib.metadata.version("rsl-rl-lib"))
 
@@ -107,7 +116,7 @@ def main() -> None:
             policy_frames.append(
                 _frame(
                     task,
-                    "Final PPO policy - gercek supine deneme",
+                    "HumanUP RMA policy - gercek supine deneme",
                     f"t={step * task.step_dt:4.2f}s  pelvis={height:.3f}m  upright={upright:.3f}  SONUC: BASARISIZ",
                 )
             )
