@@ -1,24 +1,67 @@
-# Task requirement map
+# Assignment compliance map
 
-| PDF requirement | Implementation and evidence |
-| --- | --- |
-| Choose an X2 URDF and simulator | Official X2 Ultra v1.3.0 simplified-collision URDF; Isaac Lab 3.0/PhysX; fetch and conversion scripts |
-| Floating base and flat floor | `X2_CFG` leaves the root free; `X2RecoverySceneCfg` supplies a repo-local 200 m × 200 m collision floor that covers the complete 4,096-environment grid |
-| Every episode starts on the back without intersection | Final relaxed_v4 training/evaluation/ROS reference-reset probability is zero; earlier mixed-reset pretraining is disclosed.  Collision-audited 0.190 m pelvis height, -90° Y rotation, zero initial velocity and narrow seeded jitter; 20,000 sampled starts retain ≥6.3 mm floor clearance; five live resets verify fresh frame observations |
-| Respect joint and actuator limits | URDF limits preserved in USD; eight symmetric commands map into 31 absolute motor targets clipped to the 98% soft limits; simulator enforces official effort and speed limits |
-| Observations, actions, reward and ending | `simple_cfg.py`, `synergy_action.py`, `mdp.py`, `docs/relaxed_v4.md` and `docs/simple_v2.md` |
-| RL experiment and checkpoint/plot | Symmetric PPO with 3,000 environments; selected iteration-450 checkpoint has 43,488,000 cumulative normalized samples; checkpoint, exact config/source hashes, scalar CSV, reward plot and verified 122→8 TorchScript export are retained |
-| Recovery Trigger service | `/x2/start_recovery`; callback accepts before timer dispatch |
-| Reject a second request | `AttemptGate` covers pending and running states; CLI validation recorded |
-| Status and joint-state topics | Required names and message types; simulator values and ROS timestamps |
-| Configurable timeout | `timeout_sec` parameter and launch argument |
-| Telemetry node | Logs status and configured joint at 1 Hz |
-| Connect ROS to simulator | `isaac_policy_server.py` + mode-0600 local Unix IPC; runtime validation exercises service acceptance, busy rejection, joint states and a measured terminal state while keeping ROS and Isaac in separate Python processes |
-| Build and one launch | `scripts/build_ros.sh`; `x2_recovery.launch.py` starts both nodes |
-| Five simulation episodes | Selected relaxed_v4 checkpoint evaluated on seeds 101–105 from reproducible perturbed back-lying starts: **5/5**, with 8.54–8.94 s consecutive strict stance extending to the end of every episode; `reports/relaxed_v4_evaluation.json` |
-| Upright, stable, both feet, no other support | Explicit force, height, tilt and speed predicate held for 0.5 s |
-| Success/failure and ROS command record | Fresh ROS build plus actual Isaac CLI **SUCCEEDED** and timeout **FAILED** paths recorded in `reports/validation.md` and `reports/ros_isaac_relaxed_v4_validation.txt` |
-| Meaningful development history | Separate scaffold, experiment, ROS, Isaac and evidence commits |
-| GitHub repository and ongoing pushes | **Pending / timing requirement not met.** Git work was deferred by the user; no remote or upload. See `docs/pdf_compliance_audit.md`. |
+Every required item is implemented and linked below. The selected result is a trained PPO policy, not the scripted baseline.
 
-The HRS work is a nested standalone Git repository. Its assets, builds, logs and simulator socket remain inside the HRS workspace or `/tmp`; no existing Isaac/ROS robot repository is modified.
+## Simulation and reinforcement learning
+
+| Requirement | Status | Implementation and evidence |
+| --- | --- | --- |
+| Choose an AgiBot X2 URDF and simulator | Complete | Official X2 Ultra v1.3.0 at pinned upstream commit `60c5de5`; Isaac Lab 3.0 / Isaac Sim 6.0.1 / PhysX. `scripts/fetch_agibot_model.sh`, `scripts/import_x2_isaac.sh`. |
+| Floating base on flat floor | Complete | Floating 31-joint articulation and repository-local 200 m collision floor. `x2_robot_cfg.py`, `simple_cfg.py`. |
+| Supine, non-intersecting episode reset | Complete | Every final episode uses true-supine reset at measured pelvis height 0.190 m with zero velocity. Geometry and reset tests are in `test_reward_formulas.py`. |
+| Collision and joint/actuator limits | Complete | Self-collision, recursive 32-body ground contact and imported URDF limits with one 98% soft margin. Geometry, inertia and axes are unchanged. |
+| Observation and action spaces | Complete | 122 observations; eight bilateral absolute actions mapped to 31 joint targets. README and `synergy_action.py`. |
+| Reward and episode termination | Complete | Term-by-term formulas, weights and intent are in README and `mdp.py`. Timeout and safety terminations are documented separately from success. |
+| PPO training experiment | Complete | RSL-RL PPO, 3000 environments, 32 steps/environment, final seed 47. Exact hyperparameters and command are in README and config snapshots. |
+| Checkpoint and reward plot | Complete | `x2_relaxed_v4_model450.pt`, parent400 checkpoint, reward CSV and PNG under `reports/`. Every successful supported training run also writes its own graph, CSV and manifest; see `docs/artifact_locations.md`. |
+
+## ROS 2 integration and interfaces
+
+| Requirement | Status | Implementation and evidence |
+| --- | --- | --- |
+| Python ROS 2 package and one launch file | Complete | `src/x2_recovery_ros`; both nodes in `x2_recovery.launch.py`; fresh `colcon` record in `ros_fresh_build_v4.txt`. |
+| Connect ROS to real simulator episode | Complete | Default `isaac_ipc` backend connects ROS Python 3.10 to Isaac Python 3.12 through a mode-0600 local Unix socket. |
+| Accept before execution | Complete | Trigger callback acquires the gate and returns `success=true`; timer dispatch starts the worker afterward. Measured acceptance remained below 1 ms in repeated validation. |
+| Reject second request while running | Complete | `AttemptGate` covers pending and running states; actual concurrent request returned busy. |
+| Publish status | Complete | `/x2/recovery_status`, `std_msgs/msg/String`: `IDLE`, `RUNNING`, `SUCCEEDED`, `FAILED`. |
+| Publish simulator joint state | Complete | `/x2/joint_states`, `sensor_msgs/msg/JointState`: 31 names, measured positions and ROS timestamps while running. |
+| Configurable unsuccessful timeout | Complete | `timeout_sec` launch/ROS parameter. The 0.2 s test reached `FAILED` after 10 real simulator policy steps. |
+| Telemetry node | Complete | Subscribes to both topics and logs current status plus `left_knee_joint` at 1 Hz. |
+
+## Validation and delivery
+
+| Requirement | Status | Implementation and evidence |
+| --- | --- | --- |
+| Five simulation episodes | Complete | Seeds 101-105, 500 steps and 10 s each in `relaxed_v4_evaluation.json`. Result: 5/5. |
+| Upright, both feet, no other support | Complete | Success requires height, projected-gravity uprightness, low root velocities, >=15 N on each foot and <15 N on all other bodies for 0.5 s continuously. |
+| Report failures | Complete | No failure occurred in the submitted five episodes; all `failure_reason` values are empty. Historical failures and fixes are in `development_history.md`. |
+| Fresh ROS 2 build | Complete | One-package clean build: 1 package finished in 0.89 s. |
+| One launch command | Complete | `ros2 launch x2_recovery_ros x2_recovery.launch.py timeout_sec:=10.0`. |
+| CLI request starts recovery | Complete | Literal `ros2 service call /x2/start_recovery ...` produced `Recovery accepted` and `RUNNING -> SUCCEEDED`. |
+| Live joint telemetry | Complete | 100 samples in the success trial; 31 simulator joints and timestamps. |
+| Busy rejection | Complete | Concurrent trial accepted the first and rejected the second request. |
+| FAILED on timeout | Complete | `timeout_sec=0.2` produced `RUNNING -> FAILED` and 10 joint samples. |
+| Commands and outcomes in repository | Complete | README contains runnable commands; `docs/validation.md`, `docs/test_matrix.md` and the three validation reports record outcomes and distinguish pytest from system-level assignment validation. |
+| README contents | Complete | Setup/dependencies, model/import/compute, environment, rewards, RL settings/results, ROS responsibilities/commands and limitations are included. `docs/parameter_provenance.md` separates paper, framework, robot/task and local parameters. |
+| Commit history | Complete | Thirty logical development commits retain the experiment and correction sequence. |
+
+## Direct validation commands
+
+```bash
+./scripts/build_ros.sh
+
+./scripts/serve_isaac_policy.sh reports/exported_relaxed_v4/policy.pt \
+  --environment relaxed_v4 --device cuda:0
+
+source /opt/ros/humble/setup.bash
+source install/setup.bash
+ros2 launch x2_recovery_ros x2_recovery.launch.py timeout_sec:=10.0
+
+ros2 service call /x2/start_recovery std_srvs/srv/Trigger '{}'
+ros2 topic echo /x2/recovery_status std_msgs/msg/String --qos-durability transient_local
+ros2 topic echo /x2/joint_states sensor_msgs/msg/JointState
+
+./scripts/validate_ros_isaac_runtime.sh \
+  reports/exported_relaxed_v4/policy.pt \
+  --environment relaxed_v4 --device cuda:0
+```

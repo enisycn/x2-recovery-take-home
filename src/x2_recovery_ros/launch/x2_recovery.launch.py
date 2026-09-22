@@ -12,10 +12,10 @@ def generate_launch_description():
     parameters = str(share / "config/recovery.yaml")
     return LaunchDescription(
         [
-            DeclareLaunchArgument("backend", default_value="reduced"),
+            DeclareLaunchArgument("backend", default_value="isaac_ipc"),
             DeclareLaunchArgument("socket_path", default_value="/tmp/hrs_x2_recovery.sock"),
             DeclareLaunchArgument("policy_mode", default_value="checkpoint"),
-            DeclareLaunchArgument("timeout_sec", default_value="6.0"),
+            DeclareLaunchArgument("timeout_sec", default_value="10.0"),
             Node(
                 package="x2_recovery_ros",
                 executable="x2_recovery_node",

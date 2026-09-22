@@ -60,6 +60,7 @@ def main() -> None:
                   for label, steps, rewards, color in series]
 
     args.csv.parent.mkdir(parents=True, exist_ok=True)
+    args.output.parent.mkdir(parents=True, exist_ok=True)
     with args.csv.open("w", newline="", encoding="utf-8") as stream:
         # Keep the committed artifact platform-neutral and friendly to Git's
         # whitespace checks instead of csv.writer's default CRLF dialect.
@@ -82,6 +83,7 @@ def main() -> None:
     axis.grid(alpha=0.20)
     axis.legend(frameon=False, loc="best")
     figure.savefig(args.output, dpi=180)
+    plt.close(figure)
     print(f"wrote {args.output} and {args.csv}")
 
 

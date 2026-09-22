@@ -1,0 +1,22 @@
+{
+  "purpose": "Record runtime values that are applied after agent.yaml serialization or select an intermediate checkpoint.",
+  "phase": "relaxed_v4",
+  "device": "cuda:0",
+  "num_envs": 3000,
+  "num_steps_per_env": 32,
+  "seed": 47,
+  "configured_max_learning_iterations_in_original_run": 101,
+  "selected_parent_checkpoint": "reports/checkpoints/x2_relaxed_v4_parent_model400.pt",
+  "parent_iteration": 400,
+  "selected_checkpoint": "reports/checkpoints/x2_relaxed_v4_model450.pt",
+  "selected_iteration": 450,
+  "reproduction_num_learning_iterations": 51,
+  "reset_optimizer": true,
+  "action_std_override_after_checkpoint_load": 0.1,
+  "learning_rate_override": 0.0001,
+  "learning_schedule": "fixed",
+  "entropy_coefficient": 0.001,
+  "reference_reset_probability": 0.0,
+  "external_assistance": false,
+  "note": "agent.yaml records the dataclass before the post-load action standard-deviation override. The selected model450 is an intermediate checkpoint from the original run; the README replay command stops at that save point."
+}

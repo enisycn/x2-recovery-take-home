@@ -22,10 +22,7 @@ export OMNI_CRASHREPORTER_PRESERVEDUMP=1
 readonly HRS_KIT_OFFLINE_ARGS="--/crashreporter/enabled=false --/crashreporter/skipOldDumpUpload=true --/telemetry/enableAnonymousAppName=false --/telemetry/enableAnonymousData=false --/telemetry/enableSentry=false --/privacy/usage=false --/privacy/performance=false --/privacy/personalization=false"
 
 run_isaac_offline() {
-  local -a command_prefix=(nice -n "${HRS_NICE:-10}")
-  if [[ -n "${HRS_CPUSET:-}" ]]; then
-    command_prefix+=(taskset -c "${HRS_CPUSET}")
-  fi
+  local -a command_prefix=()
 
   # A private user+network namespace is a second barrier against uploads.  On
   # hosts that disallow unprivileged namespaces, Kit's explicit opt-out flags

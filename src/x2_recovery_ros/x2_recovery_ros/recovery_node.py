@@ -21,11 +21,11 @@ class RecoveryNode(Node):
     def __init__(self) -> None:
         super().__init__("x2_recovery")
         share = Path(get_package_share_directory("x2_recovery_ros"))
-        self.declare_parameter("backend", "reduced")
+        self.declare_parameter("backend", "isaac_ipc")
         self.declare_parameter("policy_mode", "checkpoint")
         self.declare_parameter("checkpoint", str(share / "artifacts/recovery_policy.npz"))
         self.declare_parameter("socket_path", "/tmp/hrs_x2_recovery.sock")
-        self.declare_parameter("timeout_sec", 6.0)
+        self.declare_parameter("timeout_sec", 10.0)
         self.declare_parameter("seed", 101)
         self.declare_parameter("real_time", True)
 

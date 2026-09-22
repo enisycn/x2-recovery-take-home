@@ -19,3 +19,6 @@ reports/x2_*_audit*.json
 reports/x2_reference*_probe.json
 reports/x2_sequential*.json
 reports/x2_staged*.json
+
+# Primary papers are linked from docs and kept in the local study pack.
+references/

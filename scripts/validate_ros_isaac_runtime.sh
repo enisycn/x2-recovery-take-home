@@ -37,8 +37,7 @@ shift
 socket_path="${runtime_dir}/recovery.sock"
 
 cd "${project_dir}"
-setsid env HRS_NICE="${HRS_NICE:-15}" HRS_CPUSET="${HRS_CPUSET:-<HOST_CPUSET>}" \
-  "${project_dir}/scripts/serve_isaac_policy.sh" "${policy}" --socket "${socket_path}" "$@" >"${runtime_dir}/server.log" 2>&1 &
+setsid "${project_dir}/scripts/serve_isaac_policy.sh" "${policy}" --socket "${socket_path}" "$@" >"${runtime_dir}/server.log" 2>&1 &
 server_pid="$!"
 for _ in $(seq 1 480); do
   [[ -S "${socket_path}" ]] && break

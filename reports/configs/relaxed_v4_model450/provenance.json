@@ -19,8 +19,6 @@
   "final_seed": 47,
   "external_force": false,
   "true_supine_reset_probability": 1.0,
-  "cpu_set": "<HOST_CPUSET>",
-  "nice": 15,
   "successful_evaluation_episodes": 5,
   "total_evaluation_episodes": 5,
   "all_standing_at_episode_end": true,
