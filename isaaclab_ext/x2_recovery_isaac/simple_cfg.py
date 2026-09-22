@@ -123,7 +123,7 @@ class X2RelaxedRecoveryEnvCfg(X2SymmetricRecoveryEnvCfg):
         super().__post_init__()
         from isaaclab.managers import SceneEntityCfg
         self.rewards.relaxed_arms = RewTerm(
-            func=mdp.relaxed_arms_when_stable, weight=20.0,
+            func=mdp.relaxed_arms_when_stable, weight=40.0,
             params={
                 "shoulder_cfg": SceneEntityCfg("robot", joint_names=[".*_shoulder_pitch_joint"]),
                 "elbow_cfg": SceneEntityCfg("robot", joint_names=[".*_elbow_joint"]),

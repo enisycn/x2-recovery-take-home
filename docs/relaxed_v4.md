@@ -12,11 +12,13 @@ See [the primary paper, Section IV-B and Table VI(d)](https://arxiv.org/html/250
 
 Our X2 adaptation adds exactly one reward to v3:
 
-`r_arm = 20 * I_strict * exp(-mean((q_arm - q_target)²) / 2)`.
+`r_arm = 40 * g_height * g_upright * I_two_feet * I_no_other * exp(-mean((q_arm - q_target)²) / 2)`.
 
-Four actual joint positions are used: left/right shoulder pitch target **0 rad**, left/right elbow target **-0.15 rad** (small natural bend). The mean is over these four joints; this is equivalent to coefficient 0.125 on their squared-error sum. `I_strict` is the existing instantaneous full two-foot stance criterion, including upright body, low root speed, and no other ground support. This is a stronger gate than the paper's height-only gate. The positive reward cannot be gained while lying down. It imposes no arm penalty during recovery. Physics, action mapping, observations and failure limits are unchanged. Arm motion remains learned PPO control, with no post-processing to force a pose.
+Four actual joint positions are used: left/right shoulder pitch target **0 rad**, left/right elbow target **-0.15 rad** (small natural bend). The mean is over these four joints; this is equivalent to coefficient 0.125 on their squared-error sum. `g_height = clip((z-.50)/.15, 0, 1)` and `g_upright = clip((-g_z-.95)/.04, 0, 1)`. Both feet must touch the ground with >=15 N and no other body may exceed the ground-contact threshold. Root speed does not switch off this posture term; the existing balance and strict-stance rewards still favor low speed. This allows the transitional motion needed to lower the arms. Evaluation continues to require all original strict stability limits. The positive reward cannot be gained while lying down. It imposes no arm penalty during recovery. Physics, action mapping, observations and failure limits are unchanged. Arm motion remains learned PPO control, with no post-processing to force a pose.
 
-The policy still has 122 inputs, ELU layers 512/256/128, and 8 outputs mapped into the original 31-joint X2. Fine-tuning starts from `x2_symmetric_v3_model200.pt` with fresh optimizer, fixed learning rate 1e-4, initial action std 0.2, entropy 0.001, seed 44, 3000 environments and 32 steps per rollout. Back-lying starts remain 50% of training resets. Saved iteration numbers continue from 200.
+The policy still has 122 inputs, ELU layers 512/256/128, and 8 outputs mapped into the original 31-joint X2. Initial fine-tuning started from `x2_symmetric_v3_model200.pt` with fresh optimizer, fixed learning rate 1e-4, initial action std 0.2, entropy 0.001, seed 44, 3000 environments and 32 steps per rollout. A first reward used weight 20 and the strict-stance mask including root speed. At iterations 250 and 300, seed 101 still recovered and remained standing, but shoulder pitch stayed near -1.90 and -1.96 rad. This attempt failed the posture objective.
+
+The revised supported-stance reward above resumes from that iteration-300 checkpoint with fresh optimizer, fixed learning rate 2e-4, initial std 0.15 and seed 45. Other PPO settings are unchanged. These sequential trials are not a controlled ablation; they do not isolate which change caused an improvement. Back-lying starts remain 50% of training resets. Saved iteration numbers continue from 200.
 
 ## Validation protocol
 

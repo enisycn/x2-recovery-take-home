@@ -1129,7 +1129,7 @@ def relaxed_arms_when_stable(
     all_bodies_cfg: SceneEntityCfg,
     variance: float = 2.0,
 ) -> torch.Tensor:
-    """X2 post-task pose reward; zero unless strict two-foot stance holds.
+    """X2 post-task pose reward; enabled only in supported upright stance.
 
     HoST motivates separate post-task behavior objectives. The arm targets,
     Gaussian width and weight are our X2 adaptation, not paper constants.
@@ -1140,5 +1140,12 @@ def relaxed_arms_when_stable(
     elbows = robot.data.joint_pos.torch[:, elbow_cfg.joint_ids]
     mse = 0.5 * (shoulders.square().mean(dim=1)
                  + (elbows + 0.15).square().mean(dim=1))
-    gate = strict_success(env, feet_cfg=feet_cfg, all_bodies_cfg=all_bodies_cfg)
-    return gate.to(torch.float32) * torch.exp(-mse / variance)
+    height_gate = ((robot.data.root_pos_w.torch[:, 2] - .50) / .15).clamp(0., 1.)
+    upright_gate = ((-robot.data.projected_gravity_b.torch[:, 2] - .95) / .04).clamp(0., 1.)
+    feet = _contact_mask(env, feet_cfg, 15.).all(dim=1)
+    no_other = unsupported_contacts(env, all_bodies_cfg=all_bodies_cfg,
+                                    feet_cfg=feet_cfg, threshold=15.) == 0
+    # Do not switch this objective off for the small velocity needed to lower
+    # arms. Existing balance/strict-stance rewards still favor stopping.
+    gate = height_gate * upright_gate * feet * no_other
+    return gate * torch.exp(-mse / variance)
