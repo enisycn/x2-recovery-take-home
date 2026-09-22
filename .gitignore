@@ -9,3 +9,13 @@ __pycache__/
 *.py[cod]
 .pytest_cache/
 .venv/
+tmp/
+
+# Local ablations and imperfect imitation intermediates.  The selected
+# checkpoint, final evaluation and evidence audits are committed explicitly.
+reports/imitation/
+reports/checkpoints/x2_humanup_rma_bc_*
+reports/x2_*_audit*.json
+reports/x2_reference*_probe.json
+reports/x2_sequential*.json
+reports/x2_staged*.json
