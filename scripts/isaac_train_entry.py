@@ -21,6 +21,8 @@ parser.add_argument("--num_envs", type=int, default=2048)
 parser.add_argument("--max_iterations", type=int, default=1500)
 parser.add_argument("--seed", type=int, default=42)
 parser.add_argument("--run_name", default="")
+parser.add_argument("--learning_schedule", choices=("fixed", "adaptive"), default=None)
+parser.add_argument("--entropy_coef", type=float, default=None)
 parser.add_argument("--checkpoint", default=None, help="Optional RSL-RL checkpoint to resume from.")
 parser.add_argument(
     "--action_std_override",
@@ -206,6 +208,12 @@ def main() -> Path:
         agent_cfg = X2HumanUpCurriculumPPORunnerCfg()
     else:
         agent_cfg = X2RecoveryPPORunnerCfg()
+    if args.learning_schedule is not None:
+        agent_cfg.algorithm.schedule = args.learning_schedule
+    if args.entropy_coef is not None:
+        if args.entropy_coef < 0.0:
+            raise ValueError("--entropy_coef must be non-negative")
+        agent_cfg.algorithm.entropy_coef = args.entropy_coef
     agent_cfg.max_iterations = args.max_iterations
     agent_cfg.seed = args.seed
     agent_cfg.device = args.device

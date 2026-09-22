@@ -341,16 +341,18 @@ def test_old_foot_contact_does_not_count_as_current_support():
     assert not mdp.strict_success(env, feet_cfg=feet, all_bodies_cfg=all_bodies).any()
 
 
-def test_relaxed_arms_reward_requires_actual_stance_and_prefers_downward_arms():
+def test_relaxed_arms_reward_requires_support_and_allows_posture_transition():
     # Same arm poses must have no incentive on the floor or without support.
-    heights = torch.tensor([.68, .68, .19, .68])
-    gravity = torch.tensor([[0., 0., -1.], [0., 0., -1.], [1., 0., 0.], [0., 0., -1.]])
+    heights = torch.tensor([.68, .68, .19, .68, .68])
+    gravity = torch.tensor([[0., 0., -1.], [0., 0., -1.], [1., 0., 0.], [0., 0., -1.], [0., 0., -1.]])
     robot = fake_robot(heights, gravity)
+    robot.data.root_lin_vel_w.torch[4, 0] = .30
     robot.data.joint_pos = TorchField(torch.tensor([
         [0., 0., -.15, -.15], [-1.9, -1.9, -.4, -.4],
-        [0., 0., -.15, -.15], [0., 0., -.15, -.15]]))
-    ground = torch.zeros((4, 3, 1, 3))
+        [0., 0., -.15, -.15], [0., 0., -.15, -.15], [0., 0., -.15, -.15]]))
+    ground = torch.zeros((5, 3, 1, 3))
     ground[:3, :2, 0, 2] = 200.
+    ground[4, :2, 0, 2] = 200.
     sensor = SimpleNamespace(data=SimpleNamespace(force_matrix_w=TorchField(ground)))
     env = SimpleNamespace(scene=FakeScene(robot, sensor))
     result = mdp.relaxed_arms_when_stable(env,
@@ -360,4 +362,5 @@ def test_relaxed_arms_reward_requires_actual_stance_and_prefers_downward_arms():
         all_bodies_cfg=SimpleNamespace(name="contact_forces", body_ids=[0, 1, 2]))
     assert result[0] == 1.
     assert 0. < result[1] < result[0]
-    assert result[2:].tolist() == [0., 0.]
+    assert result[2:4].tolist() == [0., 0.]
+    assert result[4] == result[0]  # motion may earn posture reward before strict success
