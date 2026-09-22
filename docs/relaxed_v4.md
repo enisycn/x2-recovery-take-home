@@ -1,3 +1,5 @@
+> Selected result: `x2_relaxed_v4_model450.pt`, 5/5 strict recovery and relaxed-arm stance. Final experiment, evaluation and ROS resets are 100% supine. [Results](../reports/relaxed_v4_evaluation.json), [PDF audit](pdf_compliance_audit.md).
+
 # Stable final arm posture (v4)
 
 The v3 policy met the recovery criterion, but ended seed 101 with both shoulder-pitch joints near -1.918 rad. Its reward did not specify a final arm pose. The v3 checkpoint and reports are retained as the successful recovery baseline.
@@ -37,3 +39,13 @@ The fresh run at iteration 200 recovered on seed 101 and ended in strict stance,
 After fresh exploration, a stabilization trial resumes its iteration-300 checkpoint with seed 46, fixed learning rate 1e-4, fresh optimizer, initial action std 0.15 and entropy 0.001. The reward and physics are unchanged. CLI overrides record these differences in the saved agent YAML.
 
 Fresh iteration 300 passed recovery and ended standing on all five seeds. Four seeds also ended with continuous relaxed stance; seed 103 had shoulder error up to 0.3115 rad in the final two seconds, slightly outside the predeclared 0.30-rad posture tolerance. The tolerance was not relaxed to make this checkpoint pass. This motivates evaluating the stabilization trial against both criteria.
+
+## Final PDF-compliant experiment
+
+The selected balance parent at iteration 400 passed both checks on all five seeds. The PDF audit then made the submitted v4 default strictly supine for every episode. The final experiment resumes that parent with seed 47, 3000 environments, fresh optimizer, fixed learning rate 1e-4, initial std 0.10 and entropy 0.001. Its selected checkpoint is iteration 450, after 51 further updates, with 43,488,000 normalized observations across its lineage. Earlier auxiliary resets are disclosed as exploratory pretraining.
+
+The selected model passes strict stance and relaxed arms on all five seeds, throughout each final two-second window. Strict stance extends to episode end for 8.54–8.94 s; combined relaxed stance for 7.78–8.86 s. The original v3 checkpoint is retained; it was never overwritten. See the README for final-stage reproduction from the supplied parent checkpoint.
+
+### Earlier-stage reproduction
+
+The saved parent checkpoints allow direct final-stage reproduction. To reproduce the longer selected lineage, run `relaxed_v4` with `--reference_reset_probability 0.5 --seed 43 --max_iterations 301` from scratch (adaptive 3e-4, entropy .005, initial std 1). Resume its `model_300.pt` with `--reference_reset_probability 0.5 --seed 46 --max_iterations 101 --reset_optimizer --action_std_override .15 --learning_rate_override .0001 --learning_schedule fixed --entropy_coef .001`. Then use that `model_400.pt` for the final, default-supine command in the README. These auxiliary pretraining commands are explicitly outside the final all-supine experiment. Floating-point GPU simulation is not claimed bitwise reproducible.

@@ -1,0 +1,40 @@
+{
+  "environment": "relaxed_v4",
+  "checkpoint": "reports/checkpoints/x2_relaxed_v4_model450.pt",
+  "sha256": "98d8a9b321faf52c61726e4257e6ea346dfc03b302524a65db6c6be6033e7dc4",
+  "iteration": 450,
+  "obs_dim": 122,
+  "policy_action_dim": 8,
+  "actuated_joints": 31,
+  "sim_dt": 0.005,
+  "policy_dt": 0.02,
+  "training_run": "logs/rsl_rl/hrs_x2_relaxed_v4/2026-09-22_13-43-26_pdf_supine_only",
+  "started_from_checkpoint": "reports/checkpoints/x2_relaxed_v4_parent_model400.pt",
+  "parent_sha256": "45d8745026f36c4edb42ab7ccf3e3b07b8f8d24a8c66ab29fbe89394c67915c0",
+  "parent_training_run": "logs/rsl_rl/hrs_x2_relaxed_v4/2026-09-22_13-35-08_posture_balance_refinement",
+  "parent_started_from_checkpoint": "reports/checkpoints/x2_relaxed_v4_parent_model300.pt",
+  "initial_training_run": "logs/rsl_rl/hrs_x2_relaxed_v4/2026-09-22_13-20-18_posture_from_start",
+  "initial_seed": 43,
+  "balance_seed": 46,
+  "final_seed": 47,
+  "external_force": false,
+  "true_supine_reset_probability": 1.0,
+  "cpu_set": "<HOST_CPUSET>",
+  "nice": 15,
+  "successful_evaluation_episodes": 5,
+  "total_evaluation_episodes": 5,
+  "all_standing_at_episode_end": true,
+  "all_relaxed_at_episode_end": true,
+  "all_final_two_seconds_strict_and_relaxed": true,
+  "strict_stance_duration_range_s": [
+    8.54,
+    8.94
+  ],
+  "relaxed_stance_duration_range_s": [
+    7.78,
+    8.86
+  ],
+  "actor_normalizer_counts": {
+    "obs_normalizer.count": 43488000
+  }
+}

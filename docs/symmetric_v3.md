@@ -1,3 +1,5 @@
+> Current delivery: [relaxed_v4](relaxed_v4.md), with relaxed arms and 100% supine final resets. Earlier variants below are historical.
+
 # Symmetric recovery experiment
 
 The corrected 31-output baseline produced an inverted torso-supported pose: iteration 100 reached ~0.52 m pelvis height but had upright score −0.86 at its peak and ~371 N on its torso. Five actual back-lying episodes failed. Training was stopped after retaining checkpoint 200. Height alone was being exploited; the observation/control plumbing passed but this is not successful recovery.

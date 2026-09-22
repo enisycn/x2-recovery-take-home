@@ -1,3 +1,5 @@
+> Current delivery: [relaxed_v4](relaxed_v4.md), with relaxed arms and 100% supine final resets. Earlier variants below are historical.
+
 > Current selected result: **symmetric_v3 checkpoint 200, 5/5 true-supine recoveries**. See [current method](symmetric_v3.md), [shared formulas](simple_v2.md) and [final evaluation](../reports/symmetric_v3_evaluation.json). Earlier HumanUP/history and brake analyses below describe historical configurations, not the selected controller.
 
 # Execution and policy root-cause record

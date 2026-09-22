@@ -23,3 +23,9 @@ Source: the user's two-page `HRS_Take_Home_Task.pdf` (AgiBot X2 Ground Recovery)
 ## Boundary of the result
 
 The physics validations are nominal simulation tests, not hardware or broad robustness claims. The selected model uses the official mass/limits and no lifting assistance. Domain-randomized sim-to-real deployment and arbitrary fallen postures are outside this take-home scope. GitHub publication remains a separate delivery action; the local ZIP is not represented as a submitted GitHub repository.
+
+## Final evidence
+
+Selected model: `x2_relaxed_v4_model450.pt`; [five-episode report](../reports/relaxed_v4_evaluation.json) passes recovery and relaxed-arm stance on all five seeds. [Real ROS record](../reports/ros_isaac_relaxed_v4_validation.txt) passes literal CLI success, busy rejection, live telemetry and Isaac timeout. [Fresh build](../reports/ros_fresh_build_v4.txt), [29 unit tests](../reports/unit_tests_v4.txt), [configuration/lineage](../reports/configs/relaxed_v4_model450/provenance.json). GitHub delivery remains pending as stated above.
+
+Source PDF SHA-256: `2503770be75c8be84e6aa98b02c567a0b5fa75c37071fd6a842078739b478ca9`.

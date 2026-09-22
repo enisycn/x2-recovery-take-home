@@ -23,6 +23,8 @@ parser.add_argument("--seed", type=int, default=42)
 parser.add_argument("--run_name", default="")
 parser.add_argument("--learning_schedule", choices=("fixed", "adaptive"), default=None)
 parser.add_argument("--entropy_coef", type=float, default=None)
+parser.add_argument("--reference_reset_probability", type=float, default=None,
+                    help="Explicit auxiliary-pretraining override; submitted relaxed_v4 defaults to supine only.")
 parser.add_argument("--checkpoint", default=None, help="Optional RSL-RL checkpoint to resume from.")
 parser.add_argument(
     "--action_std_override",
@@ -131,6 +133,11 @@ def main() -> Path:
         "humanup_rise": X2HumanUpRiseEnvCfg,
     }[args.phase]
     env_cfg = env_cfg_type()
+    if args.reference_reset_probability is not None:
+        if not 0.0 <= args.reference_reset_probability <= 1.0:
+            raise ValueError("--reference_reset_probability must be in [0, 1]")
+        env_cfg.events.reset_back_pose.params["reference_probability_start"] = args.reference_reset_probability
+        env_cfg.events.reset_back_pose.params["reference_probability_end"] = args.reference_reset_probability
     if args.handoff_state_report is not None:
         if not 0.0 <= args.handoff_velocity_scale <= 1.5:
             raise ValueError("--handoff_velocity_scale must be in [0, 1.5]")

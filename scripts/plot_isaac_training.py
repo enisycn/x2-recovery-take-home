@@ -38,6 +38,8 @@ def main() -> None:
     parser.add_argument("--corrected", type=Path)
     parser.add_argument("--orientation-gated", type=Path)
     parser.add_argument("--max-iteration", type=int, default=None)
+    parser.add_argument("--title", default="AgiBot X2 recovery PPO training")
+    parser.add_argument("--label", default="Final audited run")
     parser.add_argument("--final", type=Path, required=True)
     parser.add_argument("--output", type=Path, default=Path("reports/isaac_training_reward.png"))
     parser.add_argument("--csv", type=Path, default=Path("reports/isaac_training_reward.csv"))
@@ -71,12 +73,12 @@ def main() -> None:
         "initial": "Initial reward",
         "height_only_branch": "Height-only branch (discarded)",
         "orientation_gated_diagnostic": "Orientation-gated diagnostic",
-        "final_audited": "Final audited run",
+        "final_audited": args.label,
     }
     for label, steps, rewards, color in series:
         axis.plot(steps, rewards, color=color, alpha=0.16, linewidth=0.8)
         axis.plot(steps, moving_average(rewards), color=color, linewidth=2.2, label=f"{labels[label]} (20-iteration mean)")
-    axis.set(title="AgiBot X2 recovery PPO training", xlabel="PPO iteration", ylabel="Mean episode reward")
+    axis.set(title=args.title, xlabel="PPO iteration", ylabel="Mean episode reward")
     axis.grid(alpha=0.20)
     axis.legend(frameon=False, loc="best")
     figure.savefig(args.output, dpi=180)

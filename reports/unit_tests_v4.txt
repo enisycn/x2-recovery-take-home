@@ -1,0 +1,13 @@
+.............................                                            [100%]
+=============================== warnings summary ===============================
+../../../../../WORKSPACE/projects/IsaacLab-3.0.0-beta2.patch1/source/isaaclab/isaaclab/utils/configclass.py:513
+../../../../../WORKSPACE/projects/IsaacLab-3.0.0-beta2.patch1/source/isaaclab/isaaclab/utils/configclass.py:513
+  <WORKSPACE>/projects/IsaacLab-3.0.0-beta2.patch1/source/isaaclab/isaaclab/utils/configclass.py:513: DeprecationWarning: 'RigidBodyMaterialCfg' is deprecated and will be removed in 5.0. Use 'isaaclab_physx.sim.spawners.materials.PhysxRigidBodyMaterialCfg' for PhysX properties, or 'isaaclab.sim.spawners.materials.RigidBodyMaterialBaseCfg' for solver-common properties only.
+    f1(*args, **kwargs)
+
+../../../../../miniconda3/envs/codex/lib/python3.12/site-packages/torch/jit/_script.py:1488: 35 warnings
+  <USER_HOME>/miniconda3/envs/codex/lib/python3.12/site-packages/torch/jit/_script.py:1488: DeprecationWarning: `torch.jit.script` is deprecated. Please switch to `torch.compile` or `torch.export`.
+    warnings.warn(
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+29 passed, 37 warnings in 2.65s
