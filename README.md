@@ -14,7 +14,7 @@ ROS and Isaac deliberately run in different processes and Python environments. R
 | --- | --- |
 | External Isaac Lab 3.0 task and one 32-body contact view | Validated in live PhysX runs |
 | Official X2 download and repo-local URDF→USD conversion | Validated at pinned upstream commit; 39 links, 38 joints, 50 collision elements and 49 mesh references |
-| PPO training and strict five-episode Isaac evaluation | Completed: 14.4 M transitions, checkpoint/plot/I-O audit committed, strict result 0/5 with measured failure analysis |
+| HumanUP-history PPO and strict five-episode Isaac evaluation | Completed: 54.5 M normalized observations in the selected checkpoint, checkpoint/plot/I-O audit committed, strict result 0/5 with measured curriculum-gap analysis |
 | Isaac Sim/PhysX startup and stepping | Validated without changing the existing environment |
 | Reduced-order training experiment | Run; checkpoint and reward plot committed |
 | Reduced-order five-episode evaluation | 5/5; explicitly not a rigid-body or hardware claim |
@@ -93,13 +93,13 @@ The floor is one repo-local 200 m × 200 m kinematic cuboid shared by all clones
 
 The installed Isaac Lab 3.0 beta backend leaves the same-timestamp projected-gravity cache valid after a root-pose write. The task therefore uses a local reset wrapper that invalidates gravity, heading and body-frame root-velocity buffers after the standard reset. A five-seed live probe verifies that the data buffer and the policy observation are identical immediately after every reset, velocity is zero, and the supine projected-gravity Z component remains within ±0.0047. The record is in `reports/x2_reset_probe.json`; no simulator installation file is patched.
 
-The policy observes pelvis height, local linear and angular velocity, projected gravity, relative joint positions and velocities, two foot-contact bits, 32 ordered whole-body contact bits, and two previous actions: 168 scalars in total. Whole-body contacts distinguish back, pelvis, knee, elbow and hand support during recovery. Uniform observation noise is enabled during training and disabled during evaluation.
+The selected actor uses HumanUP's temporal proprioceptive representation. Current proprioception has 98 values: base angular velocity, roll/pitch, 31 relative joint positions, 31 joint velocities and 31 previous actions. A ten-step history contributes 980 values and a 70-value Stage-I extrinsics slot is zero under nominal dynamics, for 1,148 stored observations. HumanUP's encoder compresses the history to 20 values; the policy MLP therefore receives 118 values and outputs 31 joint commands. The critic receives all 1,148 values. This is temporal compression, not an autoencoder or diffusion model.
 
 The action is one bounded relative position per actuated joint: `q_target=clip(q_at_policy_step+0.25*tanh(action), soft_limits)`. The target is computed once at 20 Hz and held for all five physics substeps. This fixes an audited bug where the same increment was previously re-added at every substep. Smooth `tanh` bounding also prevents PPO from hiding arbitrarily large network outputs behind a hard clip. A zero action holds the current pose. The articulation contracts hard position limits once to 98%, keeping the official zero-endpoint knees within about 0.024 rad of full extension. Implicit PD gains reflect joint load: leg/waist `Kp=120, Kd=6`, ankle `80/5`, arm `40/3`, and wrist/head `15/1.5`. Effort and velocity limits are inherited from the USD.
 
 A separate PhysX reachability probe writes the collision-audited straight pose using the tensor API's scalar-last quaternion convention and holds the same joint target through the policy action map. Its first controlled sample measured a 0.67460 m pelvis height, gravity `[0.00368, 0.00013, -0.99999]` in the body frame, 195/215 N on the feet and zero other-body contact. It held every strict stance condition for 0.65 s before the fixed pose, which has no base-state feedback, tipped forward. This verifies that the model, frame convention, contact sensors, floor placement and action limits admit the required stance; the learned policy must supply active balance. The complete trajectory is in `reports/x2_standing_probe.json`.
 
-Episodes last 8 seconds. Time limit is the only training termination because ending at first upright contact would not teach the policy to remain standing. Evaluation applies a separate sustained success check.
+HumanUP episodes last 10 seconds and end on timeout, root linear speed above 2.5 m/s, pelvis height outside `[0,1.2]` m, or a non-finite root state. Success is not a termination because ending at first upright contact would not teach the policy to remain standing. Evaluation applies a separate sustained success check.
 
 The reported take-home experiment uses the official nominal mass/inertia, fixed floor friction and configured gains. Domain randomization is deliberately disabled until nominal recovery succeeds; its ranges would otherwise add an unmeasured sim-to-real objective to the required simulation experiment.
 
@@ -109,55 +109,53 @@ All terms are evaluated each 20 Hz policy step.
 
 | Term | Weight | Purpose |
 | --- | ---: | --- |
-| Upright-gated normalized pelvis height | `+40.0` | Preserve an ascent gradient without rewarding a lifted head or inverted bridge |
-| `exp(-projected gravity z)` | `+0.25` | HumanUP upright objective |
-| Signed upright target | `+2.5` | HoST task-orientation weight; reject inverted high poses |
-| Both feet, height-gated from 0.08 m | `+10.0` | Establish two-foot loading throughout the rise |
-| Other support, gated above 0.45 m | `-2.0` per body | Permit transitional pushes, then reject hand, knee or torso support |
-| HoST post-task angular / planar speed | `+10.0` each | Stabilize motion above 0.58 m |
+| HumanUP Stage-I block | published 24 code-release weights | Discover contact-rich righting and rising with weak regularization |
+| Upright-gated normalized pelvis height | `+40.0` | Preserve an ascent gradient without accepting an inverted bridge |
+| Final sagittal-leg / remaining-joint pose | `+50.0` each | Extend the legs and align the whole body near standing |
+| Signed upright target | `+2.5` | Reject inverted high poses |
+| Both feet / non-foot support | `+10.0 / -10.0` | Load both feet and remove other support near standing |
+| HoST post-task angular / planar speed | `+50.0` each | Brake motion above 0.58 m |
 | HoST post-task orientation / target height | `+10.0` each | Hold the upright 0.68 m target |
-| Stable final stance | `+5.0` | Reward low root speed near the target |
-| Raw action magnitude / rate L2 | `-0.01 / -0.02` | Prevent action saturation and smooth desired positions |
-| Joint acceleration / velocity / torque L2 | `-1e-7 / -1e-4 / -6e-7` | HumanUP weak discovery regularization |
-| Root angular / linear speed L2 | `-0.10 / -0.10` | Bound body motion |
-| Soft joint-limit violation | `-1.0` | Keep motion inside imported limits |
-| Bilateral sagittal mismatch | `-0.05` | Keep left/right recovery coherent |
-| Non-sagittal joint deviation | `-0.02` | Discourage yaw/roll/wrist limit exploits while allowing leg and arm pitch motion |
+| FRASA-style strict-state proximity | `+100.0` | Supply a dense gradient around all evaluation boundaries |
+| Exact instantaneous stance | `+200.0` in rise phases | Make remaining in the complete target set valuable |
 
-Training also uses two published exploration ideas. HumanUP motivates reference-pose starts; the task samples nine collision-audited X2 poses spanning 0.092–0.680 m pelvis height, mixed with true supine starts. Their probability moves from 0.95 to 0.35 over 3,600 vector-environment policy steps. HoST's official cross-robot guidance scales an upward pull to 60% of robot weight and enables it only after the trunk is near vertical. For the 41.966521 kg X2 this is 247.015 N, annealed over 4,000 policy steps. Both mechanisms are disabled in play/evaluation, so every reported episode is unassisted and supine. Exact equations, adaptations and numerical checks are in [the formula audit](docs/formula_audit.md); every source-to-code connection is in [the evidence map](docs/evidence.md).
+HumanUP and HoST motivate the nine-pose curriculum, which spans straight standing to near-supine coupled root/joint states. The faithful discovery environment mixes 10–20% reference starts with true supine states; focused rise phases deliberately hold one or a few adjacent stages. The selected checkpoint's final logged phase used only `reference_2`, which the five-episode audit identified as an incomplete curriculum rather than hiding it. All evaluation forces true supine starts and disables assistance, noise and domain randomization. Exact equations, source adaptations and numerical checks are in [the formula audit](docs/formula_audit.md) and [literature decision record](docs/literature_decision_record.md).
 
 ## PPO training and evaluation
 
-The final measured run uses 3,000 environments for 400 PPO iterations, with 12 steps per environment and 14.4 million simulator transitions in total. Collection took about 1.5–1.8 seconds and learning about 0.09 seconds per iteration, roughly 20–22 thousand transitions/s; the 400 updates took about 12 minutes after startup and used about 5 GB of GPU memory. The run uses seed 46, ELU MLPs `[512, 256, 128]`, initial action standard deviation `0.5`, zero entropy bonus, learning rate `3e-4`, clip `0.2`, discount `0.99`, GAE lambda `0.95`, five learning epochs and four mini-batches. Earlier branches with exploitable rewards, compounded substep actions or saturated networks are diagnostic only and are excluded from the final checkpoint.
+The selected HumanUP-history checkpoint is PPO iteration 750 and its actor normalizer has seen 54,504,000 observations. Each update uses 3,000 parallel X2 environments and 24 steps per environment. The policy uses PPO clip `0.2`, gamma `0.99`, GAE lambda `0.95`, five epochs, four mini-batches, adaptive KL target `0.008`, learning rate `2e-4` in the base schedule, and `[512,256,128]` ELU actor/critic heads. Focused curriculum stages lower exploration standard deviation and entropy after the discovery stage. The committed reward plot covers the selected final logged segment, iterations 617–765.
 
 ```bash
-./scripts/train_isaac.sh --max_iterations 400 --num_envs 3000 --seed 46 --device cuda:0
+./scripts/train_isaac.sh --phase humanup_rise \
+  --max_iterations 400 --num_envs 3000 --seed 46 --device cuda:0
 
 # Device-isolated or CPU-only machine: slower, but uses the same X2 task.
 ./scripts/train_isaac.sh --num_envs 64 --seed 42 --device cpu
 
 # Run the deterministic five-episode viewer without --headless.
-./scripts/play_isaac.sh logs/rsl_rl/hrs_x2_recovery/<run>/model_<iteration>.pt
+./scripts/play_isaac.sh reports/checkpoints/x2_humanup_selected_model750.pt \
+  --output reports/isaac_evaluation_humanup.json --device cuda:0
 
 # Exactly five reproducible, perturbed back-lying starts: seeds 101–105.
 ./scripts/evaluate_isaac.sh \
-  logs/rsl_rl/hrs_x2_recovery/<run>/model_<iteration>.pt
+  reports/checkpoints/x2_humanup_selected_model750.pt \
+  --output reports/isaac_evaluation_humanup.json --device cuda:0
 ```
 
 A recovery counts only after all checks hold continuously for 0.5 seconds:
 
-- pelvis height ≥ 0.62 m;
+- pelvis height ≥ 0.58 m;
 - projected-gravity XY norm ≤ 0.15 and Z component ≤ -0.98;
-- root linear speed ≤ 0.20 m/s;
+- root linear speed ≤ 0.25 m/s;
 - root angular speed ≤ 0.35 rad/s;
 - each foot contact force ≥ 15 N;
 - every other body contact force < 15 N.
 
-The final deterministic evaluation produced **0/5 successful recoveries**. Across seeds 101–105, maximum pelvis height remained 0.1894–0.1905 m, maximum upright score was 0.9858–0.9867, and continuous two-foot contact lasted 4.8–5.5 s. The corrected policy consistently reaches a symmetric, feet-loaded seated posture, but its terminal pelvis remains 0.0679–0.0688 m and non-foot support remains 274–282 N. The exact per-seed states are in [the Isaac evaluation report](reports/isaac_evaluation.json), and [the network/I-O audit](reports/x2_policy_io_audit.json) verifies 168 finite inputs, 31 finite outputs, a 14.4-million-sample observation normalizer, bounded targets and no soft-limit violation.
+The selected HumanUP checkpoint's fixed-seed true-supine evaluation produced **0/5 successful recoveries**. Across seeds 101–105, maximum pelvis height remained 0.1894–0.1905 m, maximum upright score was 0.3297–0.4355, and the longest continuous two-foot contact was 2.35–5.00 s. Terminal non-foot floor force was 128–174 N. The exact per-seed states are in [the HumanUP Isaac evaluation](reports/isaac_evaluation_humanup.json). [The reference-2 I/O audit](reports/x2_humanup_model750_trajectory_ref2_audit.json) separately verifies 1,148 finite observations, 31 finite actions, a 20-value history latent, bounded targets, no soft-limit violation, and a 0.25 s strict-stance frontier from that curriculum state.
 
-This result isolates the remaining learning problem. The official model can stand: the independent PhysX reachability probe held every strict condition for 0.65 s near 0.674 m. The reward exploit, action compounding, hard-clip saturation, missing whole-body contacts and endpoint-only curriculum were all corrected. The remaining gap is optimization: 400 PPO updates learn righting and stable feet-loaded sitting but do not discover the final leg-extension transition. Longer force-transfer follow-ups improved assisted high-pelvis visitation but lost it as assistance vanished, so they are retained only as diagnostics. HumanUP's full method uses a discovered motion and imitation-based second stage over a much larger training budget; that is the evidence-supported next experiment. Evaluation seeds must remain outside model selection.
+The result isolates a curriculum coverage problem. The official model can stand: the independent PhysX reachability probe held every strict condition for 0.65 s near 0.674 m. The same RMA policy reaches 0.597 m and satisfies the full strict predicate for 0.25 s from `reference_2`, but the selected final training phase sampled only that pose and did not include the lower bridge-to-supine transition. A 7.2-million-transition stage-2-to-4 experiment did not solve `reference_3` or `reference_4`. Stage-3-only training then used 14.4 million transitions and a further 21.6-million-transition extension; the deterministic stage-3 peak was 0.4210 m before the extension and 0.4145 m after it, with zero exact-stance reward in both. The longer checkpoint is therefore rejected. The evidence-backed correction is a dynamically valid discovery/retargeted trajectory followed by HumanUP-style imitation/refinement; weakening the success predicate or calling the reference-start behavior a ground recovery would be misleading.
 
-The evaluator writes `reports/isaac_evaluation.json` and exports TorchScript and ONNX policies under `reports/exported/`. Only the final audited run is part of the submission result; earlier reports remain local diagnostics.
+The evaluator writes `reports/isaac_evaluation_humanup.json` and exports a verified 1,148-input/31-output TorchScript graph to `reports/exported_humanup/policy.pt`. The generic RSL-RL exporter cannot represent the custom history encoder, so the repository uses an explicit tensor-only deployment wrapper and checks the serialized graph against the source actor with zero observed error.
 
 Two labelled GIFs make the distinction visual: [the final PPO attempt](reports/gifs/x2_final_policy_attempt.gif) is a real supine rollout and is explicitly marked unsuccessful; [the standing reachability probe](reports/gifs/x2_standing_reachability_only.gif) starts from an imposed straight stance and is explicitly marked as a model/action-path check rather than a recovery result. They are generated directly from Isaac by `scripts/render_isaac_gifs.sh`.
 
@@ -202,7 +200,7 @@ For the Isaac policy, run the simulator process in the Isaac Python environment 
 ```bash
 # Terminal 1: existing Isaac environment
 export ISAAC_PYTHON=/absolute/path/to/isaac/environment/bin/python
-./scripts/serve_isaac_policy.sh /absolute/path/to/exported/policy.pt
+./scripts/serve_isaac_policy.sh reports/exported_humanup/policy.pt
 
 # Terminal 2: ROS Humble environment
 source /opt/ros/humble/setup.bash
@@ -215,7 +213,7 @@ source install/setup.bash
 ros2 service call /x2/start_recovery std_srvs/srv/Trigger '{}'
 ```
 
-The local server owns the Isaac environment and policy. For each request it resets one episode, streams all simulator joint positions over `/tmp/hrs_x2_recovery.sock`, and returns strict success or timeout. The ROS node converts those events to the required topics. The socket is local, single-client and mode `0600`; it does not touch another robot project or expose a network port.
+The local server owns the true-supine HumanUP Isaac environment and verified 1,148-input policy. For each request it resets one episode, streams all simulator joint positions over `/tmp/hrs_x2_recovery.sock`, and returns strict success or timeout. The ROS node converts those events to the required topics. The socket is local, single-client and mode `0600`; it does not touch another robot project or expose a network port.
 
 ## Limits and next experiments
 

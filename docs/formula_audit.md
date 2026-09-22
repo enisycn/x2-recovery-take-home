@@ -1,134 +1,130 @@
 # Formula audit
 
-This note states the equations used by the selected checkpoint. The numerical suite in `isaaclab_ext/test/test_reward_formulas.py` checks the reset orientation, collision clearances, schedules, reward gates, action map and strict-success predicate.
+This note describes the executable HumanUP-history PPO path. The 19 numerical tests in `isaaclab_ext/test/test_reward_formulas.py` check reset orientation, geometry clearance, schedules, action mapping, reward gates and the strict-success predicate.
 
-## Frames, timing and action
+## Frames and reset
 
-AgiBot documents an FLU body frame: X forward, Y left and Z up. Isaac Lab stores the configured and tensor root quaternions in scalar-last XYZW order. The supine reset
+AgiBot specifies an FLU body frame. Isaac Lab uses scalar-last XYZW quaternions, so the supine root rotation is
 
 \[
-q=(0,-\sqrt{1/2},0,\sqrt{1/2})
+q=(0,-\sqrt{1/2},0,\sqrt{1/2}).
 \]
 
-rotates the local forward/chest axis onto world up. Applying this transform through all 50 official collision elements gives a 0.1803007 m extent below the pelvis. The 0.190 m reset plus bounded jitter leaves at least 6.3 mm clearance in 20,000 audited samples. The straight standing extent is 0.6749500 m, which motivates the 0.68 m reward target.
+It maps the robot's forward/chest axis to world up. Forward kinematics over all 50 official collision elements gives 0.1803007 m from the pelvis to the lowest supine point. The 0.190 m reset and bounded jitter retain at least 6.3 mm floor clearance in 20,000 samples. Root and joint velocities start at zero.
 
-PhysX runs at 100 Hz and the policy at 20 Hz (`decimation=5`). Let `q_k` be the measured joint position at policy decision `k`, `a_k` the 31-dimensional raw actor output, and `[l,u]` the official joint range contracted once by the 0.98 soft-limit factor. The command is
+## Observation and network
+
+At 20 Hz, current proprioception is
 
 \[
-\Delta q_k=0.25\tanh(a_k),\qquad
-q_k^{cmd}=\operatorname{clip}(q_k+\Delta q_k,l,u).
+p_k=[\omega_b(3),\ \mathrm{roll,pitch}(2),\ q-q_0(31),\ \dot q(31),\ a_{k-1}(31)]\in\mathbb{R}^{98}.
 \]
 
-`q_k^{cmd}` is computed once and held for all five physics steps. This matters: recomputing a relative target at every substep accumulated the same decision five times. `tanh` keeps the map smooth and bounded; zero holds the current pose. The simulator also enforces the effort and speed limits imported from the official URDF.
-
-## Observation
-
-The actor input has 168 scalars in this exact order:
+The environment supplies `[p_k, e_k, p_{k-9:k}]`, where the 70-value Stage-I extrinsics slot `e_k` is zero because domain randomization is disabled. The critic receives all 1,148 values. The actor normalizes the same vector, keeps current `p_k`, and compresses the ten-state history with HumanUP's released RMA shape:
 
 \[
-o=[h_b,\ v_b(3),\ \omega_b(3),\ g_b(3),\ q-q_0(31),\ 0.1\dot q(31),\ c_{feet}(2),\ c_{body}(32),\ a_{k-1:k-2}(62)].
+98\rightarrow30,\quad
+\mathrm{Conv1d}(30,20,k=4,s=2),\quad
+\mathrm{Conv1d}(20,10,k=2),\quad
+30\rightarrow20.
 \]
 
-The two foot bits and 32 ordered body-contact bits use a 15 N threshold. Whole-body contacts remove the ambiguity between back, pelvis, hand, knee and foot support. Observation corruption is enabled only during training.
+The resulting 118 values pass through an ELU MLP `118→512→256→128→31`. This is a temporal encoder, not an autoencoder: there is no decoder or reconstruction loss. The exported TorchScript graph includes the normalizer and encoder and has a verified `1148→31` contract.
 
-## Reward
+## Timing and action
 
-Let `h` be pelvis height, `g` projected gravity in the pelvis frame, `v` and `omega` root velocities, `I[.]` an indicator and
+PhysX runs at 100 Hz and the actor at 20 Hz (`decimation=5`). Let `a_k` be the raw actor output and `[l,u]` the official X2 joint limits contracted once to 98%. Away from the final stance,
 
 \[
-u=\operatorname{clip}(-g_z,0,1),\qquad
-H=\operatorname{clip}(h/0.68,0,1).
+q_k^{cmd}=\operatorname{clip}\left(q_k+0.25\tanh(a_k),l,u\right).
 \]
 
-The dense recovery term is
+The target is computed once and held for five physics steps. Near standing, the X2-specific brake suppresses repeated relative increments:
 
 \[
-r_{rise}=H u^2.
-\]
-
-It supplies a non-vanishing height gradient near the floor while assigning no height reward to a sideways or inverted bridge. The signed orientation terms are
-
-\[
-r_{HumanUP}=e^{-g_z},\qquad
-r_{upright}=\exp\left(-\frac{(1+g_z)^2}{0.25^2}\right).
-\]
-
-For contact indicators `C_L`, `C_R` and the number of non-foot supporting bodies `N_other`, define
-
-\[
-G_f=\operatorname{clip}\left(\frac{h-0.08}{0.68-0.08},0,1\right),\qquad
-G_o=\operatorname{clip}\left(\frac{h-0.45}{0.68-0.45},0,1\right),
+s(x)=x^2(3-2x),\quad
+b=s\!\left(\operatorname{clip}\frac{h-0.55}{0.62-0.55}\right)
+\operatorname{clip}\frac{-g_z-0.90}{0.10},
 \]
 
 \[
-r_{feet}=I[C_L\land C_R]G_f u^2,\qquad
-r_{other}=N_{other}G_o.
+q_k^{cmd}=\operatorname{clip}\left(q_k+0.25\tanh((1-b)a_k),l,u\right).
 \]
 
-HoST-style completion terms activate only above `h>0.58`:
+This deterministic post-processing is active in the selected evaluation. The simulator separately enforces URDF effort and velocity limits.
+
+## Published HumanUP block
+
+`HumanUpStageIRewardsCfg` implements the 24 terms and code-release weights: clipped base/head height `+5/+5`, positive height change `+1`, increased foot force `+1`, two-foot stand `+2.5`, orientation `-1`, body-up exponential `+0.25`, foot height/distance `+2.5/+2`, body/waist action symmetry `-1/-1`, foot orientation/slip `-0.5/-1`, unsafe termination `-500`, default-pose error `-0.03`, base linear/angular speed `-0.1/-0.1`, joint speed `-1e-4`, action rate `-0.1`, torque `-1e-6`, position/torque limit `-5/-0.1`, energy `-1e-4`, and acceleration `-1e-7`.
+
+These terms are copied from the pinned HumanUP release with X2 body names and reachable height caps. The code-versus-paper coefficient audit is in `docs/humanup_paper_review.md`.
+
+## X2 completion block
+
+Let `h` be pelvis height, `g` projected gravity in the pelvis frame, `u=clip(-g_z,0,1)`, `H=clip(h/0.68,0,1)`, `C_L,C_R` the 15 N foot-contact bits, and `N_other` the number of non-foot bodies with at least 15 N floor force. The main dense terms are
 
 \[
-r_\omega=e^{-2\lVert\omega_{xy}\rVert^2},\quad
-r_v=e^{-5\lVert v_{xy}\rVert^2},\quad
-r_g=e^{-5\lVert g_{xy}\rVert^2},\quad
-r_h=e^{-20(h-0.68)^2}.
-\]
-
-The configured reward rate is
-
-\[
-40r_{rise}+0.25r_{HumanUP}+2.5r_{upright}+10r_{feet}-2r_{other}
-+10(r_\omega+r_v+r_g+r_h)+5r_{still}
-\]
-
-\[
--0.01\lVert a\rVert^2-0.02\lVert a-a_{prev}\rVert^2
--10^{-7}\lVert\ddot q\rVert^2-10^{-4}\lVert\dot q\rVert^2
--6\times10^{-7}\lVert\tau\rVert^2
+r_{rise}=Hu^2,
 \]
 
 \[
--0.1\lVert\omega\rVert^2-0.1\lVert v\rVert^2-r_{limits}
--0.05r_{symmetry}-0.02r_{non\text{-}sagittal}.
-\]
-
-`r_still` is an exponential full-root-speed reward gated by `h>0.60` and `-g_z>0.96`. Isaac Lab multiplies every reward rate by the 0.05 s policy step when accumulating the episode return.
-
-The selected reward deliberately omits raw head height and the positive-vertical-velocity bit. Measured branches exploited both while leaving the pelvis on the floor. The cited HumanUP and HoST terms motivate the reward families; their exact weights are adapted to the X2 and are validated only by the reported experiment.
-
-## Training-only curriculum
-
-At common policy step `k`, the probability of choosing one of nine collision-audited reference poses is
-
-\[
-p_{ref}(k)=0.95+(0.35-0.95)\operatorname{clip}(k/3600,0,1).
-\]
-
-The reference pelvis heights span 0.09194–0.68000 m and couple the root pose to symmetric hip, knee, ankle, shoulder and elbow angles. The remaining resets are the true supine pose. The schedule uses policy decisions, so changing the number of parallel environments does not shorten it.
-
-HoST's cross-robot guidance scales the exploration pull to 60% of body weight. The pinned X2 mass is 41.966521 kg, so
-
-\[
-F_z(k)=247.014943\max(1-k/4000,0)I[-g_z\ge0.80]\ \mathrm{N}.
-\]
-
-The force acts at the pelvis only after the torso is nearly vertical. At 12 policy steps per PPO update, reference probability reaches 0.35 after 300 updates and the force reaches zero after about 334 updates. Evaluation sets both reference probability and assistance to zero, disables observation noise and starts every seed from the audited supine distribution.
-
-## Episode ending and success
-
-Training episodes last 8 s, or 160 policy decisions. Timeout is the only termination; ending as soon as the robot becomes upright would not teach it to remain balanced.
-
-Instantaneous evaluation success requires
-
-\[
-h\ge0.62,\quad \lVert g_{xy}\rVert\le0.15,\quad g_z\le-0.98,
+r_{feet}=I[C_L\land C_R]\operatorname{clip}\left(\frac{h-0.08}{0.60},0,1\right)u^2,
 \]
 
 \[
-\lVert v\rVert\le0.20\ \mathrm{m/s},\quad
-\lVert\omega\rVert\le0.35\ \mathrm{rad/s},
+r_{other}=N_{other}\operatorname{clip}\left(\frac{h-0.45}{0.23},0,1\right).
 \]
 
-both foot forces at least 15 N and every other body force below 15 N. All conditions must hold for ten consecutive 20 Hz decisions, or 0.5 s. The signed `g_z` check rejects an upside-down pose even when XY tilt is small.
+The sagittal leg and remaining-joint alignment terms use a FRASA-style Gaussian around the official default pose, multiplied by height and upright gates. Their weights are `+50` each. The signed upright term is `exp(-(1+g_z)^2/0.25^2)` with weight `+2.5`.
 
-The independent standing probe satisfied this complete predicate for 0.65 s. The selected learned policy satisfied it for 0.00 s in all five evaluation episodes; the result is reported unchanged.
+Above `h>0.58`, the X2-adapted HoST completion kernels are
+
+\[
+r_\omega=e^{-10\|\omega_{xy}\|^2},\quad
+r_v=e^{-20\|v_{xy}\|^2},\quad
+r_g=e^{-5\|g_{xy}\|^2},\quad
+r_h=e^{-20|h-0.68|}.
+\]
+
+The angular/linear kernels are deliberately tighter than HoST's released G1 coefficients `2/5`; the X2 experiment uses `10/20` after measured overshoot at the stance boundary. The height absolute error follows the official HoST code, while its paper table prints a squared scalar norm. The four configured weights are `50, 50, 10, 10`.
+
+For training only, the exact binary target is smoothed as
+
+\[
+E=2\left(\frac{\max(0.58-h,0)}{0.10}\right)^2
++\left(\frac{\|g_{xy}\|}{0.15}\right)^2
++\left(\frac{\max(g_z+0.98,0)}{0.05}\right)^2
++0.1\left(\frac{\|v\|}{0.25}\right)^2
++0.1\left(\frac{\|\omega\|}{0.35}\right)^2+2N_{other},
+\]
+
+\[
+r_{prox}=I[C_L\land C_R]e^{-E}.
+\]
+
+It has weight `+100`. The unchanged binary success indicator is also a training reward (`+200` in the rise configuration), but it is never a termination. Isaac Lab multiplies reward rates by the 0.05 s control interval when accumulating return.
+
+## PPO and curriculum
+
+The HumanUP-faithful discovery configuration uses rollout 24, clip 0.2, five epochs, four mini-batches, learning rate `2e-4`, adaptive KL target 0.008, entropy 0.01, gamma 0.99, lambda 0.95 and max gradient norm 1. The focused X2 rise stages retain PPO clipping and use initial/overridden action standard deviation 0.5/0.1–0.15, zero entropy coefficient and learning rate `1e-4`–`2e-4`.
+
+Nine coupled root/joint reference poses span straight standing (`reference_0`) to near-supine (`reference_8`). The chosen checkpoint's last recorded stage sampled only `reference_2`; the subsequent audit therefore evaluates the missing distribution shift explicitly rather than assuming the curriculum reached the floor. All reported final episodes force reference probability to zero.
+
+HumanUP safety endings are timeout, root linear speed above 2.5 m/s, pelvis height outside `[0,1.2]` m, or a non-finite root state. Success is absent from this list so balance must persist.
+
+## Evaluation predicate
+
+Instantaneous success is
+
+\[
+h\ge0.58,\quad \|g_{xy}\|\le0.15,\quad g_z\le-0.98,
+\]
+
+\[
+\|v\|\le0.25\ \mathrm{m/s},\quad
+\|\omega\|\le0.35\ \mathrm{rad/s},
+\]
+
+with at least 15 N body-to-floor force on each foot and less than 15 N on every other body. These forces come from the contact sensor's `/World/ground` filtered partner matrix, not the net-force buffer that also contains self-collisions. Every condition must hold for ten consecutive 20 Hz decisions (0.5 s).
+
+The independent standing probe held the complete predicate for 0.65 s. The selected learned checkpoint held it for 0.00 s in all five true-supine episodes; `reports/isaac_evaluation_humanup.json` records that unchanged result.

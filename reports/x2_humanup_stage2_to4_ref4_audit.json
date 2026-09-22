@@ -1,0 +1,5649 @@
+{
+  "checkpoint": "<USER_HOME>/Documents/Codex/2026-09-20/hrs-irketindeki-agajan-troyev-kimdir-bi/hrs_x2_take_home/logs/rsl_rl/hrs_x2_humanup_curriculum/2026-09-22_01-25-42_humanup_stage2_to4_final/model_849.pt",
+  "handoff_checkpoint": null,
+  "handoff": null,
+  "controller": "policy",
+  "pose_hold": null,
+  "straighten_after_height_m": null,
+  "action_brake": null,
+  "non_sagittal_alignment": null,
+  "ankle_balance": {
+    "linear_velocity_gain": 0.0,
+    "pitch_rate_gain": 0.0,
+    "lateral_velocity_gain": 0.0,
+    "roll_rate_gain": 0.0
+  },
+  "seed": 101,
+  "environment": "humanup_rise",
+  "lift_assist_enabled": false,
+  "initial_pose": "reference_4",
+  "checkpoint_audit": {
+    "tensor_count": 33,
+    "all_tensors_finite": true,
+    "actor_observation_normalizer_count": 61704000.0,
+    "action_std": {
+      "finite": true,
+      "min": 0.09697162359952927,
+      "max": 0.10743732750415802,
+      "mean": 0.10192961245775223
+    }
+  },
+  "network": {
+    "observations": 1148,
+    "actions": 31,
+    "hidden": [
+      512,
+      256,
+      128
+    ],
+    "history_encoder": [
+      98,
+      30,
+      "conv30x20",
+      "conv20x10",
+      20
+    ]
+  },
+  "observation_order": {
+    "current_proprioception": [
+      0,
+      98
+    ],
+    "zero_privileged_extrinsics": [
+      98,
+      168
+    ],
+    "proprioception_history_10_steps": [
+      168,
+      1148
+    ]
+  },
+  "contact_sensor_order": [
+    "pelvis",
+    "left_hip_pitch_link",
+    "left_hip_roll_link",
+    "left_hip_yaw_link",
+    "left_knee_link",
+    "left_ankle_pitch_link",
+    "left_ankle_roll_link",
+    "right_hip_pitch_link",
+    "right_hip_roll_link",
+    "right_hip_yaw_link",
+    "right_knee_link",
+    "right_ankle_pitch_link",
+    "right_ankle_roll_link",
+    "waist_yaw_link",
+    "waist_pitch_link",
+    "torso_link",
+    "left_shoulder_pitch_link",
+    "left_shoulder_roll_link",
+    "left_shoulder_yaw_link",
+    "left_elbow_link",
+    "left_wrist_yaw_link",
+    "left_wrist_pitch_link",
+    "left_wrist_roll_link",
+    "right_shoulder_pitch_link",
+    "right_shoulder_roll_link",
+    "right_shoulder_yaw_link",
+    "right_elbow_link",
+    "right_wrist_yaw_link",
+    "right_wrist_pitch_link",
+    "right_wrist_roll_link",
+    "head_yaw_link",
+    "head_pitch_link"
+  ],
+  "resolved_contact_ids": {
+    "feet": [
+      6,
+      12
+    ],
+    "all_bodies": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      18,
+      19,
+      20,
+      21,
+      22,
+      23,
+      24,
+      25,
+      26,
+      27,
+      28,
+      29,
+      30,
+      31
+    ]
+  },
+  "observation_ranges": {
+    "current_proprioception": {
+      "finite": true,
+      "min": -5.328879356384277,
+      "max": 6.025646209716797,
+      "mean": -0.08796706795692444
+    },
+    "zero_privileged_extrinsics": {
+      "finite": true,
+      "min": 0.0,
+      "max": 0.0,
+      "mean": 0.0
+    },
+    "proprioception_history_10_steps": {
+      "finite": true,
+      "min": -5.328879356384277,
+      "max": 6.025646209716797,
+      "mean": -0.08649715781211853
+    }
+  },
+  "nonfinite_observation_steps": 0,
+  "raw_policy_action": {
+    "finite": true,
+    "min": -4.4314188957214355,
+    "max": 6.025646209716797,
+    "mean": -0.12486914545297623,
+    "fraction_abs_ge_1": 0.09450478106737137,
+    "maximum_abs_by_joint": {
+      "left_hip_pitch_joint": 1.5037996768951416,
+      "right_hip_pitch_joint": 1.620623230934143,
+      "waist_yaw_joint": 2.9344964027404785,
+      "left_hip_roll_joint": 1.6644196510314941,
+      "right_hip_roll_joint": 2.623058795928955,
+      "waist_pitch_joint": 1.714606523513794,
+      "left_hip_yaw_joint": 2.451174020767212,
+      "right_hip_yaw_joint": 1.960593581199646,
+      "waist_roll_joint": 1.1473684310913086,
+      "left_knee_joint": 3.3199210166931152,
+      "right_knee_joint": 3.3529911041259766,
+      "left_shoulder_pitch_joint": 4.017686367034912,
+      "right_shoulder_pitch_joint": 4.246316909790039,
+      "head_yaw_joint": 1.8445453643798828,
+      "left_ankle_pitch_joint": 6.025646209716797,
+      "right_ankle_pitch_joint": 5.5968098640441895,
+      "left_shoulder_roll_joint": 1.2609868049621582,
+      "right_shoulder_roll_joint": 0.9509505033493042,
+      "head_pitch_joint": 2.633744239807129,
+      "left_ankle_roll_joint": 5.45293664932251,
+      "right_ankle_roll_joint": 2.8438596725463867,
+      "left_shoulder_yaw_joint": 2.300212860107422,
+      "right_shoulder_yaw_joint": 1.9762065410614014,
+      "left_elbow_joint": 1.5549319982528687,
+      "right_elbow_joint": 2.404479742050171,
+      "left_wrist_yaw_joint": 2.471339464187622,
+      "right_wrist_yaw_joint": 1.7200884819030762,
+      "left_wrist_pitch_joint": 1.4911961555480957,
+      "right_wrist_pitch_joint": 1.710183024406433,
+      "left_wrist_roll_joint": 2.912346601486206,
+      "right_wrist_roll_joint": 1.53518545627594
+    }
+  },
+  "bounded_target_delta_rad": {
+    "finite": true,
+    "min": -0.24992921948432922,
+    "max": 0.249997079372406,
+    "mean": -0.004472780507057905
+  },
+  "target_soft_limit_violations": 0,
+  "live_episode": {
+    "maximum_pelvis_height_m": 0.314520001411438,
+    "maximum_upright_score": 0.9999542236328125,
+    "maximum_strict_stable_s": 0.0,
+    "maximum_left_foot_force_n": 203.4066925048828,
+    "maximum_right_foot_force_n": 249.18807983398438,
+    "maximum_other_body_force_n": 1338.12451171875,
+    "criterion_fraction": {
+      "height": 0.0,
+      "upright": 0.020100502512562814,
+      "linear_speed": 0.8944723618090452,
+      "angular_speed": 0.6834170854271356,
+      "both_feet": 0.8391959798994975,
+      "no_other_support": 0.07035175879396985
+    },
+    "terminal_left_foot_force_n": 46.43813705444336,
+    "terminal_right_foot_force_n": 42.02863311767578,
+    "terminal_other_body_force_n": 161.54185485839844,
+    "terminal_pelvis_height_m": 0.07745794206857681,
+    "terminal_upright_score": 0.10686229169368744,
+    "terminal_linear_speed_m_s": 0.010306802578270435,
+    "terminal_angular_speed_rad_s": 0.08663040399551392,
+    "terminal_linear_velocity_world_m_s": [
+      0.0060692643746733665,
+      0.00036163514596410096,
+      -0.008322465233504772
+    ],
+    "terminal_angular_velocity_world_rad_s": [
+      -0.0393306128680706,
+      0.04092011973261833,
+      0.06544825434684753
+    ],
+    "best_height_state": {},
+    "best_upright_joint_position_rad": {},
+    "best_upright_raw_action": {},
+    "terminal_joint_position_rad": {
+      "left_hip_pitch_joint": -0.29159823060035706,
+      "right_hip_pitch_joint": -0.09998125582933426,
+      "waist_yaw_joint": 0.5685597658157349,
+      "left_hip_roll_joint": 1.3023873567581177,
+      "right_hip_roll_joint": 0.09006050229072571,
+      "waist_pitch_joint": -0.14726224541664124,
+      "left_hip_yaw_joint": 3.3171982765197754,
+      "right_hip_yaw_joint": -1.5931036472320557,
+      "waist_roll_joint": 0.46756523847579956,
+      "left_knee_joint": 0.11987654119729996,
+      "right_knee_joint": -8.435545896645635e-05,
+      "left_shoulder_pitch_joint": -3.079975128173828,
+      "right_shoulder_pitch_joint": -3.080042600631714,
+      "head_yaw_joint": -0.3410579264163971,
+      "left_ankle_pitch_joint": -0.5035403370857239,
+      "right_ankle_pitch_joint": -0.594094455242157,
+      "left_shoulder_roll_joint": 0.07175098359584808,
+      "right_shoulder_roll_joint": 0.06093308702111244,
+      "head_pitch_joint": -0.37842676043510437,
+      "left_ankle_roll_joint": 0.20986628532409668,
+      "right_ankle_roll_joint": -0.148418128490448,
+      "left_shoulder_yaw_joint": 1.9953306913375854,
+      "right_shoulder_yaw_joint": 2.129181146621704,
+      "left_elbow_joint": -2.3558809757232666,
+      "right_elbow_joint": -0.02489791251718998,
+      "left_wrist_yaw_joint": -2.453685760498047,
+      "right_wrist_yaw_joint": 2.508713722229004,
+      "left_wrist_pitch_joint": 0.5243683457374573,
+      "right_wrist_pitch_joint": -0.49570491909980774,
+      "left_wrist_roll_joint": 0.17596308887004852,
+      "right_wrist_roll_joint": -0.46672695875167847
+    },
+    "trajectory": [
+      {
+        "time_s": 0.0,
+        "pelvis_height_m": 0.314520001411438,
+        "upright_score": 0.9999542236328125,
+        "tilt_norm": 0.009619634598493576,
+        "linear_speed_m_s": 0.0,
+        "angular_speed_rad_s": 0.0,
+        "linear_velocity_world_m_s": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "angular_velocity_world_rad_s": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "projected_gravity_body": [
+          6.316206224710186e-08,
+          -0.009619634598493576,
+          -0.9999542236328125
+        ],
+        "left_foot_force_n": 0.0,
+        "right_foot_force_n": 0.0,
+        "other_body_force_n": 0.0,
+        "strict": false
+      },
+      {
+        "time_s": 0.05,
+        "pelvis_height_m": 0.31246358156204224,
+        "upright_score": 0.9997051358222961,
+        "tilt_norm": 0.024272622540593147,
+        "linear_speed_m_s": 0.1671173870563507,
+        "angular_speed_rad_s": 0.5793853402137756,
+        "linear_velocity_world_m_s": [
+          -0.07418791949748993,
+          0.14965778589248657,
+          -0.005188619252294302
+        ],
+        "angular_velocity_world_rad_s": [
+          0.28097960352897644,
+          -0.47755107283592224,
+          -0.16936001181602478
+        ],
+        "projected_gravity_body": [
+          -0.021757658571004868,
+          -0.010759389959275723,
+          -0.9997051358222961
+        ],
+        "left_foot_force_n": 171.04739379882812,
+        "right_foot_force_n": 224.55393981933594,
+        "other_body_force_n": 0.0,
+        "strict": false
+      },
+      {
+        "time_s": 0.1,
+        "pelvis_height_m": 0.3105303645133972,
+        "upright_score": 0.9986116290092468,
+        "tilt_norm": 0.052674032747745514,
+        "linear_speed_m_s": 0.19348880648612976,
+        "angular_speed_rad_s": 0.7100576162338257,
+        "linear_velocity_world_m_s": [
+          -0.15590736269950867,
+          0.11270665377378464,
+          -0.0206887386739254
+        ],
+        "angular_velocity_world_rad_s": [
+          -0.5209214687347412,
+          -0.3956978917121887,
+          -0.2761264443397522
+        ],
+        "projected_gravity_body": [
+          -0.052301887422800064,
+          -0.006250307895243168,
+          -0.9986116290092468
+        ],
+        "left_foot_force_n": 178.4094696044922,
+        "right_foot_force_n": 249.18807983398438,
+        "other_body_force_n": 0.0,
+        "strict": false
+      },
+      {
+        "time_s": 0.15000000000000002,
+        "pelvis_height_m": 0.30750933289527893,
+        "upright_score": 0.9944337010383606,
+        "tilt_norm": 0.10536294430494308,
+        "linear_speed_m_s": 0.19473324716091156,
+        "angular_speed_rad_s": 0.8752778172492981,
+        "linear_velocity_world_m_s": [
+          -0.18410086631774902,
+          0.036304015666246414,
+          -0.0520569384098053
+        ],
+        "angular_velocity_world_rad_s": [
+          0.26406458020210266,
+          -0.8200497627258301,
+          -0.15459489822387695
+        ],
+        "projected_gravity_body": [
+          -0.10316118597984314,
+          -0.021427083760499954,
+          -0.9944337010383606
+        ],
+        "left_foot_force_n": 178.4094696044922,
+        "right_foot_force_n": 249.18807983398438,
+        "other_body_force_n": 0.0,
+        "strict": false
+      },
+      {
+        "time_s": 0.2,
+        "pelvis_height_m": 0.30231887102127075,
+        "upright_score": 0.9865745902061462,
+        "tilt_norm": 0.16331058740615845,
+        "linear_speed_m_s": 0.25872793793678284,
+        "angular_speed_rad_s": 0.7922017574310303,
+        "linear_velocity_world_m_s": [
+          -0.23576867580413818,
+          0.01002714317291975,
+          -0.10607892274856567
+        ],
+        "angular_velocity_world_rad_s": [
+          0.13969890773296356,
+          -0.7797698378562927,
+          -0.005181401036679745
+        ],
+        "projected_gravity_body": [
+          -0.15890373289585114,
+          -0.037682224065065384,
+          -0.9865745902061462
+        ],
+        "left_foot_force_n": 155.52999877929688,
+        "right_foot_force_n": 233.37939453125,
+        "other_body_force_n": 0.0,
+        "strict": false
+      },
+      {
+        "time_s": 0.25,
+        "pelvis_height_m": 0.2945214509963989,
+        "upright_score": 0.9735431671142578,
+        "tilt_norm": 0.22850172221660614,
+        "linear_speed_m_s": 0.31909582018852234,
+        "angular_speed_rad_s": 0.971466064453125,
+        "linear_velocity_world_m_s": [
+          -0.2761552929878235,
+          -0.0005409641307778656,
+          -0.15987528860569
+        ],
+        "angular_velocity_world_rad_s": [
+          0.1414489448070526,
+          -0.9605814218521118,
+          -0.031965307891368866
+        ],
+        "projected_gravity_body": [
+          -0.22218161821365356,
+          -0.053370118141174316,
+          -0.9735431671142578
+        ],
+        "left_foot_force_n": 164.1758270263672,
+        "right_foot_force_n": 214.57203674316406,
+        "other_body_force_n": 0.0,
+        "strict": false
+      },
+      {
+        "time_s": 0.30000000000000004,
+        "pelvis_height_m": 0.28409725427627563,
+        "upright_score": 0.9540814161300659,
+        "tilt_norm": 0.29954782128334045,
+        "linear_speed_m_s": 0.3855209946632385,
+        "angular_speed_rad_s": 1.1250709295272827,
+        "linear_velocity_world_m_s": [
+          -0.3188716769218445,
+          -0.008801310323178768,
+          -0.21649442613124847
+        ],
+        "angular_velocity_world_rad_s": [
+          0.033109720796346664,
+          -1.1231334209442139,
+          -0.05709280073642731
+        ],
+        "projected_gravity_body": [
+          -0.2923634350299835,
+          -0.06521131098270416,
+          -0.9540814161300659
+        ],
+        "left_foot_force_n": 168.3047637939453,
+        "right_foot_force_n": 208.34642028808594,
+        "other_body_force_n": 0.0,
+        "strict": false
+      },
+      {
+        "time_s": 0.35000000000000003,
+        "pelvis_height_m": 0.27105462551116943,
+        "upright_score": 0.9255427122116089,
+        "tilt_norm": 0.3786427974700928,
+        "linear_speed_m_s": 0.46360522508621216,
+        "angular_speed_rad_s": 1.3188953399658203,
+        "linear_velocity_world_m_s": [
+          -0.3746902048587799,
+          -0.01797405630350113,
+          -0.2724224328994751
+        ],
+        "angular_velocity_world_rad_s": [
+          0.030520932748913765,
+          -1.2943130731582642,
+          -0.25160858035087585
+        ],
+        "projected_gravity_body": [
+          -0.3714075982570648,
+          -0.07366644591093063,
+          -0.9255427122116089
+        ],
+        "left_foot_force_n": 178.70608520507812,
+        "right_foot_force_n": 197.61676025390625,
+        "other_body_force_n": 0.0,
+        "strict": false
+      },
+      {
+        "time_s": 0.4,
+        "pelvis_height_m": 0.2552880644798279,
+        "upright_score": 0.8853837251663208,
+        "tilt_norm": 0.4648606479167938,
+        "linear_speed_m_s": 0.5290646553039551,
+        "angular_speed_rad_s": 1.756838083267212,
+        "linear_velocity_world_m_s": [
+          -0.41635531187057495,
+          0.04763637110590935,
+          -0.32293716073036194
+        ],
+        "angular_velocity_world_rad_s": [
+          0.20345304906368256,
+          -1.6822351217269897,
+          -0.4638664424419403
+        ],
+        "projected_gravity_body": [
+          -0.45634639263153076,
+          -0.08856290578842163,
+          -0.8853837251663208
+        ],
+        "left_foot_force_n": 199.46133422851562,
+        "right_foot_force_n": 154.99095153808594,
+        "other_body_force_n": 0.0,
+        "strict": false
+      },
+      {
+        "time_s": 0.45,
+        "pelvis_height_m": 0.2363273799419403,
+        "upright_score": 0.8317244052886963,
+        "tilt_norm": 0.5551886558532715,
+        "linear_speed_m_s": 0.6284058094024658,
+        "angular_speed_rad_s": 1.9483332633972168,
+        "linear_velocity_world_m_s": [
+          -0.46532100439071655,
+          0.07159854471683502,
+          -0.41622573137283325
+        ],
+        "angular_velocity_world_rad_s": [
+          0.1960093230009079,
+          -1.759010910987854,
+          -0.8145327568054199
+        ],
+        "projected_gravity_body": [
+          -0.5443864464759827,
+          -0.10898542404174805,
+          -0.8317244052886963
+        ],
+        "left_foot_force_n": 199.46133422851562,
+        "right_foot_force_n": 117.48696899414062,
+        "other_body_force_n": 0.0,
+        "strict": false
+      },
+      {
+        "time_s": 0.5,
+        "pelvis_height_m": 0.21246908605098724,
+        "upright_score": 0.766576886177063,
+        "tilt_norm": 0.6421522498130798,
+        "linear_speed_m_s": 0.7200366258621216,
+        "angular_speed_rad_s": 2.4864163398742676,
+        "linear_velocity_world_m_s": [
+          -0.5184066891670227,
+          0.10842610895633698,
+          -0.4878021776676178
+        ],
+        "angular_velocity_world_rad_s": [
+          0.28190794587135315,
+          -2.2326364517211914,
+          -1.0574158430099487
+        ],
+        "projected_gravity_body": [
+          -0.6264204382896423,
+          -0.1412689983844757,
+          -0.766576886177063
+        ],
+        "left_foot_force_n": 195.18124389648438,
+        "right_foot_force_n": 96.86677551269531,
+        "other_body_force_n": 0.0,
+        "strict": false
+      },
+      {
+        "time_s": 0.55,
+        "pelvis_height_m": 0.18456967175006866,
+        "upright_score": 0.6939582228660583,
+        "tilt_norm": 0.7200154066085815,
+        "linear_speed_m_s": 0.8287482261657715,
+        "angular_speed_rad_s": 2.7611520290374756,
+        "linear_velocity_world_m_s": [
+          -0.5828882455825806,
+          0.14804041385650635,
+          -0.5702183246612549
+        ],
+        "angular_velocity_world_rad_s": [
+          0.7108399271965027,
+          -2.3023831844329834,
+          -1.3482205867767334
+        ],
+        "projected_gravity_body": [
+          -0.6944568753242493,
+          -0.19013634324073792,
+          -0.6939582228660583
+        ],
+        "left_foot_force_n": 203.4066925048828,
+        "right_foot_force_n": 66.17001342773438,
+        "other_body_force_n": 0.0,
+        "strict": false
+      },
+      {
+        "time_s": 0.6000000000000001,
+        "pelvis_height_m": 0.1498713195323944,
+        "upright_score": 0.6133409738540649,
+        "tilt_norm": 0.7898179888725281,
+        "linear_speed_m_s": 0.9736555218696594,
+        "angular_speed_rad_s": 3.1581010818481445,
+        "linear_velocity_world_m_s": [
+          -0.5930690765380859,
+          0.2723011076450348,
+          -0.7225830554962158
+        ],
+        "angular_velocity_world_rad_s": [
+          1.2949479818344116,
+          -2.7453112602233887,
+          -0.8717674016952515
+        ],
+        "projected_gravity_body": [
+          -0.7393943071365356,
+          -0.2776843011379242,
+          -0.6133409738540649
+        ],
+        "left_foot_force_n": 203.4066925048828,
+        "right_foot_force_n": 33.51280975341797,
+        "other_body_force_n": 0.0,
+        "strict": false
+      },
+      {
+        "time_s": 0.65,
+        "pelvis_height_m": 0.11403787136077881,
+        "upright_score": 0.5259491801261902,
+        "tilt_norm": 0.8505159020423889,
+        "linear_speed_m_s": 1.840879201889038,
+        "angular_speed_rad_s": 2.355569362640381,
+        "linear_velocity_world_m_s": [
+          -1.6433942317962646,
+          0.6433979868888855,
+          -0.5235748291015625
+        ],
+        "angular_velocity_world_rad_s": [
+          2.2351369857788086,
+          0.681810200214386,
+          -0.2966562509536743
+        ],
+        "projected_gravity_body": [
+          -0.7618039846420288,
+          -0.37819576263427734,
+          -0.5259491801261902
+        ],
+        "left_foot_force_n": 192.5415496826172,
+        "right_foot_force_n": 0.0,
+        "other_body_force_n": 0.0,
+        "strict": false
+      },
+      {
+        "time_s": 0.7000000000000001,
+        "pelvis_height_m": 0.1211167648434639,
+        "upright_score": 0.5953351259231567,
+        "tilt_norm": 0.80347740650177,
+        "linear_speed_m_s": 1.0934860706329346,
+        "angular_speed_rad_s": 1.8556941747665405,
+        "linear_velocity_world_m_s": [
+          -1.0497442483901978,
+          0.13712722063064575,
+          0.27376073598861694
+        ],
+        "angular_velocity_world_rad_s": [
+          1.2214938402175903,
+          1.2962322235107422,
+          -0.5208986401557922
+        ],
+        "projected_gravity_body": [
+          -0.6864645481109619,
+          -0.4175432324409485,
+          -0.5953351259231567
+        ],
+        "left_foot_force_n": 141.689697265625,
+        "right_foot_force_n": 0.0,
+        "other_body_force_n": 442.5865173339844,
+        "strict": false
+      },
+      {
+        "time_s": 0.75,
+        "pelvis_height_m": 0.13161349296569824,
+        "upright_score": 0.6193722486495972,
+        "tilt_norm": 0.7850977182388306,
+        "linear_speed_m_s": 0.972560703754425,
+        "angular_speed_rad_s": 2.2016191482543945,
+        "linear_velocity_world_m_s": [
+          -0.9406782388687134,
+          -0.0586543083190918,
+          0.23991349339485168
+        ],
+        "angular_velocity_world_rad_s": [
+          1.5846025943756104,
+          1.4126362800598145,
+          -0.5836267471313477
+        ],
+        "projected_gravity_body": [
+          -0.638545572757721,
+          -0.45676904916763306,
+          -0.6193722486495972
+        ],
+        "left_foot_force_n": 86.05228424072266,
+        "right_foot_force_n": 0.0,
+        "other_body_force_n": 662.6487426757812,
+        "strict": false
+      },
+      {
+        "time_s": 0.8,
+        "pelvis_height_m": 0.14691177010536194,
+        "upright_score": 0.5970495343208313,
+        "tilt_norm": 0.8022042512893677,
+        "linear_speed_m_s": 0.6899735331535339,
+        "angular_speed_rad_s": 1.7195022106170654,
+        "linear_velocity_world_m_s": [
+          -0.6341882348060608,
+          -0.2518140971660614,
+          0.1022663339972496
+        ],
+        "angular_velocity_world_rad_s": [
+          0.4614209532737732,
+          -1.5228917598724365,
+          -0.6515974402427673
+        ],
+        "projected_gravity_body": [
+          -0.6311410069465637,
+          -0.49516934156417847,
+          -0.5970495343208313
+        ],
+        "left_foot_force_n": 44.20368194580078,
+        "right_foot_force_n": 0.0,
+        "other_body_force_n": 662.6487426757812,
+        "strict": false
+      },
+      {
+        "time_s": 0.8500000000000001,
+        "pelvis_height_m": 0.16196058690547943,
+        "upright_score": 0.5234434008598328,
+        "tilt_norm": 0.8520603775978088,
+        "linear_speed_m_s": 0.5386914014816284,
+        "angular_speed_rad_s": 2.0163586139678955,
+        "linear_velocity_world_m_s": [
+          -0.2686710059642792,
+          -0.4288907051086426,
+          0.18454553186893463
+        ],
+        "angular_velocity_world_rad_s": [
+          1.3993901014328003,
+          -1.415027379989624,
+          -0.3242030739784241
+        ],
+        "projected_gravity_body": [
+          -0.6209551095962524,
+          -0.5834566354751587,
+          -0.5234434008598328
+        ],
+        "left_foot_force_n": 0.0,
+        "right_foot_force_n": 0.0,
+        "other_body_force_n": 271.4667053222656,
+        "strict": false
+      },
+      {
+        "time_s": 0.9,
+        "pelvis_height_m": 0.1636127531528473,
+        "upright_score": 0.4787687659263611,
+        "tilt_norm": 0.8779410123825073,
+        "linear_speed_m_s": 0.46861109137535095,
+        "angular_speed_rad_s": 2.0376975536346436,
+        "linear_velocity_world_m_s": [
+          -0.10443028062582016,
+          -0.4276055693626404,
+          0.16076113283634186
+        ],
+        "angular_velocity_world_rad_s": [
+          1.8508195877075195,
+          -0.8143737316131592,
+          0.2519405484199524
+        ],
+        "projected_gravity_body": [
+          -0.5811607837677002,
+          -0.6580520868301392,
+          -0.4787687659263611
+        ],
+        "left_foot_force_n": 0.0,
+        "right_foot_force_n": 0.0,
+        "other_body_force_n": 869.4190673828125,
+        "strict": false
+      },
+      {
+        "time_s": 0.9500000000000001,
+        "pelvis_height_m": 0.16638179123401642,
+        "upright_score": 0.4616067409515381,
+        "tilt_norm": 0.8870847225189209,
+        "linear_speed_m_s": 0.45602715015411377,
+        "angular_speed_rad_s": 2.1191465854644775,
+        "linear_velocity_world_m_s": [
+          -0.10698645561933517,
+          -0.44228237867355347,
+          0.03001612238585949
+        ],
+        "angular_velocity_world_rad_s": [
+          2.038942337036133,
+          -0.2438296377658844,
+          -0.523491382598877
+        ],
+        "projected_gravity_body": [
+          -0.5187550187110901,
+          -0.7195919752120972,
+          -0.4616067409515381
+        ],
+        "left_foot_force_n": 0.0,
+        "right_foot_force_n": 0.0,
+        "other_body_force_n": 869.4190673828125,
+        "strict": false
+      },
+      {
+        "time_s": 1.0,
+        "pelvis_height_m": 0.16653168201446533,
+        "upright_score": 0.43747478723526,
+        "tilt_norm": 0.899230420589447,
+        "linear_speed_m_s": 0.5507695078849792,
+        "angular_speed_rad_s": 2.956862688064575,
+        "linear_velocity_world_m_s": [
+          -0.05998028442263603,
+          -0.5120155215263367,
+          0.19388024508953094
+        ],
+        "angular_velocity_world_rad_s": [
+          2.598309278488159,
+          -1.1470822095870972,
+          -0.822209358215332
+        ],
+        "projected_gravity_body": [
+          -0.422554612159729,
+          -0.7937650680541992,
+          -0.43747478723526
+        ],
+        "left_foot_force_n": 0.0,
+        "right_foot_force_n": 0.0,
+        "other_body_force_n": 303.1078186035156,
+        "strict": false
+      },
+      {
+        "time_s": 1.05,
+        "pelvis_height_m": 0.1754591166973114,
+        "upright_score": 0.381499707698822,
+        "tilt_norm": 0.9243687987327576,
+        "linear_speed_m_s": 0.5883153676986694,
+        "angular_speed_rad_s": 3.0603251457214355,
+        "linear_velocity_world_m_s": [
+          -0.11309267580509186,
+          -0.5348301529884338,
+          0.21744368970394135
+        ],
+        "angular_velocity_world_rad_s": [
+          2.709331750869751,
+          -1.3113292455673218,
+          -0.5527451038360596
+        ],
+        "projected_gravity_body": [
+          -0.3169889450073242,
+          -0.868317723274231,
+          -0.381499707698822
+        ],
+        "left_foot_force_n": 0.0,
+        "right_foot_force_n": 0.0,
+        "other_body_force_n": 400.0710144042969,
+        "strict": false
+      },
+      {
+        "time_s": 1.1,
+        "pelvis_height_m": 0.1832202672958374,
+        "upright_score": 0.31179100275039673,
+        "tilt_norm": 0.9501508474349976,
+        "linear_speed_m_s": 0.5627366900444031,
+        "angular_speed_rad_s": 2.495183229446411,
+        "linear_velocity_world_m_s": [
+          -0.06214165315032005,
+          -0.5171894431114197,
+          0.21289917826652527
+        ],
+        "angular_velocity_world_rad_s": [
+          2.3709139823913574,
+          0.4412263333797455,
+          -0.6403325200080872
+        ],
+        "projected_gravity_body": [
+          -0.19931161403656006,
+          -0.9290110468864441,
+          -0.31179100275039673
+        ],
+        "left_foot_force_n": 0.0,
+        "right_foot_force_n": 0.0,
+        "other_body_force_n": 1338.12451171875,
+        "strict": false
+      },
+      {
+        "time_s": 1.1500000000000001,
+        "pelvis_height_m": 0.18610231578350067,
+        "upright_score": 0.29728198051452637,
+        "tilt_norm": 0.9547896981239319,
+        "linear_speed_m_s": 0.6757147312164307,
+        "angular_speed_rad_s": 2.469378709793091,
+        "linear_velocity_world_m_s": [
+          0.1681906282901764,
+          -0.6404881477355957,
+          -0.13445168733596802
+        ],
+        "angular_velocity_world_rad_s": [
+          2.206214427947998,
+          0.22434699535369873,
+          -1.0863323211669922
+        ],
+        "projected_gravity_body": [
+          -0.07401520013809204,
+          -0.9519165754318237,
+          -0.29728198051452637
+        ],
+        "left_foot_force_n": 0.0,
+        "right_foot_force_n": 0.0,
+        "other_body_force_n": 1338.12451171875,
+        "strict": false
+      },
+      {
+        "time_s": 1.2000000000000002,
+        "pelvis_height_m": 0.1843937486410141,
+        "upright_score": 0.30158260464668274,
+        "tilt_norm": 0.9534398913383484,
+        "linear_speed_m_s": 0.27354735136032104,
+        "angular_speed_rad_s": 0.5240845680236816,
+        "linear_velocity_world_m_s": [
+          0.013920551165938377,
+          -0.27316880226135254,
+          0.003629035549238324
+        ],
+        "angular_velocity_world_rad_s": [
+          -0.3681809604167938,
+          -0.2493874877691269,
+          0.27733248472213745
+        ],
+        "projected_gravity_body": [
+          -0.005021899938583374,
+          -0.9534266591072083,
+          -0.30158260464668274
+        ],
+        "left_foot_force_n": 0.0,
+        "right_foot_force_n": 110.11058044433594,
+        "other_body_force_n": 229.40342712402344,
+        "strict": false
+      },
+      {
+        "time_s": 1.25,
+        "pelvis_height_m": 0.1846832036972046,
+        "upright_score": 0.2922271192073822,
+        "tilt_norm": 0.9563489556312561,
+        "linear_speed_m_s": 0.09146442264318466,
+        "angular_speed_rad_s": 0.45853081345558167,
+        "linear_velocity_world_m_s": [
+          -0.00024990757810883224,
+          -0.09099814295768738,
+          0.009220372885465622
+        ],
+        "angular_velocity_world_rad_s": [
+          -0.2666824758052826,
+          -0.1323842704296112,
+          0.34871962666511536
+        ],
+        "projected_gravity_body": [
+          -0.015903115272521973,
+          -0.9562166929244995,
+          -0.2922271192073822
+        ],
+        "left_foot_force_n": 0.0,
+        "right_foot_force_n": 110.11058044433594,
+        "other_body_force_n": 202.9541473388672,
+        "strict": false
+      },
+      {
+        "time_s": 1.3,
+        "pelvis_height_m": 0.1847832053899765,
+        "upright_score": 0.2884317934513092,
+        "tilt_norm": 0.9575005173683167,
+        "linear_speed_m_s": 0.027385175228118896,
+        "angular_speed_rad_s": 0.2925477623939514,
+        "linear_velocity_world_m_s": [
+          0.010995141230523586,
+          0.016504863277077675,
+          0.01888502575457096
+        ],
+        "angular_velocity_world_rad_s": [
+          0.1263934075832367,
+          -0.20471593737602234,
+          0.16643400490283966
+        ],
+        "projected_gravity_body": [
+          -0.022999197244644165,
+          -0.9572242498397827,
+          -0.2884317934513092
+        ],
+        "left_foot_force_n": 0.0,
+        "right_foot_force_n": 88.03459930419922,
+        "other_body_force_n": 245.74539184570312,
+        "strict": false
+      },
+      {
+        "time_s": 1.35,
+        "pelvis_height_m": 0.1847963035106659,
+        "upright_score": 0.2891182601451874,
+        "tilt_norm": 0.9572931528091431,
+        "linear_speed_m_s": 0.0513826347887516,
+        "angular_speed_rad_s": 0.2538430690765381,
+        "linear_velocity_world_m_s": [
+          0.01693914458155632,
+          0.04461968317627907,
+          0.019034819677472115
+        ],
+        "angular_velocity_world_rad_s": [
+          -0.0852588415145874,
+          -0.2337598204612732,
+          -0.050235211849212646
+        ],
+        "projected_gravity_body": [
+          -0.03123784065246582,
+          -0.9567833542823792,
+          -0.2891182601451874
+        ],
+        "left_foot_force_n": 0.0,
+        "right_foot_force_n": 73.13627624511719,
+        "other_body_force_n": 245.90756225585938,
+        "strict": false
+      },
+      {
+        "time_s": 1.4000000000000001,
+        "pelvis_height_m": 0.18482357263565063,
+        "upright_score": 0.29020291566848755,
+        "tilt_norm": 0.9569649696350098,
+        "linear_speed_m_s": 0.059633828699588776,
+        "angular_speed_rad_s": 0.3915436863899231,
+        "linear_velocity_world_m_s": [
+          0.01190508995205164,
+          0.05492408201098442,
+          0.019945109263062477
+        ],
+        "angular_velocity_world_rad_s": [
+          -0.252353310585022,
+          -0.24950002133846283,
+          -0.16545096039772034
+        ],
+        "projected_gravity_body": [
+          -0.04727861285209656,
+          -0.9557963609695435,
+          -0.29020291566848755
+        ],
+        "left_foot_force_n": 0.0,
+        "right_foot_force_n": 46.29008483886719,
+        "other_body_force_n": 303.0119323730469,
+        "strict": false
+      },
+      {
+        "time_s": 1.4500000000000002,
+        "pelvis_height_m": 0.184858500957489,
+        "upright_score": 0.291630357503891,
+        "tilt_norm": 0.9565311670303345,
+        "linear_speed_m_s": 0.10048358142375946,
+        "angular_speed_rad_s": 0.5689747333526611,
+        "linear_velocity_world_m_s": [
+          0.009779024869203568,
+          0.09893645346164703,
+          0.014591073617339134
+        ],
+        "angular_velocity_world_rad_s": [
+          -0.4960639476776123,
+          -0.25622424483299255,
+          -0.1095534935593605
+        ],
+        "projected_gravity_body": [
+          -0.06775286793708801,
+          -0.954128623008728,
+          -0.291630357503891
+        ],
+        "left_foot_force_n": 0.0,
+        "right_foot_force_n": 35.79871368408203,
+        "other_body_force_n": 303.0119323730469,
+        "strict": false
+      },
+      {
+        "time_s": 1.5,
+        "pelvis_height_m": 0.1848626285791397,
+        "upright_score": 0.2915496528148651,
+        "tilt_norm": 0.9565556049346924,
+        "linear_speed_m_s": 0.1459607183933258,
+        "angular_speed_rad_s": 0.8796189427375793,
+        "linear_velocity_world_m_s": [
+          0.009663368575274944,
+          0.14535477757453918,
+          0.009118122048676014
+        ],
+        "angular_velocity_world_rad_s": [
+          -0.8318902254104614,
+          -0.28565627336502075,
+          0.009411257691681385
+        ],
+        "projected_gravity_body": [
+          -0.10329347848892212,
+          -0.9509621858596802,
+          -0.2915496528148651
+        ],
+        "left_foot_force_n": 0.0,
+        "right_foot_force_n": 30.497774124145508,
+        "other_body_force_n": 300.9590759277344,
+        "strict": false
+      },
+      {
+        "time_s": 1.55,
+        "pelvis_height_m": 0.18463581800460815,
+        "upright_score": 0.29044267535209656,
+        "tilt_norm": 0.9568925499916077,
+        "linear_speed_m_s": 0.1675218641757965,
+        "angular_speed_rad_s": 1.0512863397598267,
+        "linear_velocity_world_m_s": [
+          0.010579277761280537,
+          0.16718722879886627,
+          0.0002849893062375486
+        ],
+        "angular_velocity_world_rad_s": [
+          -1.0069526433944702,
+          -0.273041307926178,
+          0.1292196363210678
+        ],
+        "projected_gravity_body": [
+          -0.1488354206085205,
+          -0.945246696472168,
+          -0.29044267535209656
+        ],
+        "left_foot_force_n": 0.0,
+        "right_foot_force_n": 23.835289001464844,
+        "other_body_force_n": 286.813720703125,
+        "strict": false
+      },
+      {
+        "time_s": 1.6,
+        "pelvis_height_m": 0.18401342630386353,
+        "upright_score": 0.28713294863700867,
+        "tilt_norm": 0.9578908085823059,
+        "linear_speed_m_s": 0.16800867021083832,
+        "angular_speed_rad_s": 1.236832857131958,
+        "linear_velocity_world_m_s": [
+          0.01834830641746521,
+          0.16653071343898773,
+          -0.01256082858890295
+        ],
+        "angular_velocity_world_rad_s": [
+          -1.192020058631897,
+          -0.2868654131889343,
+          0.16294759511947632
+        ],
+        "projected_gravity_body": [
+          -0.20106813311576843,
+          -0.9365502595901489,
+          -0.28713294863700867
+        ],
+        "left_foot_force_n": 0.0,
+        "right_foot_force_n": 15.50622844696045,
+        "other_body_force_n": 266.5956115722656,
+        "strict": false
+      },
+      {
+        "time_s": 1.6500000000000001,
+        "pelvis_height_m": 0.1828555166721344,
+        "upright_score": 0.2820313572883606,
+        "tilt_norm": 0.9594049453735352,
+        "linear_speed_m_s": 0.18789608776569366,
+        "angular_speed_rad_s": 1.436503291130066,
+        "linear_velocity_world_m_s": [
+          0.01983942836523056,
+          0.18513625860214233,
+          -0.025217026472091675
+        ],
+        "angular_velocity_world_rad_s": [
+          -1.3114848136901855,
+          -0.24315355718135834,
+          0.5333155989646912
+        ],
+        "projected_gravity_body": [
+          -0.26074203848838806,
+          -0.9232937693595886,
+          -0.2820313572883606
+        ],
+        "left_foot_force_n": 0.0,
+        "right_foot_force_n": 2.3332536220550537,
+        "other_body_force_n": 274.64361572265625,
+        "strict": false
+      },
+      {
+        "time_s": 1.7000000000000002,
+        "pelvis_height_m": 0.18122878670692444,
+        "upright_score": 0.27382951974868774,
+        "tilt_norm": 0.9617782831192017,
+        "linear_speed_m_s": 0.20277093350887299,
+        "angular_speed_rad_s": 1.5520904064178467,
+        "linear_velocity_world_m_s": [
+          0.028494322672486305,
+          0.19744235277175903,
+          -0.03634063899517059
+        ],
+        "angular_velocity_world_rad_s": [
+          -1.4172478914260864,
+          -0.27544739842414856,
+          0.569668173789978
+        ],
+        "projected_gravity_body": [
+          -0.3238702118396759,
+          -0.9056078195571899,
+          -0.27382951974868774
+        ],
+        "left_foot_force_n": 0.0,
+        "right_foot_force_n": 2.3332536220550537,
+        "other_body_force_n": 281.3713684082031,
+        "strict": false
+      },
+      {
+        "time_s": 1.75,
+        "pelvis_height_m": 0.17920006811618805,
+        "upright_score": 0.2708670496940613,
+        "tilt_norm": 0.9626168608665466,
+        "linear_speed_m_s": 0.19806599617004395,
+        "angular_speed_rad_s": 1.3599709272384644,
+        "linear_velocity_world_m_s": [
+          0.062093332409858704,
+          0.18322241306304932,
+          -0.04247476905584335
+        ],
+        "angular_velocity_world_rad_s": [
+          -1.1550880670547485,
+          0.001331270788796246,
+          0.7178374528884888
+        ],
+        "projected_gravity_body": [
+          -0.3801289498806,
+          -0.884382963180542,
+          -0.2708670496940613
+        ],
+        "left_foot_force_n": 0.0,
+        "right_foot_force_n": 6.1050591468811035,
+        "other_body_force_n": 281.3713684082031,
+        "strict": false
+      },
+      {
+        "time_s": 1.8,
+        "pelvis_height_m": 0.17656898498535156,
+        "upright_score": 0.27371740341186523,
+        "tilt_norm": 0.9618099331855774,
+        "linear_speed_m_s": 0.20277537405490875,
+        "angular_speed_rad_s": 1.3238478899002075,
+        "linear_velocity_world_m_s": [
+          0.044699836522340775,
+          0.1900077611207962,
+          -0.054925672709941864
+        ],
+        "angular_velocity_world_rad_s": [
+          -1.0792076587677002,
+          0.02036331407725811,
+          0.7664655447006226
+        ],
+        "projected_gravity_body": [
+          -0.4329681396484375,
+          -0.8588463068008423,
+          -0.27371740341186523
+        ],
+        "left_foot_force_n": 32.28176498413086,
+        "right_foot_force_n": 21.018190383911133,
+        "other_body_force_n": 251.30149841308594,
+        "strict": false
+      },
+      {
+        "time_s": 1.85,
+        "pelvis_height_m": 0.173892542719841,
+        "upright_score": 0.27199485898017883,
+        "tilt_norm": 0.9622985124588013,
+        "linear_speed_m_s": 0.17650863528251648,
+        "angular_speed_rad_s": 0.9908663034439087,
+        "linear_velocity_world_m_s": [
+          0.041614171117544174,
+          0.1611049622297287,
+          -0.058896105736494064
+        ],
+        "angular_velocity_world_rad_s": [
+          -0.9003166556358337,
+          0.04371916875243187,
+          0.411502867937088
+        ],
+        "projected_gravity_body": [
+          -0.4790373742580414,
+          -0.8345907330513,
+          -0.27199485898017883
+        ],
+        "left_foot_force_n": 94.92048645019531,
+        "right_foot_force_n": 31.722091674804688,
+        "other_body_force_n": 173.43153381347656,
+        "strict": false
+      },
+      {
+        "time_s": 1.9000000000000001,
+        "pelvis_height_m": 0.17067913711071014,
+        "upright_score": 0.27499938011169434,
+        "tilt_norm": 0.9614443182945251,
+        "linear_speed_m_s": 0.09794668108224869,
+        "angular_speed_rad_s": 1.1902557611465454,
+        "linear_velocity_world_m_s": [
+          0.04642077907919884,
+          -0.00809895247220993,
+          -0.08586658537387848
+        ],
+        "angular_velocity_world_rad_s": [
+          -1.1862590312957764,
+          0.055575963109731674,
+          0.08006022870540619
+        ],
+        "projected_gravity_body": [
+          -0.5221192836761475,
+          -0.8073206543922424,
+          -0.27499938011169434
+        ],
+        "left_foot_force_n": 94.92048645019531,
+        "right_foot_force_n": 40.47145080566406,
+        "other_body_force_n": 162.2092742919922,
+        "strict": false
+      },
+      {
+        "time_s": 1.9500000000000002,
+        "pelvis_height_m": 0.16689246892929077,
+        "upright_score": 0.27423709630966187,
+        "tilt_norm": 0.9616619944572449,
+        "linear_speed_m_s": 0.15555229783058167,
+        "angular_speed_rad_s": 1.3227344751358032,
+        "linear_velocity_world_m_s": [
+          0.04532840847969055,
+          -0.10050104558467865,
+          -0.10973327606916428
+        ],
+        "angular_velocity_world_rad_s": [
+          -1.3171321153640747,
+          0.10854162275791168,
+          0.05484641715884209
+        ],
+        "projected_gravity_body": [
+          -0.5664576292037964,
+          -0.7771226167678833,
+          -0.27423709630966187
+        ],
+        "left_foot_force_n": 85.90184020996094,
+        "right_foot_force_n": 40.47145080566406,
+        "other_body_force_n": 163.2322998046875,
+        "strict": false
+      },
+      {
+        "time_s": 2.0,
+        "pelvis_height_m": 0.16146284341812134,
+        "upright_score": 0.2771887481212616,
+        "tilt_norm": 0.9608153700828552,
+        "linear_speed_m_s": 0.2017401158809662,
+        "angular_speed_rad_s": 1.456270456314087,
+        "linear_velocity_world_m_s": [
+          0.03522114455699921,
+          -0.14994259178638458,
+          -0.13029107451438904
+        ],
+        "angular_velocity_world_rad_s": [
+          -1.4494167566299438,
+          0.13181032240390778,
+          -0.050405923277139664
+        ],
+        "projected_gravity_body": [
+          -0.6171612739562988,
+          -0.7363953590393066,
+          -0.2771887481212616
+        ],
+        "left_foot_force_n": 92.27532196044922,
+        "right_foot_force_n": 43.641082763671875,
+        "other_body_force_n": 163.2322998046875,
+        "strict": false
+      },
+      {
+        "time_s": 2.0500000000000003,
+        "pelvis_height_m": 0.15541745722293854,
+        "upright_score": 0.2817445695400238,
+        "tilt_norm": 0.9594892859458923,
+        "linear_speed_m_s": 0.19614601135253906,
+        "angular_speed_rad_s": 1.3413249254226685,
+        "linear_velocity_world_m_s": [
+          0.01873704232275486,
+          -0.14326663315296173,
+          -0.1326531320810318
+        ],
+        "angular_velocity_world_rad_s": [
+          -1.320794701576233,
+          0.23227088153362274,
+          -0.026538359001278877
+        ],
+        "projected_gravity_body": [
+          -0.6637039184570312,
+          -0.6929046511650085,
+          -0.2817445695400238
+        ],
+        "left_foot_force_n": 92.27532196044922,
+        "right_foot_force_n": 43.641082763671875,
+        "other_body_force_n": 126.74922943115234,
+        "strict": false
+      },
+      {
+        "time_s": 2.1,
+        "pelvis_height_m": 0.1481693536043167,
+        "upright_score": 0.2884756922721863,
+        "tilt_norm": 0.9574869871139526,
+        "linear_speed_m_s": 0.22475634515285492,
+        "angular_speed_rad_s": 1.3273602724075317,
+        "linear_velocity_world_m_s": [
+          0.008650312200188637,
+          -0.1747712790966034,
+          -0.14105172455310822
+        ],
+        "angular_velocity_world_rad_s": [
+          -1.304780125617981,
+          0.22928005456924438,
+          -0.08285297453403473
+        ],
+        "projected_gravity_body": [
+          -0.7096542716026306,
+          -0.6427847146987915,
+          -0.2884756922721863
+        ],
+        "left_foot_force_n": 91.62712097167969,
+        "right_foot_force_n": 43.743736267089844,
+        "other_body_force_n": 122.2333755493164,
+        "strict": false
+      },
+      {
+        "time_s": 2.15,
+        "pelvis_height_m": 0.14051836729049683,
+        "upright_score": 0.29702869057655334,
+        "tilt_norm": 0.9548686742782593,
+        "linear_speed_m_s": 0.2357269525527954,
+        "angular_speed_rad_s": 1.1987863779067993,
+        "linear_velocity_world_m_s": [
+          -0.012525810860097408,
+          -0.19154450297355652,
+          -0.13682471215724945
+        ],
+        "angular_velocity_world_rad_s": [
+          -1.1631152629852295,
+          0.28035885095596313,
+          -0.07517086714506149
+        ],
+        "projected_gravity_body": [
+          -0.7497780323028564,
+          -0.5912758111953735,
+          -0.29702869057655334
+        ],
+        "left_foot_force_n": 85.44071197509766,
+        "right_foot_force_n": 51.68942642211914,
+        "other_body_force_n": 122.2333755493164,
+        "strict": false
+      },
+      {
+        "time_s": 2.2,
+        "pelvis_height_m": 0.13480983674526215,
+        "upright_score": 0.29973670840263367,
+        "tilt_norm": 0.9540221095085144,
+        "linear_speed_m_s": 0.16670534014701843,
+        "angular_speed_rad_s": 0.9386454224586487,
+        "linear_velocity_world_m_s": [
+          -0.006214388646185398,
+          -0.14407289028167725,
+          -0.08363644033670425
+        ],
+        "angular_velocity_world_rad_s": [
+          -0.9346616864204407,
+          0.07433533668518066,
+          -0.04401048645377159
+        ],
+        "projected_gravity_body": [
+          -0.7830729484558105,
+          -0.5449357628822327,
+          -0.29973670840263367
+        ],
+        "left_foot_force_n": 98.2778549194336,
+        "right_foot_force_n": 59.647186279296875,
+        "other_body_force_n": 123.55976867675781,
+        "strict": false
+      },
+      {
+        "time_s": 2.25,
+        "pelvis_height_m": 0.13044029474258423,
+        "upright_score": 0.3008153438568115,
+        "tilt_norm": 0.9536822438240051,
+        "linear_speed_m_s": 0.1006864383816719,
+        "angular_speed_rad_s": 0.6786349415779114,
+        "linear_velocity_world_m_s": [
+          0.006535192020237446,
+          -0.07319952547550201,
+          -0.06882499158382416
+        ],
+        "angular_velocity_world_rad_s": [
+          -0.6607822179794312,
+          0.059778474271297455,
+          0.14261402189731598
+        ],
+        "projected_gravity_body": [
+          -0.8064095377922058,
+          -0.5091301202774048,
+          -0.3008153438568115
+        ],
+        "left_foot_force_n": 98.2778549194336,
+        "right_foot_force_n": 69.44364166259766,
+        "other_body_force_n": 127.07699584960938,
+        "strict": false
+      },
+      {
+        "time_s": 2.3000000000000003,
+        "pelvis_height_m": 0.1258382797241211,
+        "upright_score": 0.3014390468597412,
+        "tilt_norm": 0.953485369682312,
+        "linear_speed_m_s": 0.11133234202861786,
+        "angular_speed_rad_s": 0.7625694870948792,
+        "linear_velocity_world_m_s": [
+          0.02263197861611843,
+          -0.07005095481872559,
+          -0.08351974934339523
+        ],
+        "angular_velocity_world_rad_s": [
+          -0.7401924133300781,
+          0.043436162173748016,
+          0.1781591773033142
+        ],
+        "projected_gravity_body": [
+          -0.828388512134552,
+          -0.4721301198005676,
+          -0.3014390468597412
+        ],
+        "left_foot_force_n": 67.30359649658203,
+        "right_foot_force_n": 76.49786376953125,
+        "other_body_force_n": 137.2372283935547,
+        "strict": false
+      },
+      {
+        "time_s": 2.35,
+        "pelvis_height_m": 0.12195650488138199,
+        "upright_score": 0.29847705364227295,
+        "tilt_norm": 0.9544166326522827,
+        "linear_speed_m_s": 0.0815574899315834,
+        "angular_speed_rad_s": 0.5494969487190247,
+        "linear_velocity_world_m_s": [
+          0.028417721390724182,
+          -0.05584109574556351,
+          -0.05220947787165642
+        ],
+        "angular_velocity_world_rad_s": [
+          -0.5430312156677246,
+          -0.0836070254445076,
+          -0.00859566405415535
+        ],
+        "projected_gravity_body": [
+          -0.8458855152130127,
+          -0.44202810525894165,
+          -0.29847705364227295
+        ],
+        "left_foot_force_n": 62.73090362548828,
+        "right_foot_force_n": 76.49786376953125,
+        "other_body_force_n": 137.2372283935547,
+        "strict": false
+      },
+      {
+        "time_s": 2.4000000000000004,
+        "pelvis_height_m": 0.11608780175447464,
+        "upright_score": 0.29817432165145874,
+        "tilt_norm": 0.9545114040374756,
+        "linear_speed_m_s": 0.09241732954978943,
+        "angular_speed_rad_s": 0.6208925247192383,
+        "linear_velocity_world_m_s": [
+          0.05596106871962547,
+          -0.02496381103992462,
+          -0.06918185949325562
+        ],
+        "angular_velocity_world_rad_s": [
+          -0.6157979965209961,
+          -0.07875804603099823,
+          0.00987446028739214
+        ],
+        "projected_gravity_body": [
+          -0.8609004020690918,
+          -0.41224080324172974,
+          -0.29817432165145874
+        ],
+        "left_foot_force_n": 62.73090362548828,
+        "right_foot_force_n": 64.9504623413086,
+        "other_body_force_n": 168.5240020751953,
+        "strict": false
+      },
+      {
+        "time_s": 2.45,
+        "pelvis_height_m": 0.11425632238388062,
+        "upright_score": 0.29644501209259033,
+        "tilt_norm": 0.9550497531890869,
+        "linear_speed_m_s": 0.04634082317352295,
+        "angular_speed_rad_s": 0.40226608514785767,
+        "linear_velocity_world_m_s": [
+          0.013800033368170261,
+          0.01904960907995701,
+          -0.03992672637104988
+        ],
+        "angular_velocity_world_rad_s": [
+          -0.3916653096675873,
+          0.06605477631092072,
+          0.06366360932588577
+        ],
+        "projected_gravity_body": [
+          -0.8750013113021851,
+          -0.38274362683296204,
+          -0.29644501209259033
+        ],
+        "left_foot_force_n": 59.346031188964844,
+        "right_foot_force_n": 72.44606018066406,
+        "other_body_force_n": 168.5240020751953,
+        "strict": false
+      },
+      {
+        "time_s": 2.5,
+        "pelvis_height_m": 0.11078594624996185,
+        "upright_score": 0.2934296131134033,
+        "tilt_norm": 0.9559807777404785,
+        "linear_speed_m_s": 0.05454787239432335,
+        "angular_speed_rad_s": 0.4499897360801697,
+        "linear_velocity_world_m_s": [
+          0.029855502769351006,
+          0.013187825679779053,
+          -0.04370584338903427
+        ],
+        "angular_velocity_world_rad_s": [
+          -0.44694191217422485,
+          -0.04783634841442108,
+          0.02110408805310726
+        ],
+        "projected_gravity_body": [
+          -0.8869345188140869,
+          -0.3567160964012146,
+          -0.2934296131134033
+        ],
+        "left_foot_force_n": 55.21181869506836,
+        "right_foot_force_n": 72.44606018066406,
+        "other_body_force_n": 163.62075805664062,
+        "strict": false
+      },
+      {
+        "time_s": 2.5500000000000003,
+        "pelvis_height_m": 0.10770177096128464,
+        "upright_score": 0.29113131761550903,
+        "tilt_norm": 0.9566831588745117,
+        "linear_speed_m_s": 0.04757724702358246,
+        "angular_speed_rad_s": 0.40601325035095215,
+        "linear_velocity_world_m_s": [
+          0.005389946512877941,
+          0.028416726738214493,
+          -0.03777608275413513
+        ],
+        "angular_velocity_world_rad_s": [
+          -0.40064340829849243,
+          0.0511445589363575,
+          -0.04142281040549278
+        ],
+        "projected_gravity_body": [
+          -0.8966032266616821,
+          -0.33368438482284546,
+          -0.29113131761550903
+        ],
+        "left_foot_force_n": 58.05424499511719,
+        "right_foot_force_n": 65.99988555908203,
+        "other_body_force_n": 146.76260375976562,
+        "strict": false
+      },
+      {
+        "time_s": 2.6,
+        "pelvis_height_m": 0.10462663322687149,
+        "upright_score": 0.2886543571949005,
+        "tilt_norm": 0.95743328332901,
+        "linear_speed_m_s": 0.05275094509124756,
+        "angular_speed_rad_s": 0.4128682315349579,
+        "linear_velocity_world_m_s": [
+          0.015423692762851715,
+          0.033121492713689804,
+          -0.038049161434173584
+        ],
+        "angular_velocity_world_rad_s": [
+          -0.391176700592041,
+          -0.08678248524665833,
+          -0.0995478630065918
+        ],
+        "projected_gravity_body": [
+          -0.9054434895515442,
+          -0.3112083375453949,
+          -0.2886543571949005
+        ],
+        "left_foot_force_n": 61.38747787475586,
+        "right_foot_force_n": 61.99250793457031,
+        "other_body_force_n": 138.2986602783203,
+        "strict": false
+      },
+      {
+        "time_s": 2.6500000000000004,
+        "pelvis_height_m": 0.10116386413574219,
+        "upright_score": 0.28579312562942505,
+        "tilt_norm": 0.9582912921905518,
+        "linear_speed_m_s": 0.06137702986598015,
+        "angular_speed_rad_s": 0.43876591324806213,
+        "linear_velocity_world_m_s": [
+          0.006609943695366383,
+          0.03609442710876465,
+          -0.04920000582933426
+        ],
+        "angular_velocity_world_rad_s": [
+          -0.4372369647026062,
+          0.01169891469180584,
+          -0.034677162766456604
+        ],
+        "projected_gravity_body": [
+          -0.9145610928535461,
+          -0.286182165145874,
+          -0.28579312562942505
+        ],
+        "left_foot_force_n": 64.22721862792969,
+        "right_foot_force_n": 61.99250793457031,
+        "other_body_force_n": 126.18196105957031,
+        "strict": false
+      },
+      {
+        "time_s": 2.7,
+        "pelvis_height_m": 0.09792398661375046,
+        "upright_score": 0.2795442044734955,
+        "tilt_norm": 0.9601326584815979,
+        "linear_speed_m_s": 0.04074009880423546,
+        "angular_speed_rad_s": 0.45347100496292114,
+        "linear_velocity_world_m_s": [
+          -0.00025060345069505274,
+          0.018432702869176865,
+          -0.03633081912994385
+        ],
+        "angular_velocity_world_rad_s": [
+          -0.4317288100719452,
+          -0.11970371007919312,
+          -0.07012300938367844
+        ],
+        "projected_gravity_body": [
+          -0.9233782887458801,
+          -0.2631106972694397,
+          -0.2795442044734955
+        ],
+        "left_foot_force_n": 65.60151672363281,
+        "right_foot_force_n": 55.12321472167969,
+        "other_body_force_n": 122.44286346435547,
+        "strict": false
+      },
+      {
+        "time_s": 2.75,
+        "pelvis_height_m": 0.09505236148834229,
+        "upright_score": 0.2717266082763672,
+        "tilt_norm": 0.9623745679855347,
+        "linear_speed_m_s": 0.03600451722741127,
+        "angular_speed_rad_s": 0.5022715926170349,
+        "linear_velocity_world_m_s": [
+          -0.0018380184192210436,
+          0.0149433808401227,
+          -0.032705388963222504
+        ],
+        "angular_velocity_world_rad_s": [
+          -0.4773825705051422,
+          -0.14029750227928162,
+          -0.06855114549398422
+        ],
+        "projected_gravity_body": [
+          -0.9320200681686401,
+          -0.2397986352443695,
+          -0.2717266082763672
+        ],
+        "left_foot_force_n": 65.6359634399414,
+        "right_foot_force_n": 55.12321472167969,
+        "other_body_force_n": 127.03897094726562,
+        "strict": false
+      },
+      {
+        "time_s": 2.8000000000000003,
+        "pelvis_height_m": 0.09214336425065994,
+        "upright_score": 0.26370519399642944,
+        "tilt_norm": 0.9646031856536865,
+        "linear_speed_m_s": 0.037790149450302124,
+        "angular_speed_rad_s": 0.513308584690094,
+        "linear_velocity_world_m_s": [
+          -0.0013559352373704314,
+          0.016130011528730392,
+          -0.03414790704846382
+        ],
+        "angular_velocity_world_rad_s": [
+          -0.49574118852615356,
+          -0.11219970136880875,
+          -0.0716770812869072
+        ],
+        "projected_gravity_body": [
+          -0.9400933384895325,
+          -0.2160644829273224,
+          -0.26370519399642944
+        ],
+        "left_foot_force_n": 65.6359634399414,
+        "right_foot_force_n": 41.87606430053711,
+        "other_body_force_n": 130.78614807128906,
+        "strict": false
+      },
+      {
+        "time_s": 2.85,
+        "pelvis_height_m": 0.08905231207609177,
+        "upright_score": 0.2563566267490387,
+        "tilt_norm": 0.9665820598602295,
+        "linear_speed_m_s": 0.047796580940485,
+        "angular_speed_rad_s": 0.41612061858177185,
+        "linear_velocity_world_m_s": [
+          -0.0052112191915512085,
+          0.02617744542658329,
+          -0.039649687707424164
+        ],
+        "angular_velocity_world_rad_s": [
+          -0.40903419256210327,
+          -0.07372702658176422,
+          -0.020291347056627274
+        ],
+        "projected_gravity_body": [
+          -0.9474814534187317,
+          -0.19120629131793976,
+          -0.2563566267490387
+        ],
+        "left_foot_force_n": 67.57603454589844,
+        "right_foot_force_n": 41.69719314575195,
+        "other_body_force_n": 130.78614807128906,
+        "strict": false
+      },
+      {
+        "time_s": 2.9000000000000004,
+        "pelvis_height_m": 0.08599228411912918,
+        "upright_score": 0.24844516813755035,
+        "tilt_norm": 0.9686458706855774,
+        "linear_speed_m_s": 0.03843817859888077,
+        "angular_speed_rad_s": 0.46168774366378784,
+        "linear_velocity_world_m_s": [
+          -0.00791365560144186,
+          0.019316621124744415,
+          -0.03227593004703522
+        ],
+        "angular_velocity_world_rad_s": [
+          -0.44437098503112793,
+          -0.12315116077661514,
+          -0.022886425256729126
+        ],
+        "projected_gravity_body": [
+          -0.9541346430778503,
+          -0.16703881323337555,
+          -0.24844516813755035
+        ],
+        "left_foot_force_n": 67.80064392089844,
+        "right_foot_force_n": 41.69719314575195,
+        "other_body_force_n": 129.56520080566406,
+        "strict": false
+      },
+      {
+        "time_s": 2.95,
+        "pelvis_height_m": 0.08300752937793732,
+        "upright_score": 0.23979049921035767,
+        "tilt_norm": 0.9708247780799866,
+        "linear_speed_m_s": 0.030070187523961067,
+        "angular_speed_rad_s": 0.46484822034835815,
+        "linear_velocity_world_m_s": [
+          -0.00626810546964407,
+          0.01162128709256649,
+          -0.027016157284379005
+        ],
+        "angular_velocity_world_rad_s": [
+          -0.44804325699806213,
+          -0.1203790158033371,
+          -0.02915451116859913
+        ],
+        "projected_gravity_body": [
+          -0.9601180553436279,
+          -0.14378491044044495,
+          -0.23979049921035767
+        ],
+        "left_foot_force_n": 67.8617935180664,
+        "right_foot_force_n": 42.83293914794922,
+        "other_body_force_n": 126.78996276855469,
+        "strict": false
+      },
+      {
+        "time_s": 3.0,
+        "pelvis_height_m": 0.08206312358379364,
+        "upright_score": 0.23097404837608337,
+        "tilt_norm": 0.9729598760604858,
+        "linear_speed_m_s": 0.006209687329828739,
+        "angular_speed_rad_s": 0.3456888794898987,
+        "linear_velocity_world_m_s": [
+          -0.002875447506085038,
+          0.0030954324174672365,
+          -0.0045508588664233685
+        ],
+        "angular_velocity_world_rad_s": [
+          -0.301908940076828,
+          -0.14228124916553497,
+          0.09004354476928711
+        ],
+        "projected_gravity_body": [
+          -0.9648802280426025,
+          -0.12512823939323425,
+          -0.23097404837608337
+        ],
+        "left_foot_force_n": 67.8617935180664,
+        "right_foot_force_n": 42.83293914794922,
+        "other_body_force_n": 147.6430206298828,
+        "strict": false
+      },
+      {
+        "time_s": 3.0500000000000003,
+        "pelvis_height_m": 0.08155100792646408,
+        "upright_score": 0.22478309273719788,
+        "tilt_norm": 0.9744088053703308,
+        "linear_speed_m_s": 0.01695658452808857,
+        "angular_speed_rad_s": 0.2963140308856964,
+        "linear_velocity_world_m_s": [
+          0.007917911745607853,
+          0.01003177184611559,
+          -0.011144324205815792
+        ],
+        "angular_velocity_world_rad_s": [
+          -0.29212433099746704,
+          -0.03985787555575371,
+          -0.029609711840748787
+        ],
+        "projected_gravity_body": [
+          -0.9684579968452454,
+          -0.10752470791339874,
+          -0.22478309273719788
+        ],
+        "left_foot_force_n": 61.03794479370117,
+        "right_foot_force_n": 39.523231506347656,
+        "other_body_force_n": 147.6430206298828,
+        "strict": false
+      },
+      {
+        "time_s": 3.1,
+        "pelvis_height_m": 0.08092882484197617,
+        "upright_score": 0.21910256147384644,
+        "tilt_norm": 0.9757019281387329,
+        "linear_speed_m_s": 0.019869443029165268,
+        "angular_speed_rad_s": 0.33524027466773987,
+        "linear_velocity_world_m_s": [
+          0.008127573877573013,
+          0.01091332733631134,
+          -0.0144788334146142
+        ],
+        "angular_velocity_world_rad_s": [
+          -0.33508995175361633,
+          0.0021155711729079485,
+          -0.009812416508793831
+        ],
+        "projected_gravity_body": [
+          -0.9717705249786377,
+          -0.08750008791685104,
+          -0.21910256147384644
+        ],
+        "left_foot_force_n": 61.03794479370117,
+        "right_foot_force_n": 39.6168327331543,
+        "other_body_force_n": 143.7542724609375,
+        "strict": false
+      },
+      {
+        "time_s": 3.1500000000000004,
+        "pelvis_height_m": 0.08018702268600464,
+        "upright_score": 0.2138342261314392,
+        "tilt_norm": 0.9768698215484619,
+        "linear_speed_m_s": 0.02118675597012043,
+        "angular_speed_rad_s": 0.38149458169937134,
+        "linear_velocity_world_m_s": [
+          0.0046900250017642975,
+          0.011759505607187748,
+          -0.016988122835755348
+        ],
+        "angular_velocity_world_rad_s": [
+          -0.37942394614219666,
+          0.03544462099671364,
+          0.01786785013973713
+        ],
+        "projected_gravity_body": [
+          -0.9747176170349121,
+          -0.06480857729911804,
+          -0.2138342261314392
+        ],
+        "left_foot_force_n": 62.36763000488281,
+        "right_foot_force_n": 41.74278259277344,
+        "other_body_force_n": 129.72312927246094,
+        "strict": false
+      },
+      {
+        "time_s": 3.2,
+        "pelvis_height_m": 0.07937337458133698,
+        "upright_score": 0.20905941724777222,
+        "tilt_norm": 0.9779026508331299,
+        "linear_speed_m_s": 0.023943495005369186,
+        "angular_speed_rad_s": 0.41818371415138245,
+        "linear_velocity_world_m_s": [
+          -0.006652050651609898,
+          0.013630869798362255,
+          -0.018526751548051834
+        ],
+        "angular_velocity_world_rad_s": [
+          -0.3946574926376343,
+          -0.03426511213183403,
+          0.13397382199764252
+        ],
+        "projected_gravity_body": [
+          -0.9770298004150391,
+          -0.041308820247650146,
+          -0.20905941724777222
+        ],
+        "left_foot_force_n": 62.36763000488281,
+        "right_foot_force_n": 41.74278259277344,
+        "other_body_force_n": 124.83493041992188,
+        "strict": false
+      },
+      {
+        "time_s": 3.25,
+        "pelvis_height_m": 0.07857437431812286,
+        "upright_score": 0.20356257259845734,
+        "tilt_norm": 0.9790617823600769,
+        "linear_speed_m_s": 0.03353164345026016,
+        "angular_speed_rad_s": 0.3019162118434906,
+        "linear_velocity_world_m_s": [
+          0.006846598349511623,
+          0.019081471487879753,
+          -0.026709409430623055
+        ],
+        "angular_velocity_world_rad_s": [
+          -0.2702415883541107,
+          0.13452540338039398,
+          -0.005078445188701153
+        ],
+        "projected_gravity_body": [
+          -0.9788700342178345,
+          -0.019375383853912354,
+          -0.20356257259845734
+        ],
+        "left_foot_force_n": 62.18705749511719,
+        "right_foot_force_n": 43.59610366821289,
+        "other_body_force_n": 119.28369140625,
+        "strict": false
+      },
+      {
+        "time_s": 3.3000000000000003,
+        "pelvis_height_m": 0.07775279134511948,
+        "upright_score": 0.1987960785627365,
+        "tilt_norm": 0.9800406694412231,
+        "linear_speed_m_s": 0.015171485021710396,
+        "angular_speed_rad_s": 0.35856330394744873,
+        "linear_velocity_world_m_s": [
+          0.002196135465055704,
+          0.014819840900599957,
+          0.0023923285771161318
+        ],
+        "angular_velocity_world_rad_s": [
+          -0.33114558458328247,
+          -0.10355836153030396,
+          0.09047600626945496
+        ],
+        "projected_gravity_body": [
+          -0.9800401329994202,
+          0.0009997785091400146,
+          -0.1987960785627365
+        ],
+        "left_foot_force_n": 62.18705749511719,
+        "right_foot_force_n": 44.22401428222656,
+        "other_body_force_n": 150.55606079101562,
+        "strict": false
+      },
+      {
+        "time_s": 3.35,
+        "pelvis_height_m": 0.07791195809841156,
+        "upright_score": 0.19481949508190155,
+        "tilt_norm": 0.9808390140533447,
+        "linear_speed_m_s": 0.01932395063340664,
+        "angular_speed_rad_s": 0.21919427812099457,
+        "linear_velocity_world_m_s": [
+          0.0030567473731935024,
+          0.018676258623600006,
+          0.00390752125531435
+        ],
+        "angular_velocity_world_rad_s": [
+          -0.1973523050546646,
+          0.02519882284104824,
+          0.09199575334787369
+        ],
+        "projected_gravity_body": [
+          -0.980715274810791,
+          0.015580341219902039,
+          -0.19481949508190155
+        ],
+        "left_foot_force_n": 54.06233596801758,
+        "right_foot_force_n": 44.22401428222656,
+        "other_body_force_n": 166.4102020263672,
+        "strict": false
+      },
+      {
+        "time_s": 3.4000000000000004,
+        "pelvis_height_m": 0.07832435518503189,
+        "upright_score": 0.19030778110027313,
+        "tilt_norm": 0.9817243218421936,
+        "linear_speed_m_s": 0.019971270114183426,
+        "angular_speed_rad_s": 0.24115805327892303,
+        "linear_velocity_world_m_s": [
+          0.011404444463551044,
+          0.01196023914963007,
+          0.011213516816496849
+        ],
+        "angular_velocity_world_rad_s": [
+          -0.2034781277179718,
+          -0.12103702127933502,
+          0.04586828872561455
+        ],
+        "projected_gravity_body": [
+          -0.981393575668335,
+          0.02548215538263321,
+          -0.19030778110027313
+        ],
+        "left_foot_force_n": 42.208656311035156,
+        "right_foot_force_n": 36.67901611328125,
+        "other_body_force_n": 170.37408447265625,
+        "strict": false
+      },
+      {
+        "time_s": 3.45,
+        "pelvis_height_m": 0.07867573201656342,
+        "upright_score": 0.18896602094173431,
+        "tilt_norm": 0.9819836616516113,
+        "linear_speed_m_s": 0.016775138676166534,
+        "angular_speed_rad_s": 0.26705482602119446,
+        "linear_velocity_world_m_s": [
+          0.004063202999532223,
+          0.015795547515153885,
+          0.003923814278095961
+        ],
+        "angular_velocity_world_rad_s": [
+          -0.18230018019676208,
+          -0.10388558357954025,
+          0.16520504653453827
+        ],
+        "projected_gravity_body": [
+          -0.9813984632492065,
+          0.03389690816402435,
+          -0.18896602094173431
+        ],
+        "left_foot_force_n": 42.208656311035156,
+        "right_foot_force_n": 37.18449020385742,
+        "other_body_force_n": 170.37408447265625,
+        "strict": false
+      },
+      {
+        "time_s": 3.5,
+        "pelvis_height_m": 0.07895604521036148,
+        "upright_score": 0.1895550936460495,
+        "tilt_norm": 0.9818700551986694,
+        "linear_speed_m_s": 0.014951971359550953,
+        "angular_speed_rad_s": 0.2183712124824524,
+        "linear_velocity_world_m_s": [
+          0.005789590999484062,
+          0.013025215826928616,
+          0.004515068139880896
+        ],
+        "angular_velocity_world_rad_s": [
+          -0.15244069695472717,
+          -0.09954416006803513,
+          0.12057686597108841
+        ],
+        "projected_gravity_body": [
+          -0.9810400009155273,
+          0.040364958345890045,
+          -0.1895550936460495
+        ],
+        "left_foot_force_n": 42.959693908691406,
+        "right_foot_force_n": 37.18449020385742,
+        "other_body_force_n": 170.10379028320312,
+        "strict": false
+      },
+      {
+        "time_s": 3.5500000000000003,
+        "pelvis_height_m": 0.0792241096496582,
+        "upright_score": 0.19046659767627716,
+        "tilt_norm": 0.9816934466362,
+        "linear_speed_m_s": 0.01715017855167389,
+        "angular_speed_rad_s": 0.23767751455307007,
+        "linear_velocity_world_m_s": [
+          0.0038753075059503317,
+          0.01644688844680786,
+          0.00293436530046165
+        ],
+        "angular_velocity_world_rad_s": [
+          -0.15588989853858948,
+          -0.10919561237096786,
+          0.14235609769821167
+        ],
+        "projected_gravity_body": [
+          -0.9805808663368225,
+          0.04672449827194214,
+          -0.19046659767627716
+        ],
+        "left_foot_force_n": 42.959693908691406,
+        "right_foot_force_n": 37.95366287231445,
+        "other_body_force_n": 169.7285919189453,
+        "strict": false
+      },
+      {
+        "time_s": 3.6,
+        "pelvis_height_m": 0.07945181429386139,
+        "upright_score": 0.1917066127061844,
+        "tilt_norm": 0.9814519882202148,
+        "linear_speed_m_s": 0.015055930241942406,
+        "angular_speed_rad_s": 0.194696307182312,
+        "linear_velocity_world_m_s": [
+          0.005112025886774063,
+          0.01408036146312952,
+          -0.0015138197923079133
+        ],
+        "angular_velocity_world_rad_s": [
+          -0.10660206526517868,
+          -0.08291977643966675,
+          0.1402389407157898
+        ],
+        "projected_gravity_body": [
+          -0.9800788164138794,
+          0.05189917981624603,
+          -0.1917066127061844
+        ],
+        "left_foot_force_n": 42.82244873046875,
+        "right_foot_force_n": 38.3051872253418,
+        "other_body_force_n": 159.29136657714844,
+        "strict": false
+      },
+      {
+        "time_s": 3.6500000000000004,
+        "pelvis_height_m": 0.07961731404066086,
+        "upright_score": 0.19264774024486542,
+        "tilt_norm": 0.981268048286438,
+        "linear_speed_m_s": 0.014606378972530365,
+        "angular_speed_rad_s": 0.1621294766664505,
+        "linear_velocity_world_m_s": [
+          0.010050678625702858,
+          0.010545716620981693,
+          -0.001057366724126041
+        ],
+        "angular_velocity_world_rad_s": [
+          -0.05614340677857399,
+          -0.11433340609073639,
+          0.10030830651521683
+        ],
+        "projected_gravity_body": [
+          -0.9796753525733948,
+          0.05588524788618088,
+          -0.19264774024486542
+        ],
+        "left_foot_force_n": 41.878395080566406,
+        "right_foot_force_n": 38.83634948730469,
+        "other_body_force_n": 170.8456573486328,
+        "strict": false
+      },
+      {
+        "time_s": 3.7,
+        "pelvis_height_m": 0.07966409623622894,
+        "upright_score": 0.19234196841716766,
+        "tilt_norm": 0.9813276529312134,
+        "linear_speed_m_s": 0.014252997934818268,
+        "angular_speed_rad_s": 0.18457280099391937,
+        "linear_velocity_world_m_s": [
+          0.009352147579193115,
+          0.010753374546766281,
+          0.00022407331562135369
+        ],
+        "angular_velocity_world_rad_s": [
+          -0.04352033883333206,
+          -0.1340339481830597,
+          0.11919732391834259
+        ],
+        "projected_gravity_body": [
+          -0.9796459078788757,
+          0.05742635577917099,
+          -0.19234196841716766
+        ],
+        "left_foot_force_n": 39.53298568725586,
+        "right_foot_force_n": 38.83634948730469,
+        "other_body_force_n": 177.28515625,
+        "strict": false
+      },
+      {
+        "time_s": 3.75,
+        "pelvis_height_m": 0.07966398447751999,
+        "upright_score": 0.1924341917037964,
+        "tilt_norm": 0.9813098311424255,
+        "linear_speed_m_s": 0.011501327157020569,
+        "angular_speed_rad_s": 0.17540255188941956,
+        "linear_velocity_world_m_s": [
+          0.0010140863014385104,
+          0.010226007550954819,
+          0.0051653580740094185
+        ],
+        "angular_velocity_world_rad_s": [
+          -0.037127383053302765,
+          -0.15586404502391815,
+          0.07137234508991241
+        ],
+        "projected_gravity_body": [
+          -0.9796157479286194,
+          0.057636380195617676,
+          -0.1924341917037964
+        ],
+        "left_foot_force_n": 37.87445068359375,
+        "right_foot_force_n": 32.41294860839844,
+        "other_body_force_n": 177.28515625,
+        "strict": false
+      },
+      {
+        "time_s": 3.8000000000000003,
+        "pelvis_height_m": 0.07967882603406906,
+        "upright_score": 0.19388580322265625,
+        "tilt_norm": 0.981023907661438,
+        "linear_speed_m_s": 0.006521159783005714,
+        "angular_speed_rad_s": 0.10927319526672363,
+        "linear_velocity_world_m_s": [
+          0.00015135495050344616,
+          0.006234285421669483,
+          0.0019069099798798561
+        ],
+        "angular_velocity_world_rad_s": [
+          -0.0244634747505188,
+          -0.1004163920879364,
+          0.03547842428088188
+        ],
+        "projected_gravity_body": [
+          -0.9793222546577454,
+          0.05775686353445053,
+          -0.19388580322265625
+        ],
+        "left_foot_force_n": 39.125545501708984,
+        "right_foot_force_n": 6.62143611907959,
+        "other_body_force_n": 169.59487915039062,
+        "strict": false
+      },
+      {
+        "time_s": 3.85,
+        "pelvis_height_m": 0.0797395259141922,
+        "upright_score": 0.1957344263792038,
+        "tilt_norm": 0.9806566834449768,
+        "linear_speed_m_s": 0.00821516290307045,
+        "angular_speed_rad_s": 0.10217259079217911,
+        "linear_velocity_world_m_s": [
+          0.004608943127095699,
+          0.006684679538011551,
+          0.0012496387353166938
+        ],
+        "angular_velocity_world_rad_s": [
+          -0.04184277355670929,
+          -0.08719836920499802,
+          0.03293728828430176
+        ],
+        "projected_gravity_body": [
+          -0.9788990616798401,
+          0.05868689715862274,
+          -0.1957344263792038
+        ],
+        "left_foot_force_n": 41.82159423828125,
+        "right_foot_force_n": 1.7690893411636353,
+        "other_body_force_n": 161.16700744628906,
+        "strict": false
+      },
+      {
+        "time_s": 3.9000000000000004,
+        "pelvis_height_m": 0.07977533340454102,
+        "upright_score": 0.19612407684326172,
+        "tilt_norm": 0.9805789589881897,
+        "linear_speed_m_s": 0.006848536431789398,
+        "angular_speed_rad_s": 0.1206442192196846,
+        "linear_velocity_world_m_s": [
+          0.0009312452748417854,
+          0.005652458406984806,
+          0.003752991557121277
+        ],
+        "angular_velocity_world_rad_s": [
+          -0.05122480168938637,
+          -0.10908401757478714,
+          0.005632357206195593
+        ],
+        "projected_gravity_body": [
+          -0.978754997253418,
+          0.059780724346637726,
+          -0.19612407684326172
+        ],
+        "left_foot_force_n": 41.82159423828125,
+        "right_foot_force_n": 8.825929641723633,
+        "other_body_force_n": 161.16700744628906,
+        "strict": false
+      },
+      {
+        "time_s": 3.95,
+        "pelvis_height_m": 0.07984688878059387,
+        "upright_score": 0.19673803448677063,
+        "tilt_norm": 0.9804559350013733,
+        "linear_speed_m_s": 0.006432045716792345,
+        "angular_speed_rad_s": 0.08452439308166504,
+        "linear_velocity_world_m_s": [
+          0.004362706560641527,
+          0.004584216047078371,
+          0.0011502032866701484
+        ],
+        "angular_velocity_world_rad_s": [
+          -0.029539259150624275,
+          -0.0785343125462532,
+          0.010206245817244053
+        ],
+        "projected_gravity_body": [
+          -0.9785522222518921,
+          0.06106816977262497,
+          -0.19673803448677063
+        ],
+        "left_foot_force_n": 41.32147216796875,
+        "right_foot_force_n": 10.801170349121094,
+        "other_body_force_n": 156.64007568359375,
+        "strict": false
+      },
+      {
+        "time_s": 4.0,
+        "pelvis_height_m": 0.07988645136356354,
+        "upright_score": 0.19759584963321686,
+        "tilt_norm": 0.9802833199501038,
+        "linear_speed_m_s": 0.007856803946197033,
+        "angular_speed_rad_s": 0.07380548864603043,
+        "linear_velocity_world_m_s": [
+          0.00540795736014843,
+          0.005480117630213499,
+          0.0015657816547900438
+        ],
+        "angular_velocity_world_rad_s": [
+          -0.033314839005470276,
+          -0.060700319707393646,
+          0.02555079385638237
+        ],
+        "projected_gravity_body": [
+          -0.978318452835083,
+          0.0620359405875206,
+          -0.19759584963321686
+        ],
+        "left_foot_force_n": 42.81426239013672,
+        "right_foot_force_n": 10.801170349121094,
+        "other_body_force_n": 160.6114044189453,
+        "strict": false
+      },
+      {
+        "time_s": 4.05,
+        "pelvis_height_m": 0.07988656312227249,
+        "upright_score": 0.19832594692707062,
+        "tilt_norm": 0.9801360368728638,
+        "linear_speed_m_s": 0.006461444776505232,
+        "angular_speed_rad_s": 0.05329737067222595,
+        "linear_velocity_world_m_s": [
+          0.006055815611034632,
+          0.0003400143177714199,
+          -0.0022274991497397423
+        ],
+        "angular_velocity_world_rad_s": [
+          0.006511027459055185,
+          -0.0412910059094429,
+          0.033064622431993484
+        ],
+        "projected_gravity_body": [
+          -0.9781590700149536,
+          0.062221407890319824,
+          -0.19832594692707062
+        ],
+        "left_foot_force_n": 42.81426239013672,
+        "right_foot_force_n": 17.190521240234375,
+        "other_body_force_n": 160.6114044189453,
+        "strict": false
+      },
+      {
+        "time_s": 4.1000000000000005,
+        "pelvis_height_m": 0.07985599339008331,
+        "upright_score": 0.1999197155237198,
+        "tilt_norm": 0.9798121452331543,
+        "linear_speed_m_s": 0.006596192251890898,
+        "angular_speed_rad_s": 0.06496413052082062,
+        "linear_velocity_world_m_s": [
+          0.005096863955259323,
+          0.002001512097194791,
+          -0.0036777269560843706
+        ],
+        "angular_velocity_world_rad_s": [
+          0.031355056911706924,
+          -0.05007036775350571,
+          0.02702142298221588
+        ],
+        "projected_gravity_body": [
+          -0.9779067039489746,
+          0.06107623130083084,
+          -0.1999197155237198
+        ],
+        "left_foot_force_n": 42.245277404785156,
+        "right_foot_force_n": 17.190521240234375,
+        "other_body_force_n": 162.7997589111328,
+        "strict": false
+      },
+      {
+        "time_s": 4.15,
+        "pelvis_height_m": 0.07978380471467972,
+        "upright_score": 0.20103435218334198,
+        "tilt_norm": 0.9795840978622437,
+        "linear_speed_m_s": 0.004305318929255009,
+        "angular_speed_rad_s": 0.03160489723086357,
+        "linear_velocity_world_m_s": [
+          0.002978603821247816,
+          0.0004056042816955596,
+          -0.003082073060795665
+        ],
+        "angular_velocity_world_rad_s": [
+          0.02485259436070919,
+          -0.01616349071264267,
+          -0.010952611453831196
+        ],
+        "projected_gravity_body": [
+          -0.9777858257293701,
+          0.05932827293872833,
+          -0.20103435218334198
+        ],
+        "left_foot_force_n": 42.91518783569336,
+        "right_foot_force_n": 17.118961334228516,
+        "other_body_force_n": 162.7997589111328,
+        "strict": false
+      },
+      {
+        "time_s": 4.2,
+        "pelvis_height_m": 0.07980869710445404,
+        "upright_score": 0.2011665403842926,
+        "tilt_norm": 0.9795569777488708,
+        "linear_speed_m_s": 0.004425003193318844,
+        "angular_speed_rad_s": 0.024061325937509537,
+        "linear_velocity_world_m_s": [
+          0.0028537875041365623,
+          0.00014669698430225253,
+          -0.0033786138519644737
+        ],
+        "angular_velocity_world_rad_s": [
+          -0.0014226884813979268,
+          0.00888354517519474,
+          -0.02231604792177677
+        ],
+        "projected_gravity_body": [
+          -0.9777299165725708,
+          0.05980032682418823,
+          -0.2011665403842926
+        ],
+        "left_foot_force_n": 44.65714645385742,
+        "right_foot_force_n": 10.7911376953125,
+        "other_body_force_n": 166.1658477783203,
+        "strict": false
+      },
+      {
+        "time_s": 4.25,
+        "pelvis_height_m": 0.07978133857250214,
+        "upright_score": 0.20170962810516357,
+        "tilt_norm": 0.9794452786445618,
+        "linear_speed_m_s": 0.011081930249929428,
+        "angular_speed_rad_s": 0.08883074671030045,
+        "linear_velocity_world_m_s": [
+          0.001032483414746821,
+          -0.002050102688372135,
+          -0.010841596871614456
+        ],
+        "angular_velocity_world_rad_s": [
+          0.061701010912656784,
+          0.0579863116145134,
+          -0.026860270649194717
+        ],
+        "projected_gravity_body": [
+          -0.9776718616485596,
+          0.058913156390190125,
+          -0.20170962810516357
+        ],
+        "left_foot_force_n": 47.34012985229492,
+        "right_foot_force_n": 8.972118377685547,
+        "other_body_force_n": 172.97305297851562,
+        "strict": false
+      },
+      {
+        "time_s": 4.3,
+        "pelvis_height_m": 0.07968839257955551,
+        "upright_score": 0.2026216834783554,
+        "tilt_norm": 0.9792569279670715,
+        "linear_speed_m_s": 0.012204637750983238,
+        "angular_speed_rad_s": 0.11589715629816055,
+        "linear_velocity_world_m_s": [
+          0.001995403552427888,
+          -0.0003252948517911136,
+          -0.012036018073558807
+        ],
+        "angular_velocity_world_rad_s": [
+          0.09508378058671951,
+          0.04506450518965721,
+          -0.04858412221074104
+        ],
+        "projected_gravity_body": [
+          -0.9776359796524048,
+          0.05632086098194122,
+          -0.2026216834783554
+        ],
+        "left_foot_force_n": 50.2950325012207,
+        "right_foot_force_n": 14.485396385192871,
+        "other_body_force_n": 181.24913024902344,
+        "strict": false
+      },
+      {
+        "time_s": 4.3500000000000005,
+        "pelvis_height_m": 0.0795898288488388,
+        "upright_score": 0.20386341214179993,
+        "tilt_norm": 0.978999137878418,
+        "linear_speed_m_s": 0.015394376590847969,
+        "angular_speed_rad_s": 0.1240864172577858,
+        "linear_velocity_world_m_s": [
+          0.0037962484639137983,
+          -0.0019622896797955036,
+          -0.014789345674216747
+        ],
+        "angular_velocity_world_rad_s": [
+          0.10538241267204285,
+          0.06541365385055542,
+          -0.0036109781358391047
+        ],
+        "projected_gravity_body": [
+          -0.9775193929672241,
+          0.053806379437446594,
+          -0.20386341214179993
+        ],
+        "left_foot_force_n": 50.2950325012207,
+        "right_foot_force_n": 22.409196853637695,
+        "other_body_force_n": 181.24913024902344,
+        "strict": false
+      },
+      {
+        "time_s": 4.4,
+        "pelvis_height_m": 0.07941105216741562,
+        "upright_score": 0.20590829849243164,
+        "tilt_norm": 0.9785711169242859,
+        "linear_speed_m_s": 0.02129552513360977,
+        "angular_speed_rad_s": 0.1880817860364914,
+        "linear_velocity_world_m_s": [
+          0.0039590708911418915,
+          -0.002822920447215438,
+          -0.020732974633574486
+        ],
+        "angular_velocity_world_rad_s": [
+          0.16860246658325195,
+          0.08335049450397491,
+          0.0008151873480528593
+        ],
+        "projected_gravity_body": [
+          -0.9773383736610413,
+          0.049103111028671265,
+          -0.20590829849243164
+        ],
+        "left_foot_force_n": 51.378089904785156,
+        "right_foot_force_n": 25.07132339477539,
+        "other_body_force_n": 183.92849731445312,
+        "strict": false
+      },
+      {
+        "time_s": 4.45,
+        "pelvis_height_m": 0.07914712280035019,
+        "upright_score": 0.20806676149368286,
+        "tilt_norm": 0.9781144261360168,
+        "linear_speed_m_s": 0.019791144877672195,
+        "angular_speed_rad_s": 0.20423007011413574,
+        "linear_velocity_world_m_s": [
+          0.01034204475581646,
+          -0.0010735758114606142,
+          -0.016839802265167236
+        ],
+        "angular_velocity_world_rad_s": [
+          0.20015166699886322,
+          0.020162060856819153,
+          -0.035252299159765244
+        ],
+        "projected_gravity_body": [
+          -0.9771870374679565,
+          0.042583368718624115,
+          -0.20806676149368286
+        ],
+        "left_foot_force_n": 52.82483673095703,
+        "right_foot_force_n": 27.59214973449707,
+        "other_body_force_n": 193.43423461914062,
+        "strict": false
+      },
+      {
+        "time_s": 4.5,
+        "pelvis_height_m": 0.0789974108338356,
+        "upright_score": 0.20968277752399445,
+        "tilt_norm": 0.9777691960334778,
+        "linear_speed_m_s": 0.016821295022964478,
+        "angular_speed_rad_s": 0.08581923693418503,
+        "linear_velocity_world_m_s": [
+          0.003492003073915839,
+          0.005852507892996073,
+          -0.015378881245851517
+        ],
+        "angular_velocity_world_rad_s": [
+          0.0690913125872612,
+          0.0493924580514431,
+          -0.012317351065576077
+        ],
+        "projected_gravity_body": [
+          -0.9769940376281738,
+          0.038925789296627045,
+          -0.20968277752399445
+        ],
+        "left_foot_force_n": 52.82483673095703,
+        "right_foot_force_n": 27.59214973449707,
+        "other_body_force_n": 193.43423461914062,
+        "strict": false
+      },
+      {
+        "time_s": 4.55,
+        "pelvis_height_m": 0.0788799524307251,
+        "upright_score": 0.20951010286808014,
+        "tilt_norm": 0.9778062105178833,
+        "linear_speed_m_s": 0.013894358649849892,
+        "angular_speed_rad_s": 0.12080945074558258,
+        "linear_velocity_world_m_s": [
+          0.002715553157031536,
+          0.0016489509725943208,
+          -0.013526268303394318
+        ],
+        "angular_velocity_world_rad_s": [
+          0.09927196055650711,
+          0.03803478553891182,
+          -0.05738777667284012
+        ],
+        "projected_gravity_body": [
+          -0.9771307110786438,
+          0.036338984966278076,
+          -0.20951010286808014
+        ],
+        "left_foot_force_n": 47.07357406616211,
+        "right_foot_force_n": 34.12379837036133,
+        "other_body_force_n": 188.6425323486328,
+        "strict": false
+      },
+      {
+        "time_s": 4.6000000000000005,
+        "pelvis_height_m": 0.07866507023572922,
+        "upright_score": 0.2110230028629303,
+        "tilt_norm": 0.9774810075759888,
+        "linear_speed_m_s": 0.02263362891972065,
+        "angular_speed_rad_s": 0.19527611136436462,
+        "linear_velocity_world_m_s": [
+          0.0007482689106836915,
+          -0.002563611837103963,
+          -0.022475523874163628
+        ],
+        "angular_velocity_world_rad_s": [
+          0.1565607339143753,
+          0.11101187020540237,
+          -0.036025844514369965
+        ],
+        "projected_gravity_body": [
+          -0.9769899249076843,
+          0.030980512499809265,
+          -0.2110230028629303
+        ],
+        "left_foot_force_n": 47.07357406616211,
+        "right_foot_force_n": 36.95686340332031,
+        "other_body_force_n": 174.1926727294922,
+        "strict": false
+      },
+      {
+        "time_s": 4.65,
+        "pelvis_height_m": 0.07829128950834274,
+        "upright_score": 0.21315942704677582,
+        "tilt_norm": 0.9770172834396362,
+        "linear_speed_m_s": 0.01918315328657627,
+        "angular_speed_rad_s": 0.23240891098976135,
+        "linear_velocity_world_m_s": [
+          0.006230921484529972,
+          -0.004366498440504074,
+          -0.0176097322255373
+        ],
+        "angular_velocity_world_rad_s": [
+          0.22125144302845,
+          0.019538218155503273,
+          -0.0684102401137352
+        ],
+        "projected_gravity_body": [
+          -0.9767683148384094,
+          0.02205456793308258,
+          -0.21315942704677582
+        ],
+        "left_foot_force_n": 46.29396057128906,
+        "right_foot_force_n": 49.977779388427734,
+        "other_body_force_n": 178.4231719970703,
+        "strict": false
+      },
+      {
+        "time_s": 4.7,
+        "pelvis_height_m": 0.0779048427939415,
+        "upright_score": 0.2165684849023819,
+        "tilt_norm": 0.9762672185897827,
+        "linear_speed_m_s": 0.017041554674506187,
+        "angular_speed_rad_s": 0.19889818131923676,
+        "linear_velocity_world_m_s": [
+          0.0008497096132487059,
+          -0.009099363349378109,
+          -0.014383816160261631
+        ],
+        "angular_velocity_world_rad_s": [
+          0.18188969790935516,
+          0.06635171920061111,
+          -0.045541949570178986
+        ],
+        "projected_gravity_body": [
+          -0.9761791229248047,
+          0.013112515211105347,
+          -0.2165684849023819
+        ],
+        "left_foot_force_n": 46.29396057128906,
+        "right_foot_force_n": 49.977779388427734,
+        "other_body_force_n": 178.4231719970703,
+        "strict": false
+      },
+      {
+        "time_s": 4.75,
+        "pelvis_height_m": 0.07764279842376709,
+        "upright_score": 0.21853747963905334,
+        "tilt_norm": 0.9758285284042358,
+        "linear_speed_m_s": 0.012918543070554733,
+        "angular_speed_rad_s": 0.10925883799791336,
+        "linear_velocity_world_m_s": [
+          0.007829930633306503,
+          -0.010226468555629253,
+          -0.0010001471964642406
+        ],
+        "angular_velocity_world_rad_s": [
+          0.07881765812635422,
+          -0.03352778032422066,
+          -0.06783183664083481
+        ],
+        "projected_gravity_body": [
+          -0.9758111238479614,
+          0.00582827627658844,
+          -0.21853747963905334
+        ],
+        "left_foot_force_n": 53.87105178833008,
+        "right_foot_force_n": 35.32612609863281,
+        "other_body_force_n": 173.4111328125,
+        "strict": false
+      },
+      {
+        "time_s": 4.800000000000001,
+        "pelvis_height_m": 0.07768198847770691,
+        "upright_score": 0.21866799890995026,
+        "tilt_norm": 0.9757991433143616,
+        "linear_speed_m_s": 0.01182747632265091,
+        "angular_speed_rad_s": 0.1569673717021942,
+        "linear_velocity_world_m_s": [
+          0.0012548359809443355,
+          -0.003917582333087921,
+          -0.011089053936302662
+        ],
+        "angular_velocity_world_rad_s": [
+          0.10714224725961685,
+          0.10194955766201019,
+          -0.05258879065513611
+        ],
+        "projected_gravity_body": [
+          -0.9757876396179199,
+          0.004740610718727112,
+          -0.21866799890995026
+        ],
+        "left_foot_force_n": 53.87105178833008,
+        "right_foot_force_n": 19.862171173095703,
+        "other_body_force_n": 167.76258850097656,
+        "strict": false
+      },
+      {
+        "time_s": 4.8500000000000005,
+        "pelvis_height_m": 0.07775913178920746,
+        "upright_score": 0.21810013055801392,
+        "tilt_norm": 0.9759262204170227,
+        "linear_speed_m_s": 0.010342962108552456,
+        "angular_speed_rad_s": 0.1940401792526245,
+        "linear_velocity_world_m_s": [
+          -0.0009032722446136177,
+          -0.0054246606305241585,
+          -0.008759795688092709
+        ],
+        "angular_velocity_world_rad_s": [
+          0.1529569774866104,
+          0.10751760005950928,
+          -0.05192034691572189
+        ],
+        "projected_gravity_body": [
+          -0.9759230613708496,
+          0.002493157982826233,
+          -0.21810013055801392
+        ],
+        "left_foot_force_n": 51.50932693481445,
+        "right_foot_force_n": 17.53520965576172,
+        "other_body_force_n": 159.08811950683594,
+        "strict": false
+      },
+      {
+        "time_s": 4.9,
+        "pelvis_height_m": 0.07792086154222488,
+        "upright_score": 0.21730506420135498,
+        "tilt_norm": 0.9761037230491638,
+        "linear_speed_m_s": 0.013852918520569801,
+        "angular_speed_rad_s": 0.23731963336467743,
+        "linear_velocity_world_m_s": [
+          -0.002008664421737194,
+          -0.006268765777349472,
+          -0.012188978493213654
+        ],
+        "angular_velocity_world_rad_s": [
+          0.17203578352928162,
+          0.1516362428665161,
+          -0.06107987463474274
+        ],
+        "projected_gravity_body": [
+          -0.9761024713516235,
+          -0.0015610158443450928,
+          -0.21730506420135498
+        ],
+        "left_foot_force_n": 51.69008255004883,
+        "right_foot_force_n": 17.53520965576172,
+        "other_body_force_n": 153.04864501953125,
+        "strict": false
+      },
+      {
+        "time_s": 4.95,
+        "pelvis_height_m": 0.07808241248130798,
+        "upright_score": 0.21623948216438293,
+        "tilt_norm": 0.9763401746749878,
+        "linear_speed_m_s": 0.006940499879419804,
+        "angular_speed_rad_s": 0.1945340633392334,
+        "linear_velocity_world_m_s": [
+          0.005561955738812685,
+          6.65066036162898e-05,
+          -0.0041509950533509254
+        ],
+        "angular_velocity_world_rad_s": [
+          0.17902475595474243,
+          0.015191582962870598,
+          -0.07458450645208359
+        ],
+        "projected_gravity_body": [
+          -0.9763234257698059,
+          -0.005716696381568909,
+          -0.21623948216438293
+        ],
+        "left_foot_force_n": 51.69008255004883,
+        "right_foot_force_n": 19.337549209594727,
+        "other_body_force_n": 157.63088989257812,
+        "strict": false
+      },
+      {
+        "time_s": 5.0,
+        "pelvis_height_m": 0.07819697260856628,
+        "upright_score": 0.21613089740276337,
+        "tilt_norm": 0.976364254951477,
+        "linear_speed_m_s": 0.0163982305675745,
+        "angular_speed_rad_s": 0.2083469033241272,
+        "linear_velocity_world_m_s": [
+          -0.000548496434930712,
+          -0.0052568344399333,
+          -0.01552310585975647
+        ],
+        "angular_velocity_world_rad_s": [
+          0.15669845044612885,
+          0.12487166374921799,
+          -0.057106006890535355
+        ],
+        "projected_gravity_body": [
+          -0.9763272404670715,
+          -0.008500248193740845,
+          -0.21613089740276337
+        ],
+        "left_foot_force_n": 50.43836212158203,
+        "right_foot_force_n": 27.979473114013672,
+        "other_body_force_n": 165.17396545410156,
+        "strict": false
+      },
+      {
+        "time_s": 5.050000000000001,
+        "pelvis_height_m": 0.07838771492242813,
+        "upright_score": 0.21505634486675262,
+        "tilt_norm": 0.9766016602516174,
+        "linear_speed_m_s": 0.011138556525111198,
+        "angular_speed_rad_s": 0.27326154708862305,
+        "linear_velocity_world_m_s": [
+          0.00314068840816617,
+          0.0018658686894923449,
+          -0.010522454977035522
+        ],
+        "angular_velocity_world_rad_s": [
+          0.2450258582830429,
+          0.08277064561843872,
+          -0.08822255581617355
+        ],
+        "projected_gravity_body": [
+          -0.9765089750289917,
+          -0.013454735279083252,
+          -0.21505634486675262
+        ],
+        "left_foot_force_n": 48.77426528930664,
+        "right_foot_force_n": 27.979473114013672,
+        "other_body_force_n": 165.17396545410156,
+        "strict": false
+      },
+      {
+        "time_s": 5.1000000000000005,
+        "pelvis_height_m": 0.07861393690109253,
+        "upright_score": 0.21355727314949036,
+        "tilt_norm": 0.9769303202629089,
+        "linear_speed_m_s": 0.01332366093993187,
+        "angular_speed_rad_s": 0.2716105878353119,
+        "linear_velocity_world_m_s": [
+          0.007530612405389547,
+          0.007900990545749664,
+          -0.00764095364138484
+        ],
+        "angular_velocity_world_rad_s": [
+          0.26553821563720703,
+          -0.030615035444498062,
+          -0.048212870955467224
+        ],
+        "projected_gravity_body": [
+          -0.9767360687255859,
+          -0.019480392336845398,
+          -0.21355727314949036
+        ],
+        "left_foot_force_n": 51.13636779785156,
+        "right_foot_force_n": 22.795787811279297,
+        "other_body_force_n": 170.21714782714844,
+        "strict": false
+      },
+      {
+        "time_s": 5.15,
+        "pelvis_height_m": 0.07877378165721893,
+        "upright_score": 0.21318936347961426,
+        "tilt_norm": 0.9770108461380005,
+        "linear_speed_m_s": 0.023172397166490555,
+        "angular_speed_rad_s": 0.28943297266960144,
+        "linear_velocity_world_m_s": [
+          0.0025187695864588022,
+          -0.001013194676488638,
+          -0.023012805730104446
+        ],
+        "angular_velocity_world_rad_s": [
+          0.22265677154064178,
+          0.18364199995994568,
+          -0.02170286700129509
+        ],
+        "projected_gravity_body": [
+          -0.9767217636108398,
+          -0.023765571415424347,
+          -0.21318936347961426
+        ],
+        "left_foot_force_n": 52.732173919677734,
+        "right_foot_force_n": 22.795787811279297,
+        "other_body_force_n": 173.98953247070312,
+        "strict": false
+      },
+      {
+        "time_s": 5.2,
+        "pelvis_height_m": 0.07896468788385391,
+        "upright_score": 0.21155989170074463,
+        "tilt_norm": 0.9773648977279663,
+        "linear_speed_m_s": 0.019242601469159126,
+        "angular_speed_rad_s": 0.3139084577560425,
+        "linear_velocity_world_m_s": [
+          0.0031593565363436937,
+          0.007269534282386303,
+          -0.017534254118800163
+        ],
+        "angular_velocity_world_rad_s": [
+          0.2828601002693176,
+          0.12852846086025238,
+          -0.04482322186231613
+        ],
+        "projected_gravity_body": [
+          -0.9769324064254761,
+          -0.029072336852550507,
+          -0.21155989170074463
+        ],
+        "left_foot_force_n": 52.732173919677734,
+        "right_foot_force_n": 32.38201904296875,
+        "other_body_force_n": 173.98953247070312,
+        "strict": false
+      },
+      {
+        "time_s": 5.25,
+        "pelvis_height_m": 0.07922270148992538,
+        "upright_score": 0.20884793996810913,
+        "tilt_norm": 0.9779480695724487,
+        "linear_speed_m_s": 0.01724962703883648,
+        "angular_speed_rad_s": 0.3496285080909729,
+        "linear_velocity_world_m_s": [
+          0.005146539304405451,
+          0.005535802338272333,
+          -0.015505407936871052
+        ],
+        "angular_velocity_world_rad_s": [
+          0.3230164051055908,
+          0.11860024183988571,
+          -0.06192312762141228
+        ],
+        "projected_gravity_body": [
+          -0.9772736430168152,
+          -0.03631284832954407,
+          -0.20884793996810913
+        ],
+        "left_foot_force_n": 50.99598693847656,
+        "right_foot_force_n": 40.9445686340332,
+        "other_body_force_n": 155.55641174316406,
+        "strict": false
+      },
+      {
+        "time_s": 5.300000000000001,
+        "pelvis_height_m": 0.07947424799203873,
+        "upright_score": 0.20851066708564758,
+        "tilt_norm": 0.9780198931694031,
+        "linear_speed_m_s": 0.02466440759599209,
+        "angular_speed_rad_s": 0.38521310687065125,
+        "linear_velocity_world_m_s": [
+          -0.0021594848949462175,
+          -0.00693909777328372,
+          -0.023569442331790924
+        ],
+        "angular_velocity_world_rad_s": [
+          0.29412832856178284,
+          0.23886963725090027,
+          -0.06941872835159302
+        ],
+        "projected_gravity_body": [
+          -0.9770500659942627,
+          -0.04354375600814819,
+          -0.20851066708564758
+        ],
+        "left_foot_force_n": 52.6322135925293,
+        "right_foot_force_n": 46.997135162353516,
+        "other_body_force_n": 166.47434997558594,
+        "strict": false
+      },
+      {
+        "time_s": 5.3500000000000005,
+        "pelvis_height_m": 0.07978754490613937,
+        "upright_score": 0.20619897544384003,
+        "tilt_norm": 0.9785099029541016,
+        "linear_speed_m_s": 0.025778882205486298,
+        "angular_speed_rad_s": 0.37006187438964844,
+        "linear_velocity_world_m_s": [
+          0.010519301518797874,
+          0.02216658554971218,
+          -0.007908071391284466
+        ],
+        "angular_velocity_world_rad_s": [
+          0.3582618534564972,
+          -0.08764394372701645,
+          -0.030212368816137314
+        ],
+        "projected_gravity_body": [
+          -0.97709721326828,
+          -0.05256199836730957,
+          -0.20619897544384003
+        ],
+        "left_foot_force_n": 53.356231689453125,
+        "right_foot_force_n": 54.11422348022461,
+        "other_body_force_n": 175.69862365722656,
+        "strict": false
+      },
+      {
+        "time_s": 5.4,
+        "pelvis_height_m": 0.07998782396316528,
+        "upright_score": 0.20518895983695984,
+        "tilt_norm": 0.9787222743034363,
+        "linear_speed_m_s": 0.020131884142756462,
+        "angular_speed_rad_s": 0.26780039072036743,
+        "linear_velocity_world_m_s": [
+          0.007482283283025026,
+          -0.006965684238821268,
+          -0.017343223094940186
+        ],
+        "angular_velocity_world_rad_s": [
+          0.21006369590759277,
+          0.16322065889835358,
+          -0.030810782685875893
+        ],
+        "projected_gravity_body": [
+          -0.9769726991653442,
+          -0.05849430710077286,
+          -0.20518895983695984
+        ],
+        "left_foot_force_n": 53.356231689453125,
+        "right_foot_force_n": 54.11422348022461,
+        "other_body_force_n": 175.69862365722656,
+        "strict": false
+      },
+      {
+        "time_s": 5.45,
+        "pelvis_height_m": 0.08020759373903275,
+        "upright_score": 0.20229855179786682,
+        "tilt_norm": 0.97932368516922,
+        "linear_speed_m_s": 0.024139516055583954,
+        "angular_speed_rad_s": 0.31900501251220703,
+        "linear_velocity_world_m_s": [
+          0.009711801074445248,
+          0.020712902769446373,
+          -0.007705377414822578
+        ],
+        "angular_velocity_world_rad_s": [
+          0.29886043071746826,
+          -0.10918456315994263,
+          -0.02292083203792572
+        ],
+        "projected_gravity_body": [
+          -0.9771285653114319,
+          -0.06553328782320023,
+          -0.20229855179786682
+        ],
+        "left_foot_force_n": 52.78920364379883,
+        "right_foot_force_n": 48.662967681884766,
+        "other_body_force_n": 168.28802490234375,
+        "strict": false
+      },
+      {
+        "time_s": 5.5,
+        "pelvis_height_m": 0.08041136711835861,
+        "upright_score": 0.20048674941062927,
+        "tilt_norm": 0.9796961545944214,
+        "linear_speed_m_s": 0.021218759939074516,
+        "angular_speed_rad_s": 0.2850229740142822,
+        "linear_velocity_world_m_s": [
+          0.00248077348805964,
+          -0.012890496291220188,
+          -0.01667083241045475
+        ],
+        "angular_velocity_world_rad_s": [
+          0.2219620794057846,
+          0.16198229789733887,
+          -0.07571437954902649
+        ],
+        "projected_gravity_body": [
+          -0.9770687818527222,
+          -0.07170221954584122,
+          -0.20048674941062927
+        ],
+        "left_foot_force_n": 59.27165985107422,
+        "right_foot_force_n": 48.662967681884766,
+        "other_body_force_n": 168.28802490234375,
+        "strict": false
+      },
+      {
+        "time_s": 5.550000000000001,
+        "pelvis_height_m": 0.0806647315621376,
+        "upright_score": 0.19696010649204254,
+        "tilt_norm": 0.9804114699363708,
+        "linear_speed_m_s": 0.022213105112314224,
+        "angular_speed_rad_s": 0.2832600176334381,
+        "linear_velocity_world_m_s": [
+          0.010974936187267303,
+          0.017059655860066414,
+          -0.009052122943103313
+        ],
+        "angular_velocity_world_rad_s": [
+          0.27191469073295593,
+          -0.07732775062322617,
+          -0.017862021923065186
+        ],
+        "projected_gravity_body": [
+          -0.9771593809127808,
+          -0.07978846877813339,
+          -0.19696010649204254
+        ],
+        "left_foot_force_n": 59.27165985107422,
+        "right_foot_force_n": 46.74876022338867,
+        "other_body_force_n": 165.74581909179688,
+        "strict": false
+      },
+      {
+        "time_s": 5.6000000000000005,
+        "pelvis_height_m": 0.08090327680110931,
+        "upright_score": 0.19613155722618103,
+        "tilt_norm": 0.9805773496627808,
+        "linear_speed_m_s": 0.02019086852669716,
+        "angular_speed_rad_s": 0.31387194991111755,
+        "linear_velocity_world_m_s": [
+          0.003070228034630418,
+          -0.010390214622020721,
+          -0.017037849873304367
+        ],
+        "angular_velocity_world_rad_s": [
+          0.24105176329612732,
+          0.19334425032138824,
+          -0.05502402409911156
+        ],
+        "projected_gravity_body": [
+          -0.9767107367515564,
+          -0.08699456602334976,
+          -0.19613155722618103
+        ],
+        "left_foot_force_n": 51.478782653808594,
+        "right_foot_force_n": 46.74876022338867,
+        "other_body_force_n": 161.70518493652344,
+        "strict": false
+      },
+      {
+        "time_s": 5.65,
+        "pelvis_height_m": 0.08118697255849838,
+        "upright_score": 0.19232438504695892,
+        "tilt_norm": 0.9813313484191895,
+        "linear_speed_m_s": 0.025972265750169754,
+        "angular_speed_rad_s": 0.3342084288597107,
+        "linear_velocity_world_m_s": [
+          0.012793360278010368,
+          0.019774755463004112,
+          -0.010947491973638535
+        ],
+        "angular_velocity_world_rad_s": [
+          0.3223252296447754,
+          -0.08810558170080185,
+          0.006254871841520071
+        ],
+        "projected_gravity_body": [
+          -0.9765482544898987,
+          -0.09677157551050186,
+          -0.19232438504695892
+        ],
+        "left_foot_force_n": 51.478782653808594,
+        "right_foot_force_n": 53.597808837890625,
+        "other_body_force_n": 161.70518493652344,
+        "strict": false
+      },
+      {
+        "time_s": 5.7,
+        "pelvis_height_m": 0.08143012225627899,
+        "upright_score": 0.19124318659305573,
+        "tilt_norm": 0.9815425276756287,
+        "linear_speed_m_s": 0.01517022680491209,
+        "angular_speed_rad_s": 0.26407182216644287,
+        "linear_velocity_world_m_s": [
+          0.0028547989204525948,
+          -0.0036613289266824722,
+          -0.014442319050431252
+        ],
+        "angular_velocity_world_rad_s": [
+          0.24213552474975586,
+          0.07699072360992432,
+          -0.07194961607456207
+        ],
+        "projected_gravity_body": [
+          -0.9759512543678284,
+          -0.10461769253015518,
+          -0.19124318659305573
+        ],
+        "left_foot_force_n": 47.75493240356445,
+        "right_foot_force_n": 54.779075622558594,
+        "other_body_force_n": 160.00564575195312,
+        "strict": false
+      },
+      {
+        "time_s": 5.75,
+        "pelvis_height_m": 0.08172588795423508,
+        "upright_score": 0.19032947719097137,
+        "tilt_norm": 0.9817200899124146,
+        "linear_speed_m_s": 0.023327551782131195,
+        "angular_speed_rad_s": 0.38267940282821655,
+        "linear_velocity_world_m_s": [
+          0.0036560974549502134,
+          -0.01440019067376852,
+          -0.01798449642956257
+        ],
+        "angular_velocity_world_rad_s": [
+          0.3375589847564697,
+          0.1782485693693161,
+          -0.02692374587059021
+        ],
+        "projected_gravity_body": [
+          -0.9750235676765442,
+          -0.11446993798017502,
+          -0.19032947719097137
+        ],
+        "left_foot_force_n": 51.69086456298828,
+        "right_foot_force_n": 54.779075622558594,
+        "other_body_force_n": 162.35231018066406,
+        "strict": false
+      },
+      {
+        "time_s": 5.800000000000001,
+        "pelvis_height_m": 0.08213678747415543,
+        "upright_score": 0.1837489902973175,
+        "tilt_norm": 0.9829728603363037,
+        "linear_speed_m_s": 0.014113882556557655,
+        "angular_speed_rad_s": 0.13561829924583435,
+        "linear_velocity_world_m_s": [
+          0.003781503764912486,
+          -0.00782463327050209,
+          0.01112101785838604
+        ],
+        "angular_velocity_world_rad_s": [
+          0.025847652927041054,
+          -0.08949639648199081,
+          -0.09856275469064713
+        ],
+        "projected_gravity_body": [
+          -0.9753835797309875,
+          -0.12191217392683029,
+          -0.1837489902973175
+        ],
+        "left_foot_force_n": 61.62092971801758,
+        "right_foot_force_n": 48.097511291503906,
+        "other_body_force_n": 162.35231018066406,
+        "strict": false
+      },
+      {
+        "time_s": 5.8500000000000005,
+        "pelvis_height_m": 0.08247044682502747,
+        "upright_score": 0.17694352567195892,
+        "tilt_norm": 0.9842209815979004,
+        "linear_speed_m_s": 0.019947055727243423,
+        "angular_speed_rad_s": 0.09389058500528336,
+        "linear_velocity_world_m_s": [
+          0.004390937276184559,
+          -0.011920800432562828,
+          0.015378530137240887
+        ],
+        "angular_velocity_world_rad_s": [
+          0.04459593445062637,
+          -0.07027941942214966,
+          -0.04344477131962776
+        ],
+        "projected_gravity_body": [
+          -0.9762880802154541,
+          -0.12470986694097519,
+          -0.17694352567195892
+        ],
+        "left_foot_force_n": 61.62092971801758,
+        "right_foot_force_n": 46.32929992675781,
+        "other_body_force_n": 160.5433807373047,
+        "strict": false
+      },
+      {
+        "time_s": 5.9,
+        "pelvis_height_m": 0.08271021395921707,
+        "upright_score": 0.17094075679779053,
+        "tilt_norm": 0.9852812886238098,
+        "linear_speed_m_s": 0.015797453001141548,
+        "angular_speed_rad_s": 0.0791396051645279,
+        "linear_velocity_world_m_s": [
+          0.006821414455771446,
+          -0.012930525466799736,
+          0.005985761992633343
+        ],
+        "angular_velocity_world_rad_s": [
+          0.016548171639442444,
+          -0.06014842540025711,
+          -0.04869704321026802
+        ],
+        "projected_gravity_body": [
+          -0.9770996570587158,
+          -0.12671039998531342,
+          -0.17094075679779053
+        ],
+        "left_foot_force_n": 60.3078727722168,
+        "right_foot_force_n": 46.32929992675781,
+        "other_body_force_n": 163.15213012695312,
+        "strict": false
+      },
+      {
+        "time_s": 5.95,
+        "pelvis_height_m": 0.08272140473127365,
+        "upright_score": 0.16512493789196014,
+        "tilt_norm": 0.986272394657135,
+        "linear_speed_m_s": 0.014640765264630318,
+        "angular_speed_rad_s": 0.06307777762413025,
+        "linear_velocity_world_m_s": [
+          0.0008266903460025787,
+          -0.014617187902331352,
+          8.012967009562999e-05
+        ],
+        "angular_velocity_world_rad_s": [
+          -0.006173594854772091,
+          0.006920184940099716,
+          -0.06239233538508415
+        ],
+        "projected_gravity_body": [
+          -0.978009045124054,
+          -0.12740319967269897,
+          -0.16512493789196014
+        ],
+        "left_foot_force_n": 60.49846267700195,
+        "right_foot_force_n": 42.2046012878418,
+        "other_body_force_n": 163.15213012695312,
+        "strict": false
+      },
+      {
+        "time_s": 6.0,
+        "pelvis_height_m": 0.08265025913715363,
+        "upright_score": 0.15926700830459595,
+        "tilt_norm": 0.9872356057167053,
+        "linear_speed_m_s": 0.014866732992231846,
+        "angular_speed_rad_s": 0.07776638865470886,
+        "linear_velocity_world_m_s": [
+          -0.00014104903675615788,
+          -0.014710417948663235,
+          -0.002145569073036313
+        ],
+        "angular_velocity_world_rad_s": [
+          0.0032230201177299023,
+          0.06311232596635818,
+          -0.04532170668244362
+        ],
+        "projected_gravity_body": [
+          -0.9789748191833496,
+          -0.12744590640068054,
+          -0.15926700830459595
+        ],
+        "left_foot_force_n": 61.612098693847656,
+        "right_foot_force_n": 32.13111877441406,
+        "other_body_force_n": 150.69313049316406,
+        "strict": false
+      },
+      {
+        "time_s": 6.050000000000001,
+        "pelvis_height_m": 0.08269596099853516,
+        "upright_score": 0.15304793417453766,
+        "tilt_norm": 0.9882186055183411,
+        "linear_speed_m_s": 0.010413671843707561,
+        "angular_speed_rad_s": 0.12116749584674835,
+        "linear_velocity_world_m_s": [
+          0.005996336694806814,
+          -0.006417638622224331,
+          0.005594857968389988
+        ],
+        "angular_velocity_world_rad_s": [
+          0.05700897425413132,
+          -0.10679639130830765,
+          -0.005105830729007721
+        ],
+        "projected_gravity_body": [
+          -0.9798269867897034,
+          -0.1285112500190735,
+          -0.15304793417453766
+        ],
+        "left_foot_force_n": 61.612098693847656,
+        "right_foot_force_n": 51.372188568115234,
+        "other_body_force_n": 159.76885986328125,
+        "strict": false
+      },
+      {
+        "time_s": 6.1000000000000005,
+        "pelvis_height_m": 0.08265186846256256,
+        "upright_score": 0.1495787501335144,
+        "tilt_norm": 0.9887499809265137,
+        "linear_speed_m_s": 0.012171193957328796,
+        "angular_speed_rad_s": 0.09567128121852875,
+        "linear_velocity_world_m_s": [
+          -0.00430702418088913,
+          -0.010349282994866371,
+          -0.004741291515529156
+        ],
+        "angular_velocity_world_rad_s": [
+          0.07094324380159378,
+          0.06400476396083832,
+          0.004841475281864405
+        ],
+        "projected_gravity_body": [
+          -0.9803053736686707,
+          -0.12894891202449799,
+          -0.1495787501335144
+        ],
+        "left_foot_force_n": 60.30506896972656,
+        "right_foot_force_n": 51.372188568115234,
+        "other_body_force_n": 159.76885986328125,
+        "strict": false
+      },
+      {
+        "time_s": 6.15,
+        "pelvis_height_m": 0.08264637738466263,
+        "upright_score": 0.14574608206748962,
+        "tilt_norm": 0.9893220663070679,
+        "linear_speed_m_s": 0.008829528465867043,
+        "angular_speed_rad_s": 0.09928051382303238,
+        "linear_velocity_world_m_s": [
+          0.0024444363079965115,
+          -0.008469541557133198,
+          0.0005021620891056955
+        ],
+        "angular_velocity_world_rad_s": [
+          0.06037228927016258,
+          -0.0747779980301857,
+          -0.024900957942008972
+        ],
+        "projected_gravity_body": [
+          -0.9807838797569275,
+          -0.12969636917114258,
+          -0.14574608206748962
+        ],
+        "left_foot_force_n": 60.30506896972656,
+        "right_foot_force_n": 44.93746566772461,
+        "other_body_force_n": 156.34280395507812,
+        "strict": false
+      },
+      {
+        "time_s": 6.2,
+        "pelvis_height_m": 0.08261044323444366,
+        "upright_score": 0.1415223926305771,
+        "tilt_norm": 0.989935040473938,
+        "linear_speed_m_s": 0.007425433024764061,
+        "angular_speed_rad_s": 0.08325784653425217,
+        "linear_velocity_world_m_s": [
+          0.0016012350097298622,
+          -0.005511523690074682,
+          -0.00471128523349762
+        ],
+        "angular_velocity_world_rad_s": [
+          0.0797080248594284,
+          -0.021284854039549828,
+          -0.011200630106031895
+        ],
+        "projected_gravity_body": [
+          -0.9813708066940308,
+          -0.12993371486663818,
+          -0.1415223926305771
+        ],
+        "left_foot_force_n": 57.62671661376953,
+        "right_foot_force_n": 45.716182708740234,
+        "other_body_force_n": 156.34280395507812,
+        "strict": false
+      },
+      {
+        "time_s": 6.25,
+        "pelvis_height_m": 0.08240972459316254,
+        "upright_score": 0.13896875083446503,
+        "tilt_norm": 0.9902966022491455,
+        "linear_speed_m_s": 0.008749352768063545,
+        "angular_speed_rad_s": 0.13381756842136383,
+        "linear_velocity_world_m_s": [
+          -0.003459590720012784,
+          -0.0009537152945995331,
+          -0.007979526184499264
+        ],
+        "angular_velocity_world_rad_s": [
+          0.09858178347349167,
+          0.08597162365913391,
+          0.028242764994502068
+        ],
+        "projected_gravity_body": [
+          -0.981850266456604,
+          -0.12906333804130554,
+          -0.13896875083446503
+        ],
+        "left_foot_force_n": 61.69068908691406,
+        "right_foot_force_n": 45.716182708740234,
+        "other_body_force_n": 154.3850555419922,
+        "strict": false
+      },
+      {
+        "time_s": 6.300000000000001,
+        "pelvis_height_m": 0.08236603438854218,
+        "upright_score": 0.13483676314353943,
+        "tilt_norm": 0.9908677339553833,
+        "linear_speed_m_s": 0.012231848202645779,
+        "angular_speed_rad_s": 0.13849829137325287,
+        "linear_velocity_world_m_s": [
+          0.0025670973118394613,
+          -0.01164095476269722,
+          0.002741584787145257
+        ],
+        "angular_velocity_world_rad_s": [
+          0.100852832198143,
+          -0.08215772360563278,
+          -0.04754567891359329
+        ],
+        "projected_gravity_body": [
+          -0.9823333621025085,
+          -0.12976910173892975,
+          -0.13483676314353943
+        ],
+        "left_foot_force_n": 61.69068908691406,
+        "right_foot_force_n": 45.74790573120117,
+        "other_body_force_n": 160.40585327148438,
+        "strict": false
+      },
+      {
+        "time_s": 6.3500000000000005,
+        "pelvis_height_m": 0.08245145529508591,
+        "upright_score": 0.1319316178560257,
+        "tilt_norm": 0.9912587404251099,
+        "linear_speed_m_s": 0.007843872532248497,
+        "angular_speed_rad_s": 0.14421966671943665,
+        "linear_velocity_world_m_s": [
+          0.0016278463881462812,
+          -0.006454837508499622,
+          0.0041486769914627075
+        ],
+        "angular_velocity_world_rad_s": [
+          0.13409416377544403,
+          -0.047233518213033676,
+          0.024229371920228004
+        ],
+        "projected_gravity_body": [
+          -0.9825239777565002,
+          -0.13130325078964233,
+          -0.1319316178560257
+        ],
+        "left_foot_force_n": 61.97801208496094,
+        "right_foot_force_n": 49.34221267700195,
+        "other_body_force_n": 160.40585327148438,
+        "strict": false
+      },
+      {
+        "time_s": 6.4,
+        "pelvis_height_m": 0.08249743282794952,
+        "upright_score": 0.12859217822551727,
+        "tilt_norm": 0.9916974306106567,
+        "linear_speed_m_s": 0.00904995296150446,
+        "angular_speed_rad_s": 0.09684013575315475,
+        "linear_velocity_world_m_s": [
+          -0.005104138515889645,
+          -0.007470753509551287,
+          -0.00019304754096083343
+        ],
+        "angular_velocity_world_rad_s": [
+          0.09023220837116241,
+          0.03486241400241852,
+          -0.004557682201266289
+        ],
+        "projected_gravity_body": [
+          -0.9827940464019775,
+          -0.13258816301822662,
+          -0.12859217822551727
+        ],
+        "left_foot_force_n": 63.00102615356445,
+        "right_foot_force_n": 49.34221267700195,
+        "other_body_force_n": 155.9994354248047,
+        "strict": false
+      },
+      {
+        "time_s": 6.45,
+        "pelvis_height_m": 0.08245585858821869,
+        "upright_score": 0.12661248445510864,
+        "tilt_norm": 0.9919521808624268,
+        "linear_speed_m_s": 0.010055666789412498,
+        "angular_speed_rad_s": 0.05896877869963646,
+        "linear_velocity_world_m_s": [
+          -0.007216347847133875,
+          -0.006714405957609415,
+          0.001989346230402589
+        ],
+        "angular_velocity_world_rad_s": [
+          0.058824241161346436,
+          -0.0005812437739223242,
+          0.004085061140358448
+        ],
+        "projected_gravity_body": [
+          -0.9829544425010681,
+          -0.13330289721488953,
+          -0.12661248445510864
+        ],
+        "left_foot_force_n": 63.99726104736328,
+        "right_foot_force_n": 33.76845932006836,
+        "other_body_force_n": 159.01612854003906,
+        "strict": false
+      },
+      {
+        "time_s": 6.5,
+        "pelvis_height_m": 0.08241765201091766,
+        "upright_score": 0.12362132966518402,
+        "tilt_norm": 0.992329478263855,
+        "linear_speed_m_s": 0.007165711373090744,
+        "angular_speed_rad_s": 0.100746288895607,
+        "linear_velocity_world_m_s": [
+          -0.0003088239172939211,
+          -0.00670695211738348,
+          0.0025037648156285286
+        ],
+        "angular_velocity_world_rad_s": [
+          0.045807600021362305,
+          -0.08957857638597488,
+          -0.005211217328906059
+        ],
+        "projected_gravity_body": [
+          -0.9832625985145569,
+          -0.13383758068084717,
+          -0.12362132966518402
+        ],
+        "left_foot_force_n": 63.99726104736328,
+        "right_foot_force_n": 41.348751068115234,
+        "other_body_force_n": 165.5978240966797,
+        "strict": false
+      },
+      {
+        "time_s": 6.550000000000001,
+        "pelvis_height_m": 0.08209241181612015,
+        "upright_score": 0.12127833068370819,
+        "tilt_norm": 0.9926184415817261,
+        "linear_speed_m_s": 0.008209694176912308,
+        "angular_speed_rad_s": 0.014460250735282898,
+        "linear_velocity_world_m_s": [
+          -0.006696827709674835,
+          -0.0021569409873336554,
+          -0.004230741877108812
+        ],
+        "angular_velocity_world_rad_s": [
+          -0.0004134662158321589,
+          0.007614452391862869,
+          0.012286090292036533
+        ],
+        "projected_gravity_body": [
+          -0.9837802648544312,
+          -0.13216550648212433,
+          -0.12127833068370819
+        ],
+        "left_foot_force_n": 63.646846771240234,
+        "right_foot_force_n": 41.348751068115234,
+        "other_body_force_n": 165.5978240966797,
+        "strict": false
+      },
+      {
+        "time_s": 6.6000000000000005,
+        "pelvis_height_m": 0.0816948190331459,
+        "upright_score": 0.11961239576339722,
+        "tilt_norm": 0.9928208589553833,
+        "linear_speed_m_s": 0.010767982341349125,
+        "angular_speed_rad_s": 0.09631986916065216,
+        "linear_velocity_world_m_s": [
+          0.0002540839777793735,
+          0.010756578296422958,
+          -0.00042532593943178654
+        ],
+        "angular_velocity_world_rad_s": [
+          0.062202438712120056,
+          -0.028453269973397255,
+          0.06781435012817383
+        ],
+        "projected_gravity_body": [
+          -0.9842758178710938,
+          -0.1299782693386078,
+          -0.11961239576339722
+        ],
+        "left_foot_force_n": 63.646846771240234,
+        "right_foot_force_n": 36.699485778808594,
+        "other_body_force_n": 160.8520965576172,
+        "strict": false
+      },
+      {
+        "time_s": 6.65,
+        "pelvis_height_m": 0.08167122304439545,
+        "upright_score": 0.1174236536026001,
+        "tilt_norm": 0.9930819272994995,
+        "linear_speed_m_s": 0.01444035954773426,
+        "angular_speed_rad_s": 0.10834170132875443,
+        "linear_velocity_world_m_s": [
+          -0.0011940246913582087,
+          0.00181966507807374,
+          -0.014275401830673218
+        ],
+        "angular_velocity_world_rad_s": [
+          0.103620745241642,
+          0.0011189044453203678,
+          0.03161349520087242
+        ],
+        "projected_gravity_body": [
+          -0.9845849871635437,
+          -0.12963053584098816,
+          -0.1174236536026001
+        ],
+        "left_foot_force_n": 61.50185012817383,
+        "right_foot_force_n": 47.33818054199219,
+        "other_body_force_n": 162.52073669433594,
+        "strict": false
+      },
+      {
+        "time_s": 6.7,
+        "pelvis_height_m": 0.08165156096220016,
+        "upright_score": 0.11562271416187286,
+        "tilt_norm": 0.993293046951294,
+        "linear_speed_m_s": 0.01919572800397873,
+        "angular_speed_rad_s": 0.09529507160186768,
+        "linear_velocity_world_m_s": [
+          -0.0023025101982057095,
+          0.004882077686488628,
+          -0.018421176820993423
+        ],
+        "angular_velocity_world_rad_s": [
+          0.08081060647964478,
+          0.03049808368086815,
+          0.04025745764374733
+        ],
+        "projected_gravity_body": [
+          -0.9848361015319824,
+          -0.12934017181396484,
+          -0.11562271416187286
+        ],
+        "left_foot_force_n": 57.10936737060547,
+        "right_foot_force_n": 47.33818054199219,
+        "other_body_force_n": 162.52073669433594,
+        "strict": false
+      },
+      {
+        "time_s": 6.75,
+        "pelvis_height_m": 0.08158896118402481,
+        "upright_score": 0.11365266144275665,
+        "tilt_norm": 0.9935204982757568,
+        "linear_speed_m_s": 0.02106914483010769,
+        "angular_speed_rad_s": 0.06538698077201843,
+        "linear_velocity_world_m_s": [
+          -0.0027299164794385433,
+          0.011505965143442154,
+          -0.017437579110264778
+        ],
+        "angular_velocity_world_rad_s": [
+          0.04939037561416626,
+          -0.023794755339622498,
+          0.03563506528735161
+        ],
+        "projected_gravity_body": [
+          -0.9852250218391418,
+          -0.12811961770057678,
+          -0.11365266144275665
+        ],
+        "left_foot_force_n": 56.69154357910156,
+        "right_foot_force_n": 51.60037612915039,
+        "other_body_force_n": 162.38795471191406,
+        "strict": false
+      },
+      {
+        "time_s": 6.800000000000001,
+        "pelvis_height_m": 0.08149336278438568,
+        "upright_score": 0.11105936020612717,
+        "tilt_norm": 0.9938139319419861,
+        "linear_speed_m_s": 0.018682660534977913,
+        "angular_speed_rad_s": 0.06817269325256348,
+        "linear_velocity_world_m_s": [
+          -0.002104218350723386,
+          0.007236729841679335,
+          -0.017095141112804413
+        ],
+        "angular_velocity_world_rad_s": [
+          0.041682031005620956,
+          0.01897354982793331,
+          0.05049879848957062
+        ],
+        "projected_gravity_body": [
+          -0.9858624935150146,
+          -0.12546440958976746,
+          -0.11105936020612717
+        ],
+        "left_foot_force_n": 56.69154357910156,
+        "right_foot_force_n": 51.60037612915039,
+        "other_body_force_n": 162.38795471191406,
+        "strict": false
+      },
+      {
+        "time_s": 6.8500000000000005,
+        "pelvis_height_m": 0.08136440813541412,
+        "upright_score": 0.10812583565711975,
+        "tilt_norm": 0.9941373467445374,
+        "linear_speed_m_s": 0.02305452525615692,
+        "angular_speed_rad_s": 0.039957549422979355,
+        "linear_velocity_world_m_s": [
+          -0.0004265247262082994,
+          0.013961916789412498,
+          -0.018341049551963806
+        ],
+        "angular_velocity_world_rad_s": [
+          0.01039475854486227,
+          -0.022389831021428108,
+          0.03142054006457329
+        ],
+        "projected_gravity_body": [
+          -0.9866153001785278,
+          -0.12206259369850159,
+          -0.10812583565711975
+        ],
+        "left_foot_force_n": 56.68715286254883,
+        "right_foot_force_n": 47.77190017700195,
+        "other_body_force_n": 162.24111938476562,
+        "strict": false
+      },
+      {
+        "time_s": 6.9,
+        "pelvis_height_m": 0.08119965344667435,
+        "upright_score": 0.10516425222158432,
+        "tilt_norm": 0.9944549798965454,
+        "linear_speed_m_s": 0.025612715631723404,
+        "angular_speed_rad_s": 0.11905881762504578,
+        "linear_velocity_world_m_s": [
+          0.0037212439347058535,
+          0.015632469207048416,
+          -0.019944660365581512
+        ],
+        "angular_velocity_world_rad_s": [
+          0.02696538344025612,
+          0.020169483497738838,
+          0.11419747024774551
+        ],
+        "projected_gravity_body": [
+          -0.9875151515007019,
+          -0.11727983504533768,
+          -0.10516425222158432
+        ],
+        "left_foot_force_n": 56.82610321044922,
+        "right_foot_force_n": 47.77190017700195,
+        "other_body_force_n": 162.24111938476562,
+        "strict": false
+      },
+      {
+        "time_s": 6.95,
+        "pelvis_height_m": 0.08102180063724518,
+        "upright_score": 0.10242412984371185,
+        "tilt_norm": 0.9947406053543091,
+        "linear_speed_m_s": 0.026137646287679672,
+        "angular_speed_rad_s": 0.06774455308914185,
+        "linear_velocity_world_m_s": [
+          0.00391501747071743,
+          0.012754910625517368,
+          -0.022475795820355415
+        ],
+        "angular_velocity_world_rad_s": [
+          0.02234788052737713,
+          0.002756016328930855,
+          0.0638928934931755
+        ],
+        "projected_gravity_body": [
+          -0.9884384870529175,
+          -0.11179562658071518,
+          -0.10242412984371185
+        ],
+        "left_foot_force_n": 56.9976692199707,
+        "right_foot_force_n": 51.111900329589844,
+        "other_body_force_n": 159.24929809570312,
+        "strict": false
+      },
+      {
+        "time_s": 7.0,
+        "pelvis_height_m": 0.08085191994905472,
+        "upright_score": 0.102206751704216,
+        "tilt_norm": 0.9947632551193237,
+        "linear_speed_m_s": 0.026092296466231346,
+        "angular_speed_rad_s": 0.07128804922103882,
+        "linear_velocity_world_m_s": [
+          0.004329249728471041,
+          0.013287704437971115,
+          -0.022034119814634323
+        ],
+        "angular_velocity_world_rad_s": [
+          0.0054466906003654,
+          0.0008091334020718932,
+          0.07107506692409515
+        ],
+        "projected_gravity_body": [
+          -0.9890661835670471,
+          -0.10631079226732254,
+          -0.102206751704216
+        ],
+        "left_foot_force_n": 57.76060104370117,
+        "right_foot_force_n": 51.28101348876953,
+        "other_body_force_n": 163.3723602294922,
+        "strict": false
+      },
+      {
+        "time_s": 7.050000000000001,
+        "pelvis_height_m": 0.08066760748624802,
+        "upright_score": 0.10196805000305176,
+        "tilt_norm": 0.9947874546051025,
+        "linear_speed_m_s": 0.02487754449248314,
+        "angular_speed_rad_s": 0.06591527163982391,
+        "linear_velocity_world_m_s": [
+          0.007631882559508085,
+          0.010206313803792,
+          -0.021365340799093246
+        ],
+        "angular_velocity_world_rad_s": [
+          0.005745128728449345,
+          0.02110525406897068,
+          0.062180258333683014
+        ],
+        "projected_gravity_body": [
+          -0.9897029995918274,
+          -0.10044912248849869,
+          -0.10196805000305176
+        ],
+        "left_foot_force_n": 57.90188980102539,
+        "right_foot_force_n": 51.957862854003906,
+        "other_body_force_n": 163.3723602294922,
+        "strict": false
+      },
+      {
+        "time_s": 7.1000000000000005,
+        "pelvis_height_m": 0.08047181367874146,
+        "upright_score": 0.1017017811536789,
+        "tilt_norm": 0.9948146939277649,
+        "linear_speed_m_s": 0.02267278917133808,
+        "angular_speed_rad_s": 0.07025814801454544,
+        "linear_velocity_world_m_s": [
+          0.0048196385614573956,
+          0.012657792307436466,
+          -0.01818259432911873
+        ],
+        "angular_velocity_world_rad_s": [
+          -0.0033668503165245056,
+          -0.004375979769974947,
+          0.07004085928201675
+        ],
+        "projected_gravity_body": [
+          -0.990319550037384,
+          -0.09446429461240768,
+          -0.1017017811536789
+        ],
+        "left_foot_force_n": 57.90188980102539,
+        "right_foot_force_n": 52.63884353637695,
+        "other_body_force_n": 162.3411865234375,
+        "strict": false
+      },
+      {
+        "time_s": 7.15,
+        "pelvis_height_m": 0.08026029914617538,
+        "upright_score": 0.10153783112764359,
+        "tilt_norm": 0.9948315620422363,
+        "linear_speed_m_s": 0.023525435477495193,
+        "angular_speed_rad_s": 0.07131017744541168,
+        "linear_velocity_world_m_s": [
+          0.008923659101128578,
+          0.009760811924934387,
+          -0.019456129521131516
+        ],
+        "angular_velocity_world_rad_s": [
+          -0.014082576148211956,
+          0.016166767105460167,
+          0.06801071763038635
+        ],
+        "projected_gravity_body": [
+          -0.9909487366676331,
+          -0.08780958503484726,
+          -0.10153783112764359
+        ],
+        "left_foot_force_n": 57.510257720947266,
+        "right_foot_force_n": 52.63884353637695,
+        "other_body_force_n": 162.02915954589844,
+        "strict": false
+      },
+      {
+        "time_s": 7.2,
+        "pelvis_height_m": 0.08008674532175064,
+        "upright_score": 0.10137176513671875,
+        "tilt_norm": 0.9948485493659973,
+        "linear_speed_m_s": 0.015754474326968193,
+        "angular_speed_rad_s": 0.07652753591537476,
+        "linear_velocity_world_m_s": [
+          0.004276101011782885,
+          0.0023063865955919027,
+          -0.01498662680387497
+        ],
+        "angular_velocity_world_rad_s": [
+          0.05284133180975914,
+          -0.037031400948762894,
+          0.041145261377096176
+        ],
+        "projected_gravity_body": [
+          -0.9914073348045349,
+          -0.08267471939325333,
+          -0.10137176513671875
+        ],
+        "left_foot_force_n": 57.91438674926758,
+        "right_foot_force_n": 51.5277214050293,
+        "other_body_force_n": 164.2840576171875,
+        "strict": false
+      },
+      {
+        "time_s": 7.25,
+        "pelvis_height_m": 0.08001769334077835,
+        "upright_score": 0.10141570121049881,
+        "tilt_norm": 0.9948440194129944,
+        "linear_speed_m_s": 0.015131968073546886,
+        "angular_speed_rad_s": 0.0925205871462822,
+        "linear_velocity_world_m_s": [
+          0.006814127322286367,
+          0.0002901608240790665,
+          -0.013507773168385029
+        ],
+        "angular_velocity_world_rad_s": [
+          0.06638918817043304,
+          -0.04661125689744949,
+          0.044496357440948486
+        ],
+        "projected_gravity_body": [
+          -0.9915744066238403,
+          -0.08059089630842209,
+          -0.10141570121049881
+        ],
+        "left_foot_force_n": 59.47528076171875,
+        "right_foot_force_n": 50.98889923095703,
+        "other_body_force_n": 164.2840576171875,
+        "strict": false
+      },
+      {
+        "time_s": 7.300000000000001,
+        "pelvis_height_m": 0.07994695007801056,
+        "upright_score": 0.10127900540828705,
+        "tilt_norm": 0.9948580265045166,
+        "linear_speed_m_s": 0.013301650062203407,
+        "angular_speed_rad_s": 0.07168931514024734,
+        "linear_velocity_world_m_s": [
+          0.007374174427241087,
+          0.0001330648228758946,
+          -0.011069676838815212
+        ],
+        "angular_velocity_world_rad_s": [
+          0.05114273726940155,
+          -0.038706399500370026,
+          0.03202487900853157
+        ],
+        "projected_gravity_body": [
+          -0.9917501211166382,
+          -0.07857584953308105,
+          -0.10127900540828705
+        ],
+        "left_foot_force_n": 60.092830657958984,
+        "right_foot_force_n": 50.98889923095703,
+        "other_body_force_n": 168.10791015625,
+        "strict": false
+      },
+      {
+        "time_s": 7.3500000000000005,
+        "pelvis_height_m": 0.07986850291490555,
+        "upright_score": 0.10121996700763702,
+        "tilt_norm": 0.9948639273643494,
+        "linear_speed_m_s": 0.013174205087125301,
+        "angular_speed_rad_s": 0.06373653560876846,
+        "linear_velocity_world_m_s": [
+          0.0065748183988034725,
+          0.00021925354667473584,
+          -0.011414174921810627
+        ],
+        "angular_velocity_world_rad_s": [
+          0.04049765318632126,
+          -0.03787804767489433,
+          0.03142514079809189
+        ],
+        "projected_gravity_body": [
+          -0.9919502139091492,
+          -0.07608584314584732,
+          -0.10121996700763702
+        ],
+        "left_foot_force_n": 60.489253997802734,
+        "right_foot_force_n": 50.28294372558594,
+        "other_body_force_n": 168.10791015625,
+        "strict": false
+      },
+      {
+        "time_s": 7.4,
+        "pelvis_height_m": 0.07977354526519775,
+        "upright_score": 0.10113231837749481,
+        "tilt_norm": 0.9948729872703552,
+        "linear_speed_m_s": 0.01266131829470396,
+        "angular_speed_rad_s": 0.05487506836652756,
+        "linear_velocity_world_m_s": [
+          0.007142671849578619,
+          0.0002636829449329525,
+          -0.010450918227434158
+        ],
+        "angular_velocity_world_rad_s": [
+          0.03351898863911629,
+          -0.03088480792939663,
+          0.030559437349438667
+        ],
+        "projected_gravity_body": [
+          -0.9921678900718689,
+          -0.07331524789333344,
+          -0.10113231837749481
+        ],
+        "left_foot_force_n": 60.489253997802734,
+        "right_foot_force_n": 46.556697845458984,
+        "other_body_force_n": 165.62351989746094,
+        "strict": false
+      },
+      {
+        "time_s": 7.45,
+        "pelvis_height_m": 0.07967620342969894,
+        "upright_score": 0.10112420469522476,
+        "tilt_norm": 0.9948736429214478,
+        "linear_speed_m_s": 0.014135580509901047,
+        "angular_speed_rad_s": 0.06173868849873543,
+        "linear_velocity_world_m_s": [
+          0.006081719417124987,
+          -0.001009915373288095,
+          -0.012720353901386261
+        ],
+        "angular_velocity_world_rad_s": [
+          0.03465444594621658,
+          -0.03861172869801521,
+          0.033464446663856506
+        ],
+        "projected_gravity_body": [
+          -0.9923868179321289,
+          -0.07029946148395538,
+          -0.10112420469522476
+        ],
+        "left_foot_force_n": 59.80141830444336,
+        "right_foot_force_n": 45.9688835144043,
+        "other_body_force_n": 164.79861450195312,
+        "strict": false
+      },
+      {
+        "time_s": 7.5,
+        "pelvis_height_m": 0.07957050949335098,
+        "upright_score": 0.10102538019418716,
+        "tilt_norm": 0.9948837161064148,
+        "linear_speed_m_s": 0.01340478751808405,
+        "angular_speed_rad_s": 0.0631902664899826,
+        "linear_velocity_world_m_s": [
+          0.005642489530146122,
+          -0.0008478030213154852,
+          -0.01212979294359684
+        ],
+        "angular_velocity_world_rad_s": [
+          0.03201620653271675,
+          -0.04212290421128273,
+          0.03454900160431862
+        ],
+        "projected_gravity_body": [
+          -0.9926112294197083,
+          -0.06720548123121262,
+          -0.10102538019418716
+        ],
+        "left_foot_force_n": 59.39509201049805,
+        "right_foot_force_n": 45.9688835144043,
+        "other_body_force_n": 161.7444610595703,
+        "strict": false
+      },
+      {
+        "time_s": 7.550000000000001,
+        "pelvis_height_m": 0.07946496456861496,
+        "upright_score": 0.10092898458242416,
+        "tilt_norm": 0.994893491268158,
+        "linear_speed_m_s": 0.011763187125325203,
+        "angular_speed_rad_s": 0.07991600781679153,
+        "linear_velocity_world_m_s": [
+          0.0030986873898655176,
+          0.0008665847708471119,
+          -0.011314580217003822
+        ],
+        "angular_velocity_world_rad_s": [
+          0.025061393156647682,
+          -0.06274200975894928,
+          0.042684126645326614
+        ],
+        "projected_gravity_body": [
+          -0.9928280115127563,
+          -0.06407526135444641,
+          -0.10092898458242416
+        ],
+        "left_foot_force_n": 58.87210464477539,
+        "right_foot_force_n": 45.849674224853516,
+        "other_body_force_n": 160.27627563476562,
+        "strict": false
+      },
+      {
+        "time_s": 7.6000000000000005,
+        "pelvis_height_m": 0.07935833930969238,
+        "upright_score": 0.10083766281604767,
+        "tilt_norm": 0.9949027895927429,
+        "linear_speed_m_s": 0.01303132064640522,
+        "angular_speed_rad_s": 0.0680224746465683,
+        "linear_velocity_world_m_s": [
+          0.005726521369069815,
+          -0.0011272348929196596,
+          -0.011651248671114445
+        ],
+        "angular_velocity_world_rad_s": [
+          0.02567533403635025,
+          -0.049679338932037354,
+          0.038727227598428726
+        ],
+        "projected_gravity_body": [
+          -0.993033766746521,
+          -0.06095452606678009,
+          -0.10083766281604767
+        ],
+        "left_foot_force_n": 58.53242874145508,
+        "right_foot_force_n": 44.32194137573242,
+        "other_body_force_n": 158.54486083984375,
+        "strict": false
+      },
+      {
+        "time_s": 7.65,
+        "pelvis_height_m": 0.0792459174990654,
+        "upright_score": 0.10087014734745026,
+        "tilt_norm": 0.9948996305465698,
+        "linear_speed_m_s": 0.013394278474152088,
+        "angular_speed_rad_s": 0.06614915281534195,
+        "linear_velocity_world_m_s": [
+          0.00481131998822093,
+          -0.0006066798232495785,
+          -0.012485585175454617
+        ],
+        "angular_velocity_world_rad_s": [
+          0.02389696054160595,
+          -0.05085669830441475,
+          0.03490331768989563
+        ],
+        "projected_gravity_body": [
+          -0.9932284355163574,
+          -0.05764138698577881,
+          -0.10087014734745026
+        ],
+        "left_foot_force_n": 58.00080108642578,
+        "right_foot_force_n": 44.915191650390625,
+        "other_body_force_n": 165.5738525390625,
+        "strict": false
+      },
+      {
+        "time_s": 7.7,
+        "pelvis_height_m": 0.07910530269145966,
+        "upright_score": 0.10076088458299637,
+        "tilt_norm": 0.9949104189872742,
+        "linear_speed_m_s": 0.0136104142293334,
+        "angular_speed_rad_s": 0.07578126341104507,
+        "linear_velocity_world_m_s": [
+          0.004034307319670916,
+          0.0015285107074305415,
+          -0.012908577919006348
+        ],
+        "angular_velocity_world_rad_s": [
+          -0.0009404457523487508,
+          -0.05765768513083458,
+          0.04916815459728241
+        ],
+        "projected_gravity_body": [
+          -0.9934696555137634,
+          -0.05352438986301422,
+          -0.10076088458299637
+        ],
+        "left_foot_force_n": 58.74208068847656,
+        "right_foot_force_n": 44.915191650390625,
+        "other_body_force_n": 165.5738525390625,
+        "strict": false
+      },
+      {
+        "time_s": 7.75,
+        "pelvis_height_m": 0.07892576605081558,
+        "upright_score": 0.10065555572509766,
+        "tilt_norm": 0.9949211478233337,
+        "linear_speed_m_s": 0.01253447774797678,
+        "angular_speed_rad_s": 0.07450291514396667,
+        "linear_velocity_world_m_s": [
+          0.004349060822278261,
+          0.0020461841486394405,
+          -0.011576352640986443
+        ],
+        "angular_velocity_world_rad_s": [
+          -0.020165100693702698,
+          -0.04983051121234894,
+          0.051584627479314804
+        ],
+        "projected_gravity_body": [
+          -0.9937360286712646,
+          -0.04854646325111389,
+          -0.10065555572509766
+        ],
+        "left_foot_force_n": 58.76786804199219,
+        "right_foot_force_n": 44.62279510498047,
+        "other_body_force_n": 165.41494750976562,
+        "strict": false
+      },
+      {
+        "time_s": 7.800000000000001,
+        "pelvis_height_m": 0.07873547077178955,
+        "upright_score": 0.10053867101669312,
+        "tilt_norm": 0.9949329495429993,
+        "linear_speed_m_s": 0.013218717649579048,
+        "angular_speed_rad_s": 0.053313903510570526,
+        "linear_velocity_world_m_s": [
+          0.007153157610446215,
+          0.0015063529135659337,
+          -0.011013525538146496
+        ],
+        "angular_velocity_world_rad_s": [
+          -0.012193216942250729,
+          -0.024369435384869576,
+          0.04582388326525688
+        ],
+        "projected_gravity_body": [
+          -0.9939956665039062,
+          -0.04317544400691986,
+          -0.10053867101669312
+        ],
+        "left_foot_force_n": 58.76786804199219,
+        "right_foot_force_n": 46.185081481933594,
+        "other_body_force_n": 167.27740478515625,
+        "strict": false
+      },
+      {
+        "time_s": 7.8500000000000005,
+        "pelvis_height_m": 0.07858024537563324,
+        "upright_score": 0.10054142773151398,
+        "tilt_norm": 0.9949328899383545,
+        "linear_speed_m_s": 0.012532348744571209,
+        "angular_speed_rad_s": 0.04014145955443382,
+        "linear_velocity_world_m_s": [
+          0.00397017877548933,
+          -0.003787234192714095,
+          -0.011267400346696377
+        ],
+        "angular_velocity_world_rad_s": [
+          0.02003253810107708,
+          -0.029073039069771767,
+          0.019099542871117592
+        ],
+        "projected_gravity_body": [
+          -0.9941765666007996,
+          -0.03878667950630188,
+          -0.10054142773151398
+        ],
+        "left_foot_force_n": 57.81077194213867,
+        "right_foot_force_n": 46.302940368652344,
+        "other_body_force_n": 167.27740478515625,
+        "strict": false
+      },
+      {
+        "time_s": 7.9,
+        "pelvis_height_m": 0.07844875752925873,
+        "upright_score": 0.10076990723609924,
+        "tilt_norm": 0.9949097633361816,
+        "linear_speed_m_s": 0.012620353139936924,
+        "angular_speed_rad_s": 0.03840405121445656,
+        "linear_velocity_world_m_s": [
+          0.003769455011934042,
+          -0.004173684399574995,
+          -0.011298002675175667
+        ],
+        "angular_velocity_world_rad_s": [
+          0.01620309054851532,
+          -0.027511775493621826,
+          0.021340878680348396
+        ],
+        "projected_gravity_body": [
+          -0.9942916035652161,
+          -0.0350651890039444,
+          -0.10076990723609924
+        ],
+        "left_foot_force_n": 56.394630432128906,
+        "right_foot_force_n": 46.302940368652344,
+        "other_body_force_n": 164.6707763671875,
+        "strict": false
+      },
+      {
+        "time_s": 7.95,
+        "pelvis_height_m": 0.07830692827701569,
+        "upright_score": 0.10095523297786713,
+        "tilt_norm": 0.9948908090591431,
+        "linear_speed_m_s": 0.013830341398715973,
+        "angular_speed_rad_s": 0.028299398720264435,
+        "linear_velocity_world_m_s": [
+          0.005724749062210321,
+          -0.004901407286524773,
+          -0.01159662939608097
+        ],
+        "angular_velocity_world_rad_s": [
+          0.016860410571098328,
+          -0.01046106219291687,
+          0.020177926868200302
+        ],
+        "projected_gravity_body": [
+          -0.994404137134552,
+          -0.031114503741264343,
+          -0.10095523297786713
+        ],
+        "left_foot_force_n": 56.394630432128906,
+        "right_foot_force_n": 43.10905075073242,
+        "other_body_force_n": 161.97640991210938,
+        "strict": false
+      },
+      {
+        "time_s": 8.0,
+        "pelvis_height_m": 0.07815510779619217,
+        "upright_score": 0.10098922997713089,
+        "tilt_norm": 0.9948874115943909,
+        "linear_speed_m_s": 0.014005295932292938,
+        "angular_speed_rad_s": 0.01959581859409809,
+        "linear_velocity_world_m_s": [
+          0.0050844536162912846,
+          -0.005487350281327963,
+          -0.011840001679956913
+        ],
+        "angular_velocity_world_rad_s": [
+          0.016756488010287285,
+          -0.001195712247863412,
+          0.010088927112519741
+        ],
+        "projected_gravity_body": [
+          -0.9945224523544312,
+          -0.02694469690322876,
+          -0.10098922997713089
+        ],
+        "left_foot_force_n": 56.342750549316406,
+        "right_foot_force_n": 44.82998275756836,
+        "other_body_force_n": 161.47727966308594,
+        "strict": false
+      },
+      {
+        "time_s": 8.05,
+        "pelvis_height_m": 0.07799196988344193,
+        "upright_score": 0.10099289566278458,
+        "tilt_norm": 0.9948869943618774,
+        "linear_speed_m_s": 0.011850212700664997,
+        "angular_speed_rad_s": 0.041252098977565765,
+        "linear_velocity_world_m_s": [
+          0.0024405468720942736,
+          -0.003871119348332286,
+          -0.010930951684713364
+        ],
+        "angular_velocity_world_rad_s": [
+          0.013296310789883137,
+          0.015210376121103764,
+          0.03596648573875427
+        ],
+        "projected_gravity_body": [
+          -0.9946273565292358,
+          -0.022727444767951965,
+          -0.10099289566278458
+        ],
+        "left_foot_force_n": 56.701534271240234,
+        "right_foot_force_n": 44.82998275756836,
+        "other_body_force_n": 159.1897735595703,
+        "strict": false
+      },
+      {
+        "time_s": 8.1,
+        "pelvis_height_m": 0.07784397155046463,
+        "upright_score": 0.10081134736537933,
+        "tilt_norm": 0.9949053525924683,
+        "linear_speed_m_s": 0.010257073678076267,
+        "angular_speed_rad_s": 0.027710000053048134,
+        "linear_velocity_world_m_s": [
+          0.0045395768247544765,
+          -0.004700195975601673,
+          -0.007906196638941765
+        ],
+        "angular_velocity_world_rad_s": [
+          0.013923422433435917,
+          0.01009135227650404,
+          0.021728944033384323
+        ],
+        "projected_gravity_body": [
+          -0.9947274327278137,
+          -0.018815577030181885,
+          -0.10081134736537933
+        ],
+        "left_foot_force_n": 57.0965690612793,
+        "right_foot_force_n": 44.25273132324219,
+        "other_body_force_n": 157.58612060546875,
+        "strict": false
+      },
+      {
+        "time_s": 8.15,
+        "pelvis_height_m": 0.07771363854408264,
+        "upright_score": 0.10061918199062347,
+        "tilt_norm": 0.9949246644973755,
+        "linear_speed_m_s": 0.011849941685795784,
+        "angular_speed_rad_s": 0.02580607496201992,
+        "linear_velocity_world_m_s": [
+          0.005668205674737692,
+          -0.008009212091565132,
+          -0.006644177250564098
+        ],
+        "angular_velocity_world_rad_s": [
+          0.020572464913129807,
+          0.010884971357882023,
+          0.011146505363285542
+        ],
+        "projected_gravity_body": [
+          -0.9948067665100098,
+          -0.015318438410758972,
+          -0.10061918199062347
+        ],
+        "left_foot_force_n": 57.323097229003906,
+        "right_foot_force_n": 47.97120666503906,
+        "other_body_force_n": 157.58612060546875,
+        "strict": false
+      },
+      {
+        "time_s": 8.200000000000001,
+        "pelvis_height_m": 0.07760554552078247,
+        "upright_score": 0.10103290528059006,
+        "tilt_norm": 0.9948828220367432,
+        "linear_speed_m_s": 0.013050207868218422,
+        "angular_speed_rad_s": 0.03490353003144264,
+        "linear_velocity_world_m_s": [
+          0.007668990176171064,
+          -0.00988108478486538,
+          -0.0037227256689220667
+        ],
+        "angular_velocity_world_rad_s": [
+          0.015140116214752197,
+          -0.02716704085469246,
+          0.015842508524656296
+        ],
+        "projected_gravity_body": [
+          -0.9948071837425232,
+          -0.012270495295524597,
+          -0.10103290528059006
+        ],
+        "left_foot_force_n": 57.82161331176758,
+        "right_foot_force_n": 47.97120666503906,
+        "other_body_force_n": 158.3760528564453,
+        "strict": false
+      },
+      {
+        "time_s": 8.25,
+        "pelvis_height_m": 0.07752746343612671,
+        "upright_score": 0.10107485204935074,
+        "tilt_norm": 0.9948786497116089,
+        "linear_speed_m_s": 0.016633065417408943,
+        "angular_speed_rad_s": 0.06538236141204834,
+        "linear_velocity_world_m_s": [
+          0.007342802360653877,
+          -0.009288478642702103,
+          -0.011681878007948399
+        ],
+        "angular_velocity_world_rad_s": [
+          0.06004961580038071,
+          0.0046461536549031734,
+          0.02544229105114937
+        ],
+        "projected_gravity_body": [
+          -0.9948286414146423,
+          -0.009974151849746704,
+          -0.10107485204935074
+        ],
+        "left_foot_force_n": 57.82161331176758,
+        "right_foot_force_n": 44.08740997314453,
+        "other_body_force_n": 158.3760528564453,
+        "strict": false
+      },
+      {
+        "time_s": 8.3,
+        "pelvis_height_m": 0.07744375616312027,
+        "upright_score": 0.1010359674692154,
+        "tilt_norm": 0.9948825836181641,
+        "linear_speed_m_s": 0.013968206010758877,
+        "angular_speed_rad_s": 0.08297669142484665,
+        "linear_velocity_world_m_s": [
+          0.004084842279553413,
+          -0.009094640612602234,
+          -0.009783267974853516
+        ],
+        "angular_velocity_world_rad_s": [
+          0.0682191327214241,
+          0.045710787177085876,
+          -0.01190822385251522
+        ],
+        "projected_gravity_body": [
+          -0.994850218296051,
+          -0.008023783564567566,
+          -0.1010359674692154
+        ],
+        "left_foot_force_n": 57.32651901245117,
+        "right_foot_force_n": 45.16889190673828,
+        "other_body_force_n": 158.34288024902344,
+        "strict": false
+      },
+      {
+        "time_s": 8.35,
+        "pelvis_height_m": 0.07738982141017914,
+        "upright_score": 0.10087461769580841,
+        "tilt_norm": 0.9948990345001221,
+        "linear_speed_m_s": 0.015580061823129654,
+        "angular_speed_rad_s": 0.10940395295619965,
+        "linear_velocity_world_m_s": [
+          0.0027663370128721,
+          -0.010935777798295021,
+          -0.010746834799647331
+        ],
+        "angular_velocity_world_rad_s": [
+          0.0865737795829773,
+          0.06566807627677917,
+          -0.01272440142929554
+        ],
+        "projected_gravity_body": [
+          -0.9948770999908447,
+          -0.006604313850402832,
+          -0.10087461769580841
+        ],
+        "left_foot_force_n": 57.32651901245117,
+        "right_foot_force_n": 45.83354568481445,
+        "other_body_force_n": 158.34288024902344,
+        "strict": false
+      },
+      {
+        "time_s": 8.4,
+        "pelvis_height_m": 0.0773567259311676,
+        "upright_score": 0.10084836184978485,
+        "tilt_norm": 0.9949016571044922,
+        "linear_speed_m_s": 0.015287192538380623,
+        "angular_speed_rad_s": 0.07562600076198578,
+        "linear_velocity_world_m_s": [
+          0.004481140524148941,
+          -0.012343039736151695,
+          -0.007827323861420155
+        ],
+        "angular_velocity_world_rad_s": [
+          0.07380477339029312,
+          0.013162386603653431,
+          -0.00994481798261404
+        ],
+        "projected_gravity_body": [
+          -0.9948853850364685,
+          -0.005693674087524414,
+          -0.10084836184978485
+        ],
+        "left_foot_force_n": 57.95880126953125,
+        "right_foot_force_n": 47.32716369628906,
+        "other_body_force_n": 156.71002197265625,
+        "strict": false
+      },
+      {
+        "time_s": 8.450000000000001,
+        "pelvis_height_m": 0.07732090353965759,
+        "upright_score": 0.10079235583543777,
+        "tilt_norm": 0.9949073195457458,
+        "linear_speed_m_s": 0.014440873637795448,
+        "angular_speed_rad_s": 0.09283855557441711,
+        "linear_velocity_world_m_s": [
+          0.0029684968758374453,
+          -0.010238207876682281,
+          -0.009741969406604767
+        ],
+        "angular_velocity_world_rad_s": [
+          0.08353151381015778,
+          0.03811699151992798,
+          -0.01373237743973732
+        ],
+        "projected_gravity_body": [
+          -0.994895339012146,
+          -0.004884675145149231,
+          -0.10079235583543777
+        ],
+        "left_foot_force_n": 58.035648345947266,
+        "right_foot_force_n": 47.32716369628906,
+        "other_body_force_n": 157.810546875,
+        "strict": false
+      },
+      {
+        "time_s": 8.5,
+        "pelvis_height_m": 0.07728610932826996,
+        "upright_score": 0.10067382454872131,
+        "tilt_norm": 0.9949193596839905,
+        "linear_speed_m_s": 0.014970299787819386,
+        "angular_speed_rad_s": 0.09837115556001663,
+        "linear_velocity_world_m_s": [
+          0.003097773063927889,
+          -0.010877935215830803,
+          -0.009807354770600796
+        ],
+        "angular_velocity_world_rad_s": [
+          0.09020088613033295,
+          0.03738510608673096,
+          -0.011959894560277462
+        ],
+        "projected_gravity_body": [
+          -0.9949113726615906,
+          -0.003994300961494446,
+          -0.10067382454872131
+        ],
+        "left_foot_force_n": 58.035648345947266,
+        "right_foot_force_n": 46.380615234375,
+        "other_body_force_n": 157.810546875,
+        "strict": false
+      },
+      {
+        "time_s": 8.55,
+        "pelvis_height_m": 0.07726360112428665,
+        "upright_score": 0.10066066682338715,
+        "tilt_norm": 0.9949207305908203,
+        "linear_speed_m_s": 0.014583324082195759,
+        "angular_speed_rad_s": 0.0744147077202797,
+        "linear_velocity_world_m_s": [
+          0.00498395087197423,
+          -0.012406115420162678,
+          -0.005824250169098377
+        ],
+        "angular_velocity_world_rad_s": [
+          0.07213322818279266,
+          -0.004315847996622324,
+          -0.017768502235412598
+        ],
+        "projected_gravity_body": [
+          -0.9949151277542114,
+          -0.003329634666442871,
+          -0.10066066682338715
+        ],
+        "left_foot_force_n": 58.310943603515625,
+        "right_foot_force_n": 46.380615234375,
+        "other_body_force_n": 158.5039520263672,
+        "strict": false
+      },
+      {
+        "time_s": 8.6,
+        "pelvis_height_m": 0.07722694426774979,
+        "upright_score": 0.100717693567276,
+        "tilt_norm": 0.9949148893356323,
+        "linear_speed_m_s": 0.01441465225070715,
+        "angular_speed_rad_s": 0.09618138521909714,
+        "linear_velocity_world_m_s": [
+          0.0027351740282028913,
+          -0.010461247526109219,
+          -0.00953222531825304
+        ],
+        "angular_velocity_world_rad_s": [
+          0.07967925071716309,
+          0.053700629621744156,
+          -0.0042799124494194984
+        ],
+        "projected_gravity_body": [
+          -0.9949120879173279,
+          -0.002365127205848694,
+          -0.100717693567276
+        ],
+        "left_foot_force_n": 58.310943603515625,
+        "right_foot_force_n": 45.963600158691406,
+        "other_body_force_n": 158.5039520263672,
+        "strict": false
+      },
+      {
+        "time_s": 8.65,
+        "pelvis_height_m": 0.07719834893941879,
+        "upright_score": 0.10073231160640717,
+        "tilt_norm": 0.9949134588241577,
+        "linear_speed_m_s": 0.014648891054093838,
+        "angular_speed_rad_s": 0.07562243193387985,
+        "linear_velocity_world_m_s": [
+          0.004774424713104963,
+          -0.012430079281330109,
+          -0.006106391549110413
+        ],
+        "angular_velocity_world_rad_s": [
+          0.07359592616558075,
+          -0.0007957291672937572,
+          -0.017371196299791336
+        ],
+        "projected_gravity_body": [
+          -0.9949122071266174,
+          -0.0015969127416610718,
+          -0.10073231160640717
+        ],
+        "left_foot_force_n": 58.371734619140625,
+        "right_foot_force_n": 45.893550872802734,
+        "other_body_force_n": 158.28378295898438,
+        "strict": false
+      },
+      {
+        "time_s": 8.700000000000001,
+        "pelvis_height_m": 0.07716593891382217,
+        "upright_score": 0.10078150033950806,
+        "tilt_norm": 0.9949085712432861,
+        "linear_speed_m_s": 0.01513271126896143,
+        "angular_speed_rad_s": 0.1033143401145935,
+        "linear_velocity_world_m_s": [
+          0.0017104139551520348,
+          -0.010880996473133564,
+          -0.010376769118010998
+        ],
+        "angular_velocity_world_rad_s": [
+          0.08611109852790833,
+          0.05506369099020958,
+          -0.015057256445288658
+        ],
+        "projected_gravity_body": [
+          -0.9949082732200623,
+          -0.0007171183824539185,
+          -0.10078150033950806
+        ],
+        "left_foot_force_n": 58.371734619140625,
+        "right_foot_force_n": 47.76255798339844,
+        "other_body_force_n": 158.28378295898438,
+        "strict": false
+      },
+      {
+        "time_s": 8.75,
+        "pelvis_height_m": 0.07713525742292404,
+        "upright_score": 0.10083039849996567,
+        "tilt_norm": 0.9949034452438354,
+        "linear_speed_m_s": 0.015358257107436657,
+        "angular_speed_rad_s": 0.11123909056186676,
+        "linear_velocity_world_m_s": [
+          0.0021067827474325895,
+          -0.011123714037239552,
+          -0.010377886705100536
+        ],
+        "angular_velocity_world_rad_s": [
+          0.09182045608758926,
+          0.06242949143052101,
+          -0.00675996532663703
+        ],
+        "projected_gravity_body": [
+          -0.9949034452438354,
+          7.747113704681396e-05,
+          -0.10083039849996567
+        ],
+        "left_foot_force_n": 57.81411361694336,
+        "right_foot_force_n": 47.76255798339844,
+        "other_body_force_n": 153.3109130859375,
+        "strict": false
+      },
+      {
+        "time_s": 8.8,
+        "pelvis_height_m": 0.07711233198642731,
+        "upright_score": 0.10094445943832397,
+        "tilt_norm": 0.9948919415473938,
+        "linear_speed_m_s": 0.01426664274185896,
+        "angular_speed_rad_s": 0.07426609098911285,
+        "linear_velocity_world_m_s": [
+          0.004334223922342062,
+          -0.011984971351921558,
+          -0.006411869078874588
+        ],
+        "angular_velocity_world_rad_s": [
+          0.07319434732198715,
+          0.00804323609918356,
+          -0.009661555290222168
+        ],
+        "projected_gravity_body": [
+          -0.9948917031288147,
+          0.0006957799196243286,
+          -0.10094445943832397
+        ],
+        "left_foot_force_n": 58.37807083129883,
+        "right_foot_force_n": 46.9303092956543,
+        "other_body_force_n": 158.02365112304688,
+        "strict": false
+      },
+      {
+        "time_s": 8.85,
+        "pelvis_height_m": 0.07707491517066956,
+        "upright_score": 0.10113006830215454,
+        "tilt_norm": 0.9948729872703552,
+        "linear_speed_m_s": 0.014548750594258308,
+        "angular_speed_rad_s": 0.0877518430352211,
+        "linear_velocity_world_m_s": [
+          0.0020662546157836914,
+          -0.010645783506333828,
+          -0.009698661044239998
+        ],
+        "angular_velocity_world_rad_s": [
+          0.07706549018621445,
+          0.03905516117811203,
+          -0.015361993573606014
+        ],
+        "projected_gravity_body": [
+          -0.9948715567588806,
+          0.0017093420028686523,
+          -0.10113006830215454
+        ],
+        "left_foot_force_n": 58.37807083129883,
+        "right_foot_force_n": 47.359130859375,
+        "other_body_force_n": 158.02365112304688,
+        "strict": false
+      },
+      {
+        "time_s": 8.9,
+        "pelvis_height_m": 0.07703140377998352,
+        "upright_score": 0.10099387168884277,
+        "tilt_norm": 0.9948869943618774,
+        "linear_speed_m_s": 0.014249252155423164,
+        "angular_speed_rad_s": 0.08693212270736694,
+        "linear_velocity_world_m_s": [
+          0.004379837773740292,
+          -0.01032328326255083,
+          -0.008791361935436726
+        ],
+        "angular_velocity_world_rad_s": [
+          0.07882077246904373,
+          0.036317795515060425,
+          0.005049462430179119
+        ],
+        "projected_gravity_body": [
+          -0.9948832988739014,
+          0.0027052760124206543,
+          -0.10099387168884277
+        ],
+        "left_foot_force_n": 58.37168884277344,
+        "right_foot_force_n": 47.359130859375,
+        "other_body_force_n": 157.92034912109375,
+        "strict": false
+      },
+      {
+        "time_s": 8.950000000000001,
+        "pelvis_height_m": 0.07699286937713623,
+        "upright_score": 0.1009584590792656,
+        "tilt_norm": 0.9948903322219849,
+        "linear_speed_m_s": 0.014739295467734337,
+        "angular_speed_rad_s": 0.06196886673569679,
+        "linear_velocity_world_m_s": [
+          0.006384111009538174,
+          -0.012325620278716087,
+          -0.0049567148089408875
+        ],
+        "angular_velocity_world_rad_s": [
+          0.05820043012499809,
+          -0.019294600933790207,
+          -0.00897601805627346
+        ],
+        "projected_gravity_body": [
+          -0.9948832392692566,
+          0.0037644654512405396,
+          -0.1009584590792656
+        ],
+        "left_foot_force_n": 57.6587028503418,
+        "right_foot_force_n": 45.088157653808594,
+        "other_body_force_n": 159.7554168701172,
+        "strict": false
+      },
+      {
+        "time_s": 9.0,
+        "pelvis_height_m": 0.07692582905292511,
+        "upright_score": 0.10119126737117767,
+        "tilt_norm": 0.9948669075965881,
+        "linear_speed_m_s": 0.013937399722635746,
+        "angular_speed_rad_s": 0.056907445192337036,
+        "linear_velocity_world_m_s": [
+          0.0054056658409535885,
+          -0.01069351751357317,
+          -0.0071188886649906635
+        ],
+        "angular_velocity_world_rad_s": [
+          0.05212082341313362,
+          0.02284092642366886,
+          0.0004112595343030989
+        ],
+        "projected_gravity_body": [
+          -0.9948514103889465,
+          0.005553454160690308,
+          -0.10119126737117767
+        ],
+        "left_foot_force_n": 57.6587028503418,
+        "right_foot_force_n": 47.0966796875,
+        "other_body_force_n": 159.7554168701172,
+        "strict": false
+      },
+      {
+        "time_s": 9.05,
+        "pelvis_height_m": 0.07686502486467361,
+        "upright_score": 0.10143153369426727,
+        "tilt_norm": 0.994842529296875,
+        "linear_speed_m_s": 0.013447677716612816,
+        "angular_speed_rad_s": 0.03309750556945801,
+        "linear_velocity_world_m_s": [
+          0.007477818988263607,
+          -0.010300109162926674,
+          -0.004339356441050768
+        ],
+        "angular_velocity_world_rad_s": [
+          0.022808466106653214,
+          -0.023794418200850487,
+          0.0030073781963437796
+        ],
+        "projected_gravity_body": [
+          -0.9948167204856873,
+          0.007168501615524292,
+          -0.10143153369426727
+        ],
+        "left_foot_force_n": 57.39210891723633,
+        "right_foot_force_n": 47.0966796875,
+        "other_body_force_n": 154.7002716064453,
+        "strict": false
+      },
+      {
+        "time_s": 9.1,
+        "pelvis_height_m": 0.0768357664346695,
+        "upright_score": 0.10178504139184952,
+        "tilt_norm": 0.9948064684867859,
+        "linear_speed_m_s": 0.013863258063793182,
+        "angular_speed_rad_s": 0.07309029996395111,
+        "linear_velocity_world_m_s": [
+          0.004955199081450701,
+          -0.005501271691173315,
+          -0.011720577254891396
+        ],
+        "angular_velocity_world_rad_s": [
+          0.021872401237487793,
+          0.0672287866473198,
+          0.018549390137195587
+        ],
+        "projected_gravity_body": [
+          -0.9947739839553833,
+          0.008042603731155396,
+          -0.10178504139184952
+        ],
+        "left_foot_force_n": 56.246559143066406,
+        "right_foot_force_n": 45.20075988769531,
+        "other_body_force_n": 154.7002716064453,
+        "strict": false
+      },
+      {
+        "time_s": 9.15,
+        "pelvis_height_m": 0.07683664560317993,
+        "upright_score": 0.1019793376326561,
+        "tilt_norm": 0.9947863817214966,
+        "linear_speed_m_s": 0.014298742637038231,
+        "angular_speed_rad_s": 0.068962462246418,
+        "linear_velocity_world_m_s": [
+          0.0054755196906626225,
+          -0.005768909119069576,
+          -0.011882441118359566
+        ],
+        "angular_velocity_world_rad_s": [
+          0.02654527686536312,
+          0.06361380219459534,
+          0.0021103746257722378
+        ],
+        "projected_gravity_body": [
+          -0.994753360748291,
+          0.008103758096694946,
+          -0.1019793376326561
+        ],
+        "left_foot_force_n": 53.5657958984375,
+        "right_foot_force_n": 45.97185134887695,
+        "other_body_force_n": 153.34764099121094,
+        "strict": false
+      },
+      {
+        "time_s": 9.200000000000001,
+        "pelvis_height_m": 0.07683677971363068,
+        "upright_score": 0.10206737369298935,
+        "tilt_norm": 0.994777500629425,
+        "linear_speed_m_s": 0.013479025103151798,
+        "angular_speed_rad_s": 0.05556388944387436,
+        "linear_velocity_world_m_s": [
+          0.005516376346349716,
+          -0.0052561163902282715,
+          -0.01111876592040062
+        ],
+        "angular_velocity_world_rad_s": [
+          0.02228882536292076,
+          0.05050300434231758,
+          0.00632460368797183
+        ],
+        "projected_gravity_body": [
+          -0.9947447776794434,
+          0.00806628167629242,
+          -0.10206737369298935
+        ],
+        "left_foot_force_n": 54.181488037109375,
+        "right_foot_force_n": 45.97185134887695,
+        "other_body_force_n": 153.79592895507812,
+        "strict": false
+      },
+      {
+        "time_s": 9.25,
+        "pelvis_height_m": 0.07683653384447098,
+        "upright_score": 0.10214303433895111,
+        "tilt_norm": 0.9947695136070251,
+        "linear_speed_m_s": 0.01310253981500864,
+        "angular_speed_rad_s": 0.04928437992930412,
+        "linear_velocity_world_m_s": [
+          0.005273240618407726,
+          -0.0051282052882015705,
+          -0.01084301620721817
+        ],
+        "angular_velocity_world_rad_s": [
+          0.02007116563618183,
+          0.04416298866271973,
+          0.008702239952981472
+        ],
+        "projected_gravity_body": [
+          -0.9947366118431091,
+          0.008088812232017517,
+          -0.10214303433895111
+        ],
+        "left_foot_force_n": 54.181488037109375,
+        "right_foot_force_n": 45.030494689941406,
+        "other_body_force_n": 155.48756408691406,
+        "strict": false
+      },
+      {
+        "time_s": 9.3,
+        "pelvis_height_m": 0.0768330842256546,
+        "upright_score": 0.10215063393115997,
+        "tilt_norm": 0.9947689175605774,
+        "linear_speed_m_s": 0.011767818592488766,
+        "angular_speed_rad_s": 0.03229139372706413,
+        "linear_velocity_world_m_s": [
+          0.0049279616214334965,
+          -0.0056320722214877605,
+          -0.009081657975912094
+        ],
+        "angular_velocity_world_rad_s": [
+          0.017773989588022232,
+          0.02695930190384388,
+          -0.0001245315943378955
+        ],
+        "projected_gravity_body": [
+          -0.994735598564148,
+          0.008139654994010925,
+          -0.10215063393115997
+        ],
+        "left_foot_force_n": 54.04806900024414,
+        "right_foot_force_n": 43.76352310180664,
+        "other_body_force_n": 157.86463928222656,
+        "strict": false
+      },
+      {
+        "time_s": 9.35,
+        "pelvis_height_m": 0.07683350890874863,
+        "upright_score": 0.10211164504289627,
+        "tilt_norm": 0.9947728514671326,
+        "linear_speed_m_s": 0.012515271082520485,
+        "angular_speed_rad_s": 0.04150703176856041,
+        "linear_velocity_world_m_s": [
+          0.004896574653685093,
+          -0.00557918893173337,
+          -0.010076121427118778
+        ],
+        "angular_velocity_world_rad_s": [
+          0.019469445571303368,
+          0.03665434941649437,
+          0.0004829455865547061
+        ],
+        "projected_gravity_body": [
+          -0.9947396516799927,
+          0.00812600553035736,
+          -0.10211164504289627
+        ],
+        "left_foot_force_n": 53.799713134765625,
+        "right_foot_force_n": 43.775604248046875,
+        "other_body_force_n": 157.86463928222656,
+        "strict": false
+      },
+      {
+        "time_s": 9.4,
+        "pelvis_height_m": 0.07683433592319489,
+        "upright_score": 0.10208459198474884,
+        "tilt_norm": 0.994775652885437,
+        "linear_speed_m_s": 0.013820572756230831,
+        "angular_speed_rad_s": 0.05563829839229584,
+        "linear_velocity_world_m_s": [
+          0.005683829542249441,
+          -0.00531712407246232,
+          -0.011420616880059242
+        ],
+        "angular_velocity_world_rad_s": [
+          0.026633821427822113,
+          0.04862615093588829,
+          0.004664441104978323
+        ],
+        "projected_gravity_body": [
+          -0.9947418570518494,
+          0.008200481534004211,
+          -0.10208459198474884
+        ],
+        "left_foot_force_n": 52.675048828125,
+        "right_foot_force_n": 45.447750091552734,
+        "other_body_force_n": 156.74887084960938,
+        "strict": false
+      },
+      {
+        "time_s": 9.450000000000001,
+        "pelvis_height_m": 0.07683377712965012,
+        "upright_score": 0.10214100778102875,
+        "tilt_norm": 0.9947699308395386,
+        "linear_speed_m_s": 0.01327431295067072,
+        "angular_speed_rad_s": 0.04495379701256752,
+        "linear_velocity_world_m_s": [
+          0.005585398990660906,
+          -0.0053430176340043545,
+          -0.010791797190904617
+        ],
+        "angular_velocity_world_rad_s": [
+          0.02544623799622059,
+          0.036561645567417145,
+          0.0060480330139398575
+        ],
+        "projected_gravity_body": [
+          -0.9947357773780823,
+          0.008240088820457458,
+          -0.10214100778102875
+        ],
+        "left_foot_force_n": 51.84619903564453,
+        "right_foot_force_n": 45.447750091552734,
+        "other_body_force_n": 157.90817260742188,
+        "strict": false
+      },
+      {
+        "time_s": 9.5,
+        "pelvis_height_m": 0.07683230936527252,
+        "upright_score": 0.1022079735994339,
+        "tilt_norm": 0.9947630167007446,
+        "linear_speed_m_s": 0.012284483760595322,
+        "angular_speed_rad_s": 0.03139633685350418,
+        "linear_velocity_world_m_s": [
+          0.0057302662171423435,
+          -0.00509245740249753,
+          -0.0095989303663373
+        ],
+        "angular_velocity_world_rad_s": [
+          0.020649459213018417,
+          0.021738452836871147,
+          0.009315012954175472
+        ],
+        "projected_gravity_body": [
+          -0.9947288632392883,
+          0.008243054151535034,
+          -0.1022079735994339
+        ],
+        "left_foot_force_n": 51.84619903564453,
+        "right_foot_force_n": 44.920616149902344,
+        "other_body_force_n": 157.98016357421875,
+        "strict": false
+      },
+      {
+        "time_s": 9.55,
+        "pelvis_height_m": 0.07683701068162918,
+        "upright_score": 0.10267794877290726,
+        "tilt_norm": 0.9947144985198975,
+        "linear_speed_m_s": 0.012681077234447002,
+        "angular_speed_rad_s": 0.04441247135400772,
+        "linear_velocity_world_m_s": [
+          0.0063629490323364735,
+          -0.004999553319066763,
+          -0.009763557463884354
+        ],
+        "angular_velocity_world_rad_s": [
+          0.02083226665854454,
+          0.028059322386980057,
+          0.027407273650169373
+        ],
+        "projected_gravity_body": [
+          -0.9946793913841248,
+          0.008354276418685913,
+          -0.10267794877290726
+        ],
+        "left_foot_force_n": 51.268428802490234,
+        "right_foot_force_n": 43.600101470947266,
+        "other_body_force_n": 160.24200439453125,
+        "strict": false
+      },
+      {
+        "time_s": 9.600000000000001,
+        "pelvis_height_m": 0.07684112340211868,
+        "upright_score": 0.1031024158000946,
+        "tilt_norm": 0.9946706891059875,
+        "linear_speed_m_s": 0.013361060991883278,
+        "angular_speed_rad_s": 0.030619975179433823,
+        "linear_velocity_world_m_s": [
+          0.006389357149600983,
+          -0.005517841782420874,
+          -0.010356036014854908
+        ],
+        "angular_velocity_world_rad_s": [
+          0.026303136721253395,
+          0.013374682515859604,
+          0.008175923489034176
+        ],
+        "projected_gravity_body": [
+          -0.9946346282958984,
+          0.008472993969917297,
+          -0.1031024158000946
+        ],
+        "left_foot_force_n": 49.78383255004883,
+        "right_foot_force_n": 43.45466995239258,
+        "other_body_force_n": 162.5909423828125,
+        "strict": false
+      },
+      {
+        "time_s": 9.65,
+        "pelvis_height_m": 0.07686436176300049,
+        "upright_score": 0.1036158874630928,
+        "tilt_norm": 0.9946172833442688,
+        "linear_speed_m_s": 0.012177028693258762,
+        "angular_speed_rad_s": 0.03574766963720322,
+        "linear_velocity_world_m_s": [
+          0.005368381273001432,
+          -0.0037215673364698887,
+          -0.010276694782078266
+        ],
+        "angular_velocity_world_rad_s": [
+          0.010893568396568298,
+          0.026582922786474228,
+          0.021273791790008545
+        ],
+        "projected_gravity_body": [
+          -0.9945775866508484,
+          0.008889764547348022,
+          -0.1036158874630928
+        ],
+        "left_foot_force_n": 48.53900909423828,
+        "right_foot_force_n": 43.78447723388672,
+        "other_body_force_n": 163.33450317382812,
+        "strict": false
+      },
+      {
+        "time_s": 9.700000000000001,
+        "pelvis_height_m": 0.07690839469432831,
+        "upright_score": 0.10378419607877731,
+        "tilt_norm": 0.9945996403694153,
+        "linear_speed_m_s": 0.012052205391228199,
+        "angular_speed_rad_s": 0.03656291216611862,
+        "linear_velocity_world_m_s": [
+          0.005307102110236883,
+          -0.004442747216671705,
+          -0.009866728447377682
+        ],
+        "angular_velocity_world_rad_s": [
+          0.0074949911795556545,
+          0.024435903877019882,
+          0.026144947856664658
+        ],
+        "projected_gravity_body": [
+          -0.9945514798164368,
+          0.009785696864128113,
+          -0.10378419607877731
+        ],
+        "left_foot_force_n": 47.683982849121094,
+        "right_foot_force_n": 43.78447723388672,
+        "other_body_force_n": 163.78211975097656,
+        "strict": false
+      },
+      {
+        "time_s": 9.75,
+        "pelvis_height_m": 0.0769689530134201,
+        "upright_score": 0.10398510843515396,
+        "tilt_norm": 0.9945787787437439,
+        "linear_speed_m_s": 0.010937439277768135,
+        "angular_speed_rad_s": 0.04154162108898163,
+        "linear_velocity_world_m_s": [
+          0.00595183577388525,
+          -0.0022359166759997606,
+          -0.008899657987058163
+        ],
+        "angular_velocity_world_rad_s": [
+          -0.006935182027518749,
+          0.02296486496925354,
+          0.0339149609208107
+        ],
+        "projected_gravity_body": [
+          -0.994516134262085,
+          0.011162713170051575,
+          -0.10398510843515396
+        ],
+        "left_foot_force_n": 46.872314453125,
+        "right_foot_force_n": 43.632347106933594,
+        "other_body_force_n": 163.78211975097656,
+        "strict": false
+      },
+      {
+        "time_s": 9.8,
+        "pelvis_height_m": 0.07706375420093536,
+        "upright_score": 0.1046140193939209,
+        "tilt_norm": 0.9945127964019775,
+        "linear_speed_m_s": 0.010403919033706188,
+        "angular_speed_rad_s": 0.05680888891220093,
+        "linear_velocity_world_m_s": [
+          0.00608367845416069,
+          -0.0015210214769467711,
+          -0.008301619440317154
+        ],
+        "angular_velocity_world_rad_s": [
+          -0.017962662503123283,
+          0.02638125792145729,
+          0.04699597507715225
+        ],
+        "projected_gravity_body": [
+          -0.9944264888763428,
+          0.013101264834403992,
+          -0.1046140193939209
+        ],
+        "left_foot_force_n": 46.61859893798828,
+        "right_foot_force_n": 42.450767517089844,
+        "other_body_force_n": 161.72695922851562,
+        "strict": false
+      },
+      {
+        "time_s": 9.850000000000001,
+        "pelvis_height_m": 0.07717148214578629,
+        "upright_score": 0.10540174692869186,
+        "tilt_norm": 0.9944295883178711,
+        "linear_speed_m_s": 0.010262783616781235,
+        "angular_speed_rad_s": 0.05686412751674652,
+        "linear_velocity_world_m_s": [
+          0.006070879753679037,
+          -0.0013057913165539503,
+          -0.008170926943421364
+        ],
+        "angular_velocity_world_rad_s": [
+          -0.021636471152305603,
+          0.022302154451608658,
+          0.047623585909605026
+        ],
+        "projected_gravity_body": [
+          -0.9943110346794128,
+          0.01535557210445404,
+          -0.10540174692869186
+        ],
+        "left_foot_force_n": 46.61859893798828,
+        "right_foot_force_n": 42.450767517089844,
+        "other_body_force_n": 161.72695922851562,
+        "strict": false
+      },
+      {
+        "time_s": 9.9,
+        "pelvis_height_m": 0.07730299979448318,
+        "upright_score": 0.10615786164999008,
+        "tilt_norm": 0.9943490624427795,
+        "linear_speed_m_s": 0.01012696884572506,
+        "angular_speed_rad_s": 0.07333973050117493,
+        "linear_velocity_world_m_s": [
+          0.005595167633146048,
+          -0.0003806673630606383,
+          -0.00843235943466425
+        ],
+        "angular_velocity_world_rad_s": [
+          -0.031387776136398315,
+          0.033405840396881104,
+          0.057250089943408966
+        ],
+        "projected_gravity_body": [
+          -0.9941828846931458,
+          0.018177345395088196,
+          -0.10615786164999008
+        ],
+        "left_foot_force_n": 46.43813705444336,
+        "right_foot_force_n": 42.02863311767578,
+        "other_body_force_n": 161.54185485839844,
+        "strict": false
+      }
+    ]
+  },
+  "passes_io_integrity": true,
+  "passes_strict_stance": false
+}

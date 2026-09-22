@@ -1,88 +1,59 @@
 # Validation record
 
-Updated on 21 September 2026. Every result below was executed on the target workstation. No result from the reduced CPU harness is presented as an X2 rigid-body result.
+Updated 22 September 2026. CPU-harness results are labelled separately and are never presented as X2 rigid-body evidence.
 
-## System and isolation
+## Isolation and asset
 
-Validation used Ubuntu 22.04.5, ROS 2 Humble, Python 3.10.12, Isaac Sim 6.0.1, Isaac Lab 3.0.0, RSL-RL 5.0.1 and an NVIDIA GeForce RTX 5080 Laptop GPU. HRS processes ran at nice level 15 on CPU set `<HOST_CPUSET>`. `scripts/check_runtime_isolation.sh` confirmed that system Python imports ROS but not Isaac Lab, while the selected Isaac Python 3.12.13 imports Isaac Lab but not `rclpy`. The two processes exchange newline JSON through a local mode-0600 Unix socket.
+Validation used Ubuntu 22.04.5, ROS 2 Humble, Python 3.10.12, Isaac Sim 6.0.1, Isaac Lab 3.0.0, RSL-RL 5.0.1 and an NVIDIA GeForce RTX 5080 Laptop GPU. Every HRS command ran at nice level 15 on CPU set `<HOST_CPUSET>`. System Python imports ROS but not Isaac; the selected Isaac Python imports Isaac but not `rclpy`. No external robot workspace, system package, runtime, driver or CPU-isolation setting was modified.
 
-The official AgiBot X2 Ultra v1.3.0 simplified-collision URDF is pinned at upstream commit `60c5de582c523cd188f563819e62d34cfdc3d2d0`. The imported floating-base model has 39 links, 38 joints, 50 collision elements, 49 mesh references and 41.966521 kg total mass. Geometry, live reset, curriculum and standing-reachability reports are committed alongside this record.
+The official X2 Ultra v1.3.0 simplified-collision URDF is pinned at upstream commit `60c5de582c523cd188f563819e62d34cfdc3d2d0`. The imported floating-base model has 39 links, 38 joints, 50 collision elements, 49 mesh references and 41.966521 kg total mass. The fetcher disables hooks/submodules, verifies origin and revision, and never uploads local data. Isaac launchers disable telemetry/crash uploads and use a private network namespace when supported.
 
-## PPO experiment
+The geometry audit gives 0.1803007 m from pelvis to the lowest point in the supine pose. The 0.190 m reset and bounded jitter retain at least 6.3 mm clearance. Five live resets verify zero initial velocity and fresh projected-gravity observations.
 
-```bash
-ISAAC_PYTHON=<USER_HOME>/miniconda3/envs/codex/bin/python \
-HRS_CPUSET='<HOST_CPUSET>' HRS_NICE=15 \
-./scripts/train_isaac.sh \
-  --max_iterations 400 --num_envs 3000 --device cuda:0 \
-  --seed 46 --run_name v5b_full_contact_balanced
-```
+## Contact and policy I/O
 
-Observed: exit code 0 after 400 optimizer iterations and 14,400,000 simulator transitions. The run sustained about 20,000–22,000 transitions/s, with roughly 1.5–1.8 s collection and 0.09 s PPO learning per iteration, and used about 5 GB of GPU memory. The 400 updates took about 12 minutes after startup. The final actor has 168 observations and 31 actions; its checkpoint contains finite actor/critic tensors and a 14.4-million-sample observation normalizer. The fixed-seed action I/O audit reports no non-finite observation, no target outside the imported soft limits, action standard deviation 0.332–0.467, and 6.7% of deterministic raw actions outside ±1 before the smooth `tanh` map (versus 87% in the discarded hard-clip branch). The committed outputs are:
+One recursive PhysX sensor resolves all 32 X2 rigid bodies in a fixed order. It filters the collision partner to `/World/ground`; all support rewards and success checks use `force_matrix_w_history`. This correction is necessary because the unfiltered net-force buffer also contains articulation self-collisions.
 
-- `reports/checkpoints/x2_recovery_model_399.pt`;
-- `reports/isaac_training_reward.png` and its scalar CSV;
-- `reports/x2_policy_io_audit.json`;
-- TorchScript and ONNX exports in `reports/exported/`.
+The selected actor has a 1,148-value observation contract: 98 current proprioceptive values, 70 zero Stage-I extrinsics and ten 98-value historical states. HumanUP's temporal encoder produces a 20-value latent; the actor MLP consumes 118 values and outputs 31 actions. The reference-2 audit measured finite observations/actions, finite checkpoint tensors, a normalizer count of 54,504,000, no target outside the imported soft joint limits, and no non-finite state.
+
+The generic RSL-RL exporter bypassed the custom history encoder and was rejected after a `1148 x 118` shape error. `HumanUpInferenceModule` explicitly exports the trained normalizer, history encoder and actor MLP. The reloaded `reports/exported_humanup/policy.pt` has a verified `1148→31` interface and zero maximum error against the source graph on the export probe.
+
+## PPO and curriculum evidence
+
+The selected checkpoint is `reports/checkpoints/x2_humanup_selected_model750.pt` (SHA-256 `c81dc5382c2fdc477801d85dcbb36d63554edcddb08633d8b299da5645cc3aca`). It uses PPO clip 0.2, gamma 0.99, GAE lambda 0.95, five epochs, four mini-batches, a `[512,256,128]` ELU head and HumanUP's 10-step history encoder. The committed reward plot and CSV cover iterations 617–765 of the selected run.
+
+The saved final-phase configuration has `reference_min_stage=reference_max_stage=2`. From that pose, the deterministic policy reaches 0.5972 m and satisfies the complete strict predicate for at most 0.25 s. Behavioral cloning is separately labelled: standing and shallow-rise demonstrations are strict successes, while the reference-2 data has zero strict successes and is marked partial. It reduced held-out action MSE but did not manufacture a successful deeper trajectory.
+
+A 100-update, 7.2-million-transition follow-up mixed stages 2–4. It still failed deterministic reference 3 and 4 audits, peaking at 0.3944 m and 0.3145 m. A subsequent stage-3-only 14.4-million-transition run improved its deterministic peak to 0.4210 m without reaching the 0.58 m stance boundary. Extending that same focused stage by another 300 updates and 21.6 million transitions increased the normalizer count to 97,704,000 but reached only 0.4145 m and still produced zero exact-stance reward. The longer ablation was therefore rejected as the selected checkpoint. This confirms that more PPO updates on the same reset distribution do not by themselves close the lower-stage gap; tensor shape, frame, NaN, limits and premature success termination have been checked separately.
 
 ## Strict five-episode Isaac evaluation
 
-```bash
-./scripts/evaluate_isaac.sh \
-  reports/checkpoints/x2_recovery_model_399.pt \
-  --output reports/isaac_evaluation.json --device cuda:0
-```
-
-Evaluation disables standing starts, lift assistance, observation noise and domain randomization. Each seed begins in a reproducibly perturbed, collision-audited supine pose. Success requires 0.5 continuous seconds with pelvis height at least 0.62 m, projected-gravity XY norm at most 0.15 and Z at most -0.98, root speeds at most 0.20 m/s and 0.35 rad/s, at least 15 N on each foot, and less than 15 N on every other body.
-
-| Episode | Seed | Result | Max pelvis (m) | Max upright | Longest two-foot contact (s) | Max strict stance (s) |
-| ---: | ---: | --- | ---: | ---: | ---: | ---: |
-| 1 | 101 | failed | 0.1896 | 0.9862 | 5.00 | 0.00 |
-| 2 | 102 | failed | 0.1905 | 0.9858 | 4.80 | 0.00 |
-| 3 | 103 | failed | 0.1894 | 0.9863 | 4.95 | 0.00 |
-| 4 | 104 | failed | 0.1905 | 0.9864 | 5.00 | 0.00 |
-| 5 | 105 | failed | 0.1902 | 0.9867 | 5.50 | 0.00 |
-
-Final result: **0/5 successful recoveries**. The robot learned a reproducible feet-loaded sitting behavior: both feet remain in contact for 4.8–5.5 s and upright score reaches about 0.986. It never raises the pelvis above the roughly 0.190 m initial supine height; terminal pelvis is 0.0679–0.0688 m and terminal non-foot support is 274–282 N. The failure is therefore a stable seated local optimum rather than a frame, floor, contact-sensor, limit or success-detector error.
-
-The investigation corrected five concrete causes before selecting this checkpoint: head-height/upward-velocity reward exploits, per-substep accumulation of a relative action, a curriculum measured in aggregate transitions, a hard action clip that produced saturated network output, and foot-only contact observations. Nine collision-audited reference poses, whole-body contacts, smooth `tanh` actions and weak bilateral/sagittal regularization improved the result from transient foot contact to stable two-foot sitting. Assisted follow-up runs reached high-pelvis states, but lost them as force vanished. HumanUP's evidence-supported next step is motion discovery followed by a dedicated imitation/refinement stage at a much larger update budget. Relaxing the predicate would conceal the failure and was not done; the assignment explicitly permits zero successes when explained.
-
-## ROS 2 build and runtime
-
-Fresh build:
-
-```bash
-./scripts/build_ros.sh
-```
-
-Observed: `1 package finished`.
-
-The deterministic CPU harness validates both ROS terminal paths:
-
-```bash
-./scripts/validate_ros_runtime.sh
-```
-
-Observed: the first request returned `success=True, message='Recovery accepted'`; the concurrent request returned `success=False, message='Recovery already running'`; live joint states were received; the normal scenario reached `SUCCEEDED` in 109 steps; and `policy_mode:=zero timeout_sec:=0.5` reached `FAILED` in 10 steps.
-
-The exported PPO policy was then exercised through the actual Isaac server:
+Command:
 
 ```bash
 ISAAC_PYTHON=<USER_HOME>/miniconda3/envs/codex/bin/python \
 HRS_CPUSET='<HOST_CPUSET>' HRS_NICE=15 \
-./scripts/validate_ros_isaac_runtime.sh reports/exported/policy.pt
+./scripts/evaluate_isaac.sh \
+  reports/checkpoints/x2_humanup_selected_model750.pt \
+  --output reports/isaac_evaluation_humanup.json --device cuda:0
 ```
 
-Observed: the first `/x2/start_recovery` request was accepted; an immediate second request was rejected as busy; `/x2/joint_states` returned a timestamped sample with all 31 simulator joints; and the real Isaac episode reached `FAILED` after 60 policy steps with `timeout before 0.5 s strict stable stance`. The command ended with `ROS-Isaac runtime validation passed`.
+Evaluation forces reference-start probability to zero and disables assistance, observation noise and domain randomization. Seeds 101–105 each begin in a fresh perturbed supine state. Success requires 0.5 continuous seconds with pelvis height at least 0.58 m, projected-gravity XY norm at most 0.15 and Z at most -0.98, root speed at most 0.25 m/s and 0.35 rad/s, at least 15 N floor force on both feet, and less than 15 N floor force on every other body.
 
-## Automated checks
+Result: **0/5**. Maximum pelvis height was 0.1894–0.1905 m, maximum upright score 0.3297–0.4355, and maximum continuous two-foot contact 2.35–5.00 s. Terminal non-foot support was 128.39–173.74 N. Every seed failed because it never reached the minimum pelvis height. The per-seed report is `reports/isaac_evaluation_humanup.json`; no threshold was relaxed after observing the result.
+
+The separate straight-standing reachability probe held every strict condition for 0.65 s at about 0.674 m. It proves the asset, floor, frames, contacts, limits and success predicate admit a valid stance. It does not count as recovery because it starts upright.
+
+## ROS 2 validation
+
+Commands:
 
 ```bash
-/usr/bin/python3 -m compileall -q isaaclab_ext src/x2_recovery_ros/x2_recovery_ros scripts
-bash -n scripts/*.sh
-PYTHONPATH="$PWD/src/x2_recovery_ros" /usr/bin/python3 -m pytest -q src/x2_recovery_ros/test
-ISAAC_PYTHON=<USER_HOME>/miniconda3/envs/codex/bin/python ./scripts/test_isaac_formulas.sh
-ISAAC_PYTHON=<USER_HOME>/miniconda3/envs/codex/bin/python ./scripts/check_runtime_isolation.sh
+./scripts/build_ros.sh
+./scripts/validate_ros_runtime.sh
+./scripts/validate_ros_isaac_runtime.sh reports/exported_humanup/policy.pt
 ```
 
-Observed: compilation and shell syntax passed; ROS tests reported `8 passed`; the independent formula suite reported `14 passed`; and runtime isolation passed. The repository also passes `git diff --check` and `git fsck` after the final artifact commit.
+Observed after a fresh build: the first `/x2/start_recovery` call returned `success=True`; a concurrent call returned `success=False` with `Recovery already running`; timestamped 31-joint telemetry was received; the deterministic CPU contract scenario reached `SUCCEEDED`; and `policy_mode:=zero timeout_sec:=0.5` reached `FAILED`. The ROS-to-Isaac check loaded the verified 1,148-input HumanUP TorchScript, used the mode-0600 Unix socket, accepted the first request, rejected the busy request, published live simulator joint states and reached `FAILED` after 60 policy steps at the configured 3.0 s timeout. ROS and Isaac stayed in their separate Python environments.
+
+The CPU harness scores 5/5 only in its reduced NumPy model. That validates orchestration and metrics, not X2 dynamics or hardware readiness.
