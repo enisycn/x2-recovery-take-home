@@ -41,7 +41,7 @@ parser.add_argument(
 )
 parser.add_argument(
     "--phase",
-    choices=("recovery", "standing", "rise", "humanup_discovery", "humanup_standing", "humanup_rise"),
+    choices=("recovery", "standing", "rise", "humanup_discovery", "humanup_standing", "humanup_rise", "simple_v2", "symmetric_v3"),
     default="recovery",
     help="Training curriculum phase.",
 )
@@ -114,8 +114,13 @@ from x2_recovery_isaac.env_cfg import (  # noqa: E402
 )
 
 
+from x2_recovery_isaac.simple_cfg import X2SimpleRecoveryEnvCfg, X2SimplePPORunnerCfg, X2SymmetricRecoveryEnvCfg, X2SymmetricPPORunnerCfg
+
+
 def main() -> Path:
     env_cfg_type = {
+        "simple_v2": X2SimpleRecoveryEnvCfg,
+        "symmetric_v3": X2SymmetricRecoveryEnvCfg,
         "recovery": X2RecoveryEnvCfg,
         "standing": X2StandingEnvCfg,
         "rise": X2RiseEnvCfg,
@@ -189,7 +194,11 @@ def main() -> Path:
     env_cfg.sim.device = args.device
     env_cfg.seed = args.seed
 
-    if args.phase == "humanup_discovery":
+    if args.phase == "symmetric_v3":
+        agent_cfg = X2SymmetricPPORunnerCfg()
+    elif args.phase == "simple_v2":
+        agent_cfg = X2SimplePPORunnerCfg()
+    elif args.phase == "humanup_discovery":
         agent_cfg = X2HumanUpPPORunnerCfg()
     elif args.phase.startswith("humanup_"):
         agent_cfg = X2HumanUpCurriculumPPORunnerCfg()
@@ -256,6 +265,10 @@ def main() -> Path:
                 load_cfg = {"actor": True, "critic": True, "optimizer": False, "iteration": True, "rnd": True}
             runner.load(str(checkpoint), load_cfg=load_cfg)
             print(f"[HRS] Resumed from {checkpoint}", flush=True)
+        if args.learning_rate_override is not None:
+            runner.alg.learning_rate = args.learning_rate_override
+            for group in runner.alg.optimizer.param_groups:
+                group["lr"] = args.learning_rate_override
         if args.action_std_override is not None:
             if args.action_std_override <= 0.0:
                 raise ValueError("--action_std_override must be positive")

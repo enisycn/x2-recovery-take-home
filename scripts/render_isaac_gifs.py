@@ -13,6 +13,7 @@ from isaaclab.app import AppLauncher
 
 parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument("--checkpoint", type=Path, required=True)
+parser.add_argument("--environment", choices=("humanup_rise", "simple_v2", "symmetric_v3"), default="humanup_rise")
 parser.add_argument("--output_dir", type=Path, default=Path("reports/gifs"))
 AppLauncher.add_app_launcher_args(parser)
 args = parser.parse_args()
@@ -31,6 +32,10 @@ import x2_recovery_isaac  # noqa: E402,F401
 from x2_recovery_isaac.agents.rsl_rl_ppo_cfg import X2HumanUpCurriculumPPORunnerCfg  # noqa: E402
 from x2_recovery_isaac.env_cfg import X2HumanUpRiseEnvCfg  # noqa: E402
 
+
+from x2_recovery_isaac.simple_cfg import X2SimpleRecoveryEnvCfg, X2SimplePPORunnerCfg, X2SymmetricRecoveryEnvCfg, X2SymmetricPPORunnerCfg
+from x2_recovery_isaac import mdp
+from x2_recovery_isaac.env_cfg import foot_contact_cfg, all_contact_cfg
 
 FONT_PATH = "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"
 
@@ -55,13 +60,13 @@ def _frame(task, title: str, detail: str) -> Image.Image:
     return image
 
 
-def _save_gif(frames: list[Image.Image], path: Path) -> None:
+def _save_gif(frames: list[Image.Image], path: Path, duration_ms=50) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     frames[0].save(
         path,
         save_all=True,
         append_images=frames[1:],
-        duration=50,
+        duration=duration_ms,
         loop=0,
         optimize=True,
         disposal=2,
@@ -72,7 +77,7 @@ def main() -> None:
     checkpoint = args.checkpoint.expanduser().resolve(strict=True)
     output_dir = args.output_dir.expanduser().resolve()
 
-    cfg = X2HumanUpRiseEnvCfg()
+    cfg = {"simple_v2": X2SimpleRecoveryEnvCfg, "symmetric_v3": X2SymmetricRecoveryEnvCfg, "humanup_rise": X2HumanUpRiseEnvCfg}[args.environment]()
     cfg.scene.num_envs = 1
     cfg.scene.env_spacing = 3.0
     cfg.sim.device = args.device
@@ -89,7 +94,7 @@ def main() -> None:
     cfg.viewer.eye = (2.4, 2.4, 1.45)
     cfg.viewer.lookat = (0.0, 0.0, 0.45)
 
-    agent_cfg = X2HumanUpCurriculumPPORunnerCfg()
+    agent_cfg = {"simple_v2": X2SimplePPORunnerCfg, "symmetric_v3": X2SymmetricPPORunnerCfg, "humanup_rise": X2HumanUpCurriculumPPORunnerCfg}[args.environment]()
     agent_cfg.device = args.device
     agent_cfg = handle_deprecated_rsl_rl_cfg(agent_cfg, importlib.metadata.version("rsl-rl-lib"))
 
@@ -97,6 +102,8 @@ def main() -> None:
     env = RslRlVecEnvWrapper(gym_env, clip_actions=agent_cfg.clip_actions)
     task = env.unwrapped
     robot = task.scene["robot"]
+    feet, allb = foot_contact_cfg(), all_contact_cfg()
+    feet.resolve(task.scene); allb.resolve(task.scene)
     try:
         runner = OnPolicyRunner(env, agent_cfg.to_dict(), log_dir=None, device=agent_cfg.device)
         runner.load(str(checkpoint))
@@ -110,21 +117,29 @@ def main() -> None:
         task.render(recompute=True)
         policy_frames: list[Image.Image] = []
         max_steps = round(cfg.episode_length_s / task.step_dt) - 1
+        consecutive = 0
         for step in range(max_steps):
+            strict = bool(mdp.strict_success(task, feet_cfg=feet, all_bodies_cfg=allb)[0])
+            consecutive = consecutive + 1 if strict else 0
             height = float(robot.data.root_pos_w.torch[0, 2].item())
             upright = float(-robot.data.projected_gravity_b.torch[0, 2].item())
             policy_frames.append(
                 _frame(
                     task,
-                    "HumanUP RMA policy - gercek supine deneme",
-                    f"t={step * task.step_dt:4.2f}s  pelvis={height:.3f}m  upright={upright:.3f}  SONUC: BASARISIZ",
+                    f"{args.environment} policy - gercek supine deneme",
+                    f"t={step * task.step_dt:4.2f}s  pelvis={height:.3f}m  upright={upright:.3f}  kararli={consecutive * task.step_dt:.2f}s",
                 )
             )
             with torch.no_grad():
                 action = policy(observation)
-                observation, _, _, _ = env.step(action)
+                observation, _, done, _ = env.step(action)
+                if bool(done[0]):
+                    break
         policy_path = output_dir / "x2_final_policy_attempt.gif"
-        _save_gif(policy_frames, policy_path)
+        _save_gif(policy_frames, policy_path, round(task.step_dt * 1000))
+        if args.environment != "humanup_rise":
+            print(policy_path)
+            return
 
         env.seed(42)
         env.reset()

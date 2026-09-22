@@ -1,0 +1,33 @@
+{
+  "dt": 0.005,
+  "observation_width": 168,
+  "all_finite": true,
+  "partial_contact_history_reset": true,
+  "supine_initial_gravity": [
+    [
+      -0.9999940395355225,
+      -0.0007168903248384595,
+      0.0034339309204369783
+    ],
+    [
+      -0.9998536109924316,
+      0.016907205805182457,
+      0.0026198113337159157
+    ]
+  ],
+  "standing_strict_hold_s": 0.7000000000000001,
+  "supine_zero_action_max_height": 0.18729177117347717,
+  "action_response_rad": 0.07500000298023224,
+  "terminal_capture": {
+    "ids": [
+      1
+    ],
+    "height": [
+      0.29208704829216003
+    ],
+    "length": [
+      85
+    ]
+  },
+  "passed": true
+}

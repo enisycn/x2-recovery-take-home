@@ -14,6 +14,7 @@ from isaaclab.app import AppLauncher
 
 parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument("--checkpoint", type=Path, required=True, help="RSL-RL model checkpoint")
+parser.add_argument("--environment", choices=("humanup_rise", "simple_v2", "symmetric_v3"), default="humanup_rise")
 parser.add_argument("--output", type=Path, default=Path("reports/isaac_evaluation.json"))
 AppLauncher.add_app_launcher_args(parser)
 args = parser.parse_args()
@@ -37,6 +38,8 @@ from x2_recovery_isaac.env_cfg import (  # noqa: E402
     all_contact_cfg,
     foot_contact_cfg,
 )
+
+from x2_recovery_isaac.simple_cfg import X2SimpleRecoveryEnvCfg, X2SimplePPORunnerCfg, X2SymmetricRecoveryEnvCfg, X2SymmetricPPORunnerCfg
 
 SEEDS = (101, 102, 103, 104, 105)
 STABLE_STEPS = 10  # 0.5 s at the 20 Hz policy rate, as in the FRASA check.
@@ -64,7 +67,7 @@ def _ground_contact_forces(env) -> dict[str, float]:
     """Return only body-to-floor force, excluding X2 self-collisions."""
 
     sensor = env.scene.sensors[CONTACT_SENSOR_NAME]
-    forces = mdp._ground_force_history(sensor)[0].norm(dim=-1).amax(dim=0)
+    forces = mdp._ground_forces(sensor)[0].norm(dim=-1)
     return {
         name: float(force.item())
         for name, force in zip(sensor.body_names, forces, strict=True)
@@ -106,6 +109,7 @@ def snapshot(env) -> dict:
         "max_other_body_force_n": round(other_force, 2),
         "strict": all(criteria.values()),
         "criteria": criteria,
+        "joint_position_rad": dict(zip(robot.joint_names, robot.data.joint_pos.torch[0].tolist())),
     }
 
 
@@ -121,7 +125,7 @@ def _failure_mode(max_height: float, max_stable_s: float, ended_early: bool) -> 
 
 def main() -> None:
     checkpoint = args.checkpoint.expanduser().resolve(strict=True)
-    cfg = X2HumanUpRiseEnvCfg()
+    cfg = {"simple_v2": X2SimpleRecoveryEnvCfg, "symmetric_v3": X2SymmetricRecoveryEnvCfg, "humanup_rise": X2HumanUpRiseEnvCfg}[args.environment]()
     cfg.scene.num_envs = 1
     cfg.scene.env_spacing = 3.0
     cfg.sim.device = args.device
@@ -137,7 +141,7 @@ def main() -> None:
     reset_params["reference_probability_start"] = 0.0
     reset_params["reference_probability_end"] = 0.0
 
-    agent_cfg = X2HumanUpCurriculumPPORunnerCfg()
+    agent_cfg = {"simple_v2": X2SimplePPORunnerCfg, "symmetric_v3": X2SymmetricPPORunnerCfg, "humanup_rise": X2HumanUpCurriculumPPORunnerCfg}[args.environment]()
     agent_cfg.device = args.device
     agent_cfg = handle_deprecated_rsl_rl_cfg(
         agent_cfg, importlib.metadata.version("rsl-rl-lib")
@@ -145,6 +149,9 @@ def main() -> None:
     gym_env = gym.make("HRS-X2-Recovery-Play-v0", cfg=cfg)
     env = RslRlVecEnvWrapper(gym_env, clip_actions=agent_cfg.clip_actions)
     task = env.unwrapped
+    stable_steps = round(0.5 / task.step_dt)
+    observation_width = {"simple_v2": 168, "symmetric_v3": 122, "humanup_rise": 1148}[args.environment]
+    action_width = task.action_manager.total_action_dim
     feet_cfg = foot_contact_cfg()
     all_bodies_cfg = all_contact_cfg()
     feet_cfg.resolve(task.scene)
@@ -156,16 +163,17 @@ def main() -> None:
         runner.load(str(checkpoint))
         policy = runner.get_inference_policy(device=task.device)
 
-        export_dir = args.output.expanduser().resolve().parent / "exported_humanup"
+        export_dir = args.output.expanduser().resolve().parent / ("exported_humanup" if args.environment == "humanup_rise" else f"exported_{args.environment}")
         export_dir.mkdir(parents=True, exist_ok=True)
         try:
             actor = copy.deepcopy(runner.alg.get_policy()).to("cpu").eval()
-            deployment = HumanUpInferenceModule(actor).eval()
-            example = torch.zeros((1, 1148), dtype=torch.float32)
+            deployment = (torch.nn.Sequential(actor.obs_normalizer, actor.mlp)
+                          if args.environment != "humanup_rise" else HumanUpInferenceModule(actor)).eval()
+            example = torch.zeros((1, observation_width), dtype=torch.float32)
             traced = torch.jit.trace(deployment, example)
             traced.save(str(export_dir / "policy.pt"))
             # Verify the serialized module against the source deployment graph.
-            probe = torch.linspace(-1.0, 1.0, 1148).reshape(1, -1)
+            probe = torch.linspace(-1.0, 1.0, observation_width).reshape(1, -1)
             with torch.no_grad():
                 loaded_output = torch.jit.load(str(export_dir / "policy.pt"))(probe)
                 maximum_error = float((loaded_output - deployment(probe)).abs().max())
@@ -173,13 +181,14 @@ def main() -> None:
                 "succeeded": maximum_error <= 1.0e-6,
                 "torchscript": _portable_path(export_dir / "policy.pt"),
                 "maximum_verification_error": maximum_error,
-                "input_width": 1148,
-                "output_width": 31,
+                "input_width": observation_width,
+                "output_width": action_width,
             }
         except Exception as error:  # Export failure must not invalidate the live evaluation.
             export_status = {"succeeded": False, "error": f"{type(error).__name__}: {error}"}
 
-        max_steps = round(cfg.episode_length_s / task.step_dt) - 1
+        task.terminal_observer = lambda task, env_ids: snapshot(task)
+        max_steps = round(cfg.episode_length_s / task.step_dt)
         for episode, seed in enumerate(SEEDS, start=1):
             env.seed(seed)
             observation, _ = env.reset()
@@ -204,7 +213,11 @@ def main() -> None:
 
             for step in range(max_steps):
                 steps = step + 1
-                terminal_snapshot = snapshot(task)
+                with torch.no_grad():
+                    action = policy(observation)
+                    observation, _, done, info = env.step(action)
+                episode_done = bool(done[0].item())
+                terminal_snapshot = task.terminal_snapshot if episode_done else snapshot(task)
                 strict = bool(terminal_snapshot["strict"])
                 consecutive_strict = consecutive_strict + 1 if strict else 0
                 maximum_consecutive_strict = max(maximum_consecutive_strict, consecutive_strict)
@@ -219,15 +232,11 @@ def main() -> None:
                     maximum_height, best_height_snapshot = height, dict(terminal_snapshot)
                 if upright > maximum_upright:
                     maximum_upright, best_upright_snapshot = upright, dict(terminal_snapshot)
-                if consecutive_strict >= STABLE_STEPS:
+                if consecutive_strict >= stable_steps:
                     success = True
-                    break
 
-                with torch.no_grad():
-                    action = policy(observation)
-                    observation, _, done, _ = env.step(action)
-                if bool(done[0].item()):
-                    ended_early = True
+                if episode_done:
+                    ended_early = bool(task.reset_terminated[0].item())
                     break
 
             max_stable_s = maximum_consecutive_strict * task.step_dt
@@ -239,6 +248,8 @@ def main() -> None:
                 "ended_by_safety_termination": ended_early,
                 "initial_snapshot": initial_snapshot,
                 "maximum_strict_stable_s": round(max_stable_s, 3),
+                "final_strict_stable_s": round(consecutive_strict * task.step_dt, 3),
+                "standing_at_episode_end": consecutive_strict >= stable_steps,
                 "maximum_pelvis_height_m": round(maximum_height, 4),
                 "maximum_upright_score": round(maximum_upright, 4),
                 "maximum_two_foot_contact_s": round(maximum_consecutive_two_feet * task.step_dt, 3),
@@ -259,16 +270,17 @@ def main() -> None:
 
         result = {
             "backend": "Isaac Lab 3.0 / PhysX",
-            "task": "X2HumanUpRiseEnvCfg evaluated from true supine resets",
+            "task": f"{type(cfg).__name__} evaluated from true supine resets",
             "checkpoint": _portable_path(checkpoint),
             "policy_architecture": {
-                "observation_width": 1148,
-                "current_proprioception": 98,
-                "zero_privileged_extrinsics": 70,
-                "history": "10 x 98",
-                "history_latent": 20,
+                "family": args.environment,
+                "observation_width": observation_width,
+                "current_proprioception": 98 if observation_width == 1148 else None,
+                "zero_privileged_extrinsics": 70 if observation_width == 1148 else 0,
+                "history": "10 x 98" if observation_width == 1148 else "2 previous actions",
+                "history_latent": 20 if observation_width == 1148 else None,
                 "actor_hidden": [512, 256, 128],
-                "actions": 31,
+                "actions": action_width,
             },
             "export": export_status,
             "seeds": list(SEEDS),
@@ -282,7 +294,7 @@ def main() -> None:
             },
             "success_definition": {
                 **SUCCESS_LIMITS,
-                "stable_duration_s": STABLE_STEPS * task.step_dt,
+                "stable_duration_s": stable_steps * task.step_dt,
                 "contact_source": "filtered body-to-/World/ground force matrix",
             },
             "successful_recoveries": sum(record["success"] for record in records),

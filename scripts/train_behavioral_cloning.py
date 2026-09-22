@@ -67,21 +67,30 @@ def main() -> None:
     obs_parts = []
     action_parts = []
     sources = []
+    episodes = []
+    row_offset = 0
     for dataset_path in args.dataset:
         path = dataset_path.expanduser().resolve(strict=True)
         with np.load(path) as data:
             obs_parts.append(torch.from_numpy(data["observations"].astype(np.float32)))
             action_parts.append(torch.from_numpy(data["actions"].astype(np.float32)))
             sources.append({"path": str(path), "samples": int(data["actions"].shape[0])})
+            offsets = data["episode_offsets"]
+            if offsets[0] != 0 or offsets[-1] != len(data["actions"]) or np.any(np.diff(offsets) <= 0):
+                raise ValueError(f"Invalid episode offsets: {path}")
+            episodes.extend((row_offset + int(a), row_offset + int(b)) for a, b in zip(offsets[:-1], offsets[1:]))
+            row_offset += len(data["actions"])
     observations = torch.cat(obs_parts)
     actions = torch.cat(action_parts)
     if observations.shape[1] != 1148 or actions.shape[1] != 31:
         raise ValueError(f"Unexpected dataset shapes: {observations.shape}, {actions.shape}")
 
-    permutation = torch.randperm(observations.shape[0])
-    validation_count = max(1, observations.shape[0] // 10)
-    validation_ids = permutation[:validation_count]
-    training_ids = permutation[validation_count:]
+    if len(episodes) < 2:
+        raise ValueError("BC validation requires at least two independent episodes")
+    permutation = torch.randperm(len(episodes)).tolist()
+    validation_count = max(1, len(episodes) // 10)
+    validation_ids = torch.cat([torch.arange(*episodes[i]) for i in permutation[:validation_count]])
+    training_ids = torch.cat([torch.arange(*episodes[i]) for i in permutation[validation_count:]])
     train_obs = observations[training_ids].to(device)
     train_actions = actions[training_ids].to(device)
     val_obs = observations[validation_ids].to(device)
@@ -118,9 +127,14 @@ def main() -> None:
     final_train_mse = mse(actor, train_obs, train_actions, args.batch_size)
     final_validation_mse = mse(actor, val_obs, val_actions, args.batch_size)
     checkpoint["actor_state_dict"] = actor.state_dict()
+    # Adam moments from before BC are no longer coherent with actor weights.
+    if "optimizer_state_dict" in checkpoint:
+        checkpoint["optimizer_state_dict"]["state"] = {}
     checkpoint["infos"] = {
         "behavioral_cloning": {
             "sources": sources,
+            "validation_split": "held-out episodes",
+            "requires_fresh_ppo_optimizer": True,
             "epochs": args.epochs,
             "learning_rate": args.learning_rate,
             "initial_validation_mse": initial_validation_mse,

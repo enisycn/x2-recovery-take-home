@@ -66,7 +66,7 @@ parser.add_argument(
 )
 parser.add_argument(
     "--environment",
-    choices=("recovery", "humanup_discovery", "humanup_rise"),
+    choices=("recovery", "humanup_discovery", "humanup_rise", "simple_v2"),
     default="recovery",
     help="Evaluate without assistance, or with the paper's Stage-I head force enabled.",
 )
@@ -106,6 +106,8 @@ from x2_recovery_isaac.env_cfg import (  # noqa: E402
 )
 from x2_recovery_isaac.relative_action import BoundedRelativeJointPositionAction  # noqa: E402
 
+
+from x2_recovery_isaac.simple_cfg import X2SimpleRecoveryEnvCfg, X2SimplePPORunnerCfg
 
 OBSERVATION_SLICES = {
     "base_height": (0, 1),
@@ -178,6 +180,7 @@ def main() -> None:
     if args.handoff_end_height <= args.handoff_start_height:
         raise ValueError("--handoff_end_height must exceed --handoff_start_height")
     cfg_type = {
+        "simple_v2": X2SimpleRecoveryEnvCfg,
         "recovery": X2RecoveryPlayEnvCfg,
         "humanup_discovery": X2HumanUpDiscoveryEnvCfg,
         "humanup_rise": X2HumanUpRiseEnvCfg,
@@ -210,6 +213,7 @@ def main() -> None:
         params["reference_max_stage_end"] = 0
         params["reference_stage_anneal_policy_steps"] = 1
     agent_cfg = {
+        "simple_v2": X2SimplePPORunnerCfg,
         "recovery": X2RecoveryPPORunnerCfg,
         "humanup_discovery": X2HumanUpPPORunnerCfg,
         "humanup_rise": X2HumanUpCurriculumPPORunnerCfg,
@@ -256,7 +260,7 @@ def main() -> None:
             standing_joint_target[0, joint_names.index(joint_name)] = value
 
         observation_slices = (
-            OBSERVATION_SLICES if args.environment == "recovery" else HUMANUP_OBSERVATION_SLICES
+            OBSERVATION_SLICES if args.environment in ("recovery", "simple_v2") else HUMANUP_OBSERVATION_SLICES
         )
         observation_ranges = {name: [] for name in observation_slices}
         action_rows: list[torch.Tensor] = []
@@ -292,6 +296,8 @@ def main() -> None:
         hold_latched = torch.zeros(cfg.scene.num_envs, dtype=torch.bool, device=task.device)
         straighten_latched = torch.zeros(cfg.scene.num_envs, dtype=torch.bool, device=task.device)
         hold_joint_target = torch.zeros_like(robot.data.joint_pos.torch[:, action_term._joint_ids])
+        episode_done = False
+        last_observed_root = None
         for _ in range(total_steps):
             policy_observation = observation["policy"]
             nonfinite_observations += int(not torch.isfinite(policy_observation).all().item())
@@ -457,12 +463,9 @@ def main() -> None:
                 action = torch.atanh((desired_delta / 0.25).clamp(-0.999, 0.999))
             action_rows.append(action.detach().clone())
             limits = robot.data.soft_joint_pos_limits.torch[:, action_term._joint_ids]
-            if isinstance(action_term, BoundedRelativeJointPositionAction):
-                target = current + torch.tanh(action) * 0.25
-            else:
-                defaults = robot.data.default_joint_pos.torch[:, action_term._joint_ids]
-                target = defaults + 0.5 * action
-            target = torch.clamp(target, min=limits[..., 0], max=limits[..., 1])
+            action_term.process_actions(action)
+            target = (action_term.joint_position_targets if isinstance(action_term, BoundedRelativeJointPositionAction)
+                      else action_term.processed_actions)
             target_delta_rows.append((target - current).detach().clone())
             soft_limit_violations += int(((target < limits[..., 0]) | (target > limits[..., 1])).sum().item())
 
@@ -483,8 +486,7 @@ def main() -> None:
                     name: float(value)
                     for name, value in zip(joint_names, action[0].tolist())
                 }
-            forces = mdp._ground_force_history(contact_sensor)[0]
-            forces = forces.norm(dim=-1).amax(dim=0)
+            forces = mdp._ground_forces(contact_sensor)[0].norm(dim=-1)
             # PhysX owns the tensor's body ordering.  It is not guaranteed to
             # match the URDF/tree order used by ALL_CONTACT_BODIES, so label
             # force columns with the sensor's resolved names.
@@ -563,7 +565,16 @@ def main() -> None:
                 name: float(value)
                 for name, value in zip(joint_names, current[0].tolist())
             }
-            observation, _, _, _ = env.step(action)
+            last_observed_root = {
+                "height": float(robot.data.root_pos_w.torch[0, 2]),
+                "gravity": robot.data.projected_gravity_b.torch[0].clone(),
+                "linear": robot.data.root_lin_vel_w.torch[0].clone(),
+                "angular": robot.data.root_ang_vel_w.torch[0].clone(),
+            }
+            observation, _, done, _ = env.step(action)
+            if bool(done[0].item()):
+                episode_done = True
+                break
 
         actions = torch.cat(action_rows, dim=0)
         target_deltas = torch.cat(target_delta_rows, dim=0)
@@ -616,7 +627,7 @@ def main() -> None:
                 "actions": int(actions.shape[1]),
                 "hidden": [512, 256, 128],
                 "history_encoder": [98, 30, "conv30x20", "conv20x10", 20]
-                if args.environment != "recovery"
+                if args.environment not in ("recovery", "simple_v2")
                 else None,
             },
             "observation_order": {name: [start, stop] for name, (start, stop) in observation_slices.items()},
@@ -639,6 +650,9 @@ def main() -> None:
             "bounded_target_delta_rad": _finite_range(target_deltas),
             "target_soft_limit_violations": soft_limit_violations,
             "live_episode": {
+                "stopped_on_first_done": episode_done,
+                "sampled_policy_steps": len(action_rows),
+                "terminal_snapshot_scope": "last sampled state before action, before any reset",
                 "maximum_pelvis_height_m": max_height,
                 "maximum_upright_score": max_upright,
                 "maximum_strict_stable_s": max_strict_steps * task.step_dt,
@@ -646,20 +660,20 @@ def main() -> None:
                 "maximum_right_foot_force_n": maximum_foot_contact[1],
                 "maximum_other_body_force_n": maximum_other_contact,
                 "criterion_fraction": {
-                    name: count / total_steps for name, count in criterion_steps.items()
+                    name: count / len(action_rows) for name, count in criterion_steps.items()
                 },
                 "terminal_left_foot_force_n": terminal_foot_contact[0],
                 "terminal_right_foot_force_n": terminal_foot_contact[1],
                 "terminal_other_body_force_n": terminal_other_contact,
-                "terminal_pelvis_height_m": float(robot.data.root_pos_w.torch[0, 2].item()),
-                "terminal_upright_score": float(-robot.data.projected_gravity_b.torch[0, 2].item()),
-                "terminal_linear_speed_m_s": float(robot.data.root_lin_vel_w.torch[0].norm().item()),
-                "terminal_angular_speed_rad_s": float(robot.data.root_ang_vel_w.torch[0].norm().item()),
+                "terminal_pelvis_height_m": last_observed_root["height"],
+                "terminal_upright_score": float(-last_observed_root["gravity"][2]),
+                "terminal_linear_speed_m_s": float(last_observed_root["linear"].norm()),
+                "terminal_angular_speed_rad_s": float(last_observed_root["angular"].norm()),
                 "terminal_linear_velocity_world_m_s": [
-                    float(value) for value in robot.data.root_lin_vel_w.torch[0].tolist()
+                    float(value) for value in last_observed_root["linear"].tolist()
                 ],
                 "terminal_angular_velocity_world_rad_s": [
-                    float(value) for value in robot.data.root_ang_vel_w.torch[0].tolist()
+                    float(value) for value in last_observed_root["angular"].tolist()
                 ],
                 "best_height_state": best_height_state,
                 "best_upright_joint_position_rad": best_upright_joint_position,
@@ -671,7 +685,7 @@ def main() -> None:
         result["passes_io_integrity"] = bool(
             result["checkpoint_audit"]["all_tensors_finite"]
             and nonfinite_observations == 0
-            and observation["policy"].shape[1] == (168 if args.environment == "recovery" else 1148)
+            and observation["policy"].shape[1] == (168 if args.environment in ("recovery", "simple_v2") else 1148)
             and actions.shape[1] == 31
             and soft_limit_violations == 0
         )

@@ -206,6 +206,7 @@ def test_strict_success_rejects_inversion_missing_foot_and_other_support() -> No
         data=SimpleNamespace(
             net_forces_w_history=TorchField(forces),
             force_matrix_w_history=TorchField(forces.unsqueeze(3)),
+            force_matrix_w=TorchField(forces[:, 0].unsqueeze(2)),
         )
     )
     env = SimpleNamespace(scene=FakeScene(fake_robot(heights, gravity), sensor))
@@ -228,6 +229,7 @@ def test_strict_stance_proximity_is_bounded_and_orders_nearby_states() -> None:
         data=SimpleNamespace(
             net_forces_w_history=TorchField(forces),
             force_matrix_w_history=TorchField(forces.unsqueeze(3)),
+            force_matrix_w=TorchField(forces[:, 0].unsqueeze(2)),
         )
     )
     env = SimpleNamespace(scene=FakeScene(fake_robot(heights, gravity), sensor))
@@ -258,6 +260,7 @@ def test_strict_success_ignores_internal_self_collision_for_support() -> None:
         data=SimpleNamespace(
             net_forces_w_history=TorchField(net),
             force_matrix_w_history=TorchField(ground.unsqueeze(3)),
+            force_matrix_w=TorchField(ground[:, 0].unsqueeze(2)),
         )
     )
     env = SimpleNamespace(scene=FakeScene(fake_robot(height, gravity), sensor))
@@ -322,3 +325,17 @@ def test_training_assistance_schedules_reach_zero() -> None:
     assert math.isclose(mdp.linear_anneal(0.95, 0.35, 1_800, 3_600), 0.65)
     assert math.isclose(mdp.linear_anneal(0.95, 0.35, 3_600, 3_600), 0.35)
     assert mdp.linear_anneal(247.0, 0.0, 4_000, 4_000) == 0.0
+
+
+def test_old_foot_contact_does_not_count_as_current_support():
+    heights = torch.tensor([0.68])
+    gravity = torch.tensor([[0., 0., -1.]])
+    current = torch.zeros((1, 3, 1, 3))
+    stale = torch.zeros((1, 2, 3, 1, 3))
+    stale[:, 1, :2, 0, 2] = 100.
+    sensor = SimpleNamespace(data=SimpleNamespace(
+        force_matrix_w=TorchField(current), force_matrix_w_history=TorchField(stale)))
+    env = SimpleNamespace(scene=FakeScene(fake_robot(heights, gravity), sensor))
+    feet = SimpleNamespace(name="contact_forces", body_ids=[0, 1])
+    all_bodies = SimpleNamespace(name="contact_forces", body_ids=[0, 1, 2])
+    assert not mdp.strict_success(env, feet_cfg=feet, all_bodies_cfg=all_bodies).any()

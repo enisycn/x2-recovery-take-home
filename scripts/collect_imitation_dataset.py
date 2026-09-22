@@ -103,6 +103,8 @@ def main() -> None:
         handoff_active = torch.zeros(args.num_envs, dtype=torch.bool, device=task.device)
         first_handoff = torch.full((args.num_envs,), -1, dtype=torch.int64, device=task.device)
         total_steps = max(1, round(cfg.episode_length_s / task.step_dt) - 1)
+        active = torch.ones(args.num_envs, dtype=torch.bool, device=task.device)
+        episode_lengths = torch.full((args.num_envs,), total_steps, dtype=torch.long, device=task.device)
         for step in range(total_steps):
             with torch.no_grad():
                 action = policy(observation)
@@ -111,7 +113,7 @@ def main() -> None:
                     height = robot.data.root_pos_w.torch[:, 2]
                     upright = -robot.data.projected_gravity_b.torch[:, 2]
                     newly_handed_off = (
-                        (~handoff_active)
+                        active & (~handoff_active)
                         & (height >= args.handoff_height)
                         & (upright >= args.handoff_upright)
                     )
@@ -121,15 +123,20 @@ def main() -> None:
                     action = torch.where(handoff_active[:, None], second_action, action)
             observations.append(observation["policy"].detach().cpu().to(torch.float16))
             actions.append(action.detach().cpu().to(torch.float16))
-            stable = mdp.strict_success(task, feet_cfg=feet_cfg, all_bodies_cfg=all_cfg)
+            stable = active & mdp.strict_success(task, feet_cfg=feet_cfg, all_bodies_cfg=all_cfg)
             strict_count = torch.where(stable, strict_count + 1, torch.zeros_like(strict_count))
             newly_successful = (strict_count >= 10) & (first_success < 0)
             first_success[newly_successful] = step
             height = task.scene["robot"].data.root_pos_w.torch[:, 2]
-            new_peak = height > maximum_height
-            maximum_height = torch.maximum(maximum_height, height)
+            new_peak = active & (height > maximum_height)
+            maximum_height = torch.where(new_peak, height, maximum_height)
             peak_step[new_peak] = step
-            observation, _, _, _ = env.step(action)
+            observation, _, done, _ = env.step(action)
+            first_done = active & done.bool()
+            episode_lengths[first_done] = step + 1
+            active &= ~done.bool()
+            if not active.any():
+                break
 
         stacked_obs = torch.stack(observations)
         stacked_actions = torch.stack(actions)
@@ -153,7 +160,7 @@ def main() -> None:
                 if first_success_cpu[env_id] >= 0
                 else int(peak_step_cpu[env_id].item())
             )
-            end = min(anchor + 21, total_steps)
+            end = min(anchor + 21, int(episode_lengths[env_id].item()))
             kept_obs.append(stacked_obs[:end, env_id].numpy())
             kept_actions.append(stacked_actions[:end, env_id].numpy())
             offsets.append(offsets[-1] + end)
@@ -179,6 +186,7 @@ def main() -> None:
             "successful_envs": int(success_ids.numel()),
             "success_rate": float(success_ids.numel() / args.num_envs),
             "selection_mode": selection_mode,
+            "episode_boundary_policy": "first episode only; no post-reset samples",
             "selected_envs": int(selected_ids.numel()),
             "min_max_height": args.min_max_height,
             "selected_peak_height_min_m": float(maximum_height[selected_ids.to(task.device)].min().item()),

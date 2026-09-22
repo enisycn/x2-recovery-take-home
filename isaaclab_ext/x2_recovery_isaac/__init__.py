@@ -9,7 +9,7 @@ import gymnasium as gym
 
 gym.register(
     id="HRS-X2-Recovery-v0",
-    entry_point="isaaclab.envs:ManagerBasedRLEnv",
+    entry_point="x2_recovery_isaac.environment:X2RecoveryEnv",
     disable_env_checker=True,
     kwargs={
         "env_cfg_entry_point": "x2_recovery_isaac.env_cfg:X2RecoveryEnvCfg",
@@ -19,7 +19,7 @@ gym.register(
 
 gym.register(
     id="HRS-X2-Recovery-Play-v0",
-    entry_point="isaaclab.envs:ManagerBasedRLEnv",
+    entry_point="x2_recovery_isaac.environment:X2RecoveryEnv",
     disable_env_checker=True,
     kwargs={
         "env_cfg_entry_point": "x2_recovery_isaac.env_cfg:X2RecoveryPlayEnvCfg",

@@ -5,6 +5,7 @@ from __future__ import annotations
 from isaaclab.sensors.contact_sensor import BaseContactSensor
 from isaaclab_physx.physics import PhysxManager
 from isaaclab_physx.sensors import ContactSensor
+import warp as wp
 
 
 class ExactPathContactSensor(ContactSensor):
@@ -17,6 +18,15 @@ class ExactPathContactSensor(ContactSensor):
     the official buffers and update kernels while avoiding 32 separate views
     and 32 sensor updates at every policy step.
     """
+
+    def reset(self, env_ids=None, env_mask=None) -> None:
+        mask = self._resolve_indices_and_mask(env_ids, env_mask)
+        super().reset(env_mask=mask)
+        # The installed PhysX reset kernel clears the current filtered force,
+        # but omits its history. Keep this compatibility fix local to HRS.
+        history = self._data.force_matrix_w_history
+        if history is not None:
+            history.torch[wp.to_torch(mask).bool()] = 0.0
 
     def _initialize_impl(self) -> None:
         BaseContactSensor._initialize_impl(self)

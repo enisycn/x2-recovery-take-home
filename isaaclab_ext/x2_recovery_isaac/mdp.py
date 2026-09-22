@@ -30,14 +30,22 @@ def _ground_force_history(sensor: ContactSensor) -> torch.Tensor:
     return matrix.torch.sum(dim=3)
 
 
+def _ground_forces(sensor: ContactSensor) -> torch.Tensor:
+    """Current body-to-floor force; never carry support across time/reset."""
+    matrix = sensor.data.force_matrix_w
+    if matrix is None:
+        raise RuntimeError("X2 contact sensor must filter against the ground prim")
+    return matrix.torch.sum(dim=2)
+
+
 def _contact_mask(
     env: ManagerBasedRLEnv,
     sensor_cfg: SceneEntityCfg,
     threshold: float,
 ) -> torch.Tensor:
     sensor: ContactSensor = env.scene.sensors[sensor_cfg.name]
-    forces = _ground_force_history(sensor)[:, :, sensor_cfg.body_ids, :]
-    return forces.norm(dim=-1).amax(dim=1) >= threshold
+    forces = _ground_forces(sensor)[:, sensor_cfg.body_ids, :]
+    return forces.norm(dim=-1) >= threshold
 
 
 def _named_contact_masks(
@@ -645,7 +653,7 @@ def unsupported_contacts(
     if all_bodies_cfg is None or feet_cfg is None:
         raise ValueError("unsupported_contacts requires named sensors or the legacy sensor configs")
     sensor: ContactSensor = env.scene.sensors[all_bodies_cfg.name]
-    forces = _ground_force_history(sensor).norm(dim=-1).amax(dim=1)
+    forces = _ground_forces(sensor).norm(dim=-1)
     contacts = forces >= threshold
     non_feet = torch.ones(contacts.shape[1], dtype=torch.bool, device=contacts.device)
     non_feet[feet_cfg.body_ids] = False
