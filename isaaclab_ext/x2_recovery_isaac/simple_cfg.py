@@ -139,6 +139,6 @@ class X2RelaxedPPORunnerCfg(X2SymmetricPPORunnerCfg):
 
     def __post_init__(self):
         super().__post_init__()
-        self.algorithm.learning_rate = 1.0e-4
-        self.algorithm.schedule = "fixed"
-        self.algorithm.entropy_coef = 0.001
+        self.algorithm.learning_rate = 3.0e-4
+        self.algorithm.schedule = "adaptive"
+        self.algorithm.entropy_coef = 0.005

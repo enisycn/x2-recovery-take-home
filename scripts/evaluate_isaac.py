@@ -111,6 +111,8 @@ def snapshot(env) -> dict:
         "strict": all(criteria.values()),
         "criteria": criteria,
         "joint_position_rad": dict(zip(robot.joint_names, robot.data.joint_pos.torch[0].tolist())),
+        "raw_policy_action": env.action_manager.action[0].tolist(),
+        "joint_target_rad": dict(zip(robot.joint_names, env.action_manager.get_term("joint_position").processed_actions[0].tolist())),
     }
 
 
