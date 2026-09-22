@@ -1,0 +1,35 @@
+Starting >>> x2_recovery_ros
+running develop
+running egg_info
+creating x2_recovery_ros.egg-info
+writing x2_recovery_ros.egg-info/PKG-INFO
+writing dependency_links to x2_recovery_ros.egg-info/dependency_links.txt
+writing entry points to x2_recovery_ros.egg-info/entry_points.txt
+writing requirements to x2_recovery_ros.egg-info/requires.txt
+writing top-level names to x2_recovery_ros.egg-info/top_level.txt
+writing manifest file 'x2_recovery_ros.egg-info/SOURCES.txt'
+reading manifest file 'x2_recovery_ros.egg-info/SOURCES.txt'
+writing manifest file 'x2_recovery_ros.egg-info/SOURCES.txt'
+running build_ext
+Creating <USER_HOME>/Documents/Codex/2026-09-20/hrs-irketindeki-agajan-troyev-kimdir-bi/hrs_x2_take_home/tmp/ros_fresh_install/x2_recovery_ros/lib/python3.10/site-packages/x2-recovery-ros.egg-link (link to .)
+Installing x2_evaluate script to <USER_HOME>/Documents/Codex/2026-09-20/hrs-irketindeki-agajan-troyev-kimdir-bi/hrs_x2_take_home/tmp/ros_fresh_install/x2_recovery_ros/lib/x2_recovery_ros
+Installing x2_recovery_node script to <USER_HOME>/Documents/Codex/2026-09-20/hrs-irketindeki-agajan-troyev-kimdir-bi/hrs_x2_take_home/tmp/ros_fresh_install/x2_recovery_ros/lib/x2_recovery_ros
+Installing x2_telemetry_node script to <USER_HOME>/Documents/Codex/2026-09-20/hrs-irketindeki-agajan-troyev-kimdir-bi/hrs_x2_take_home/tmp/ros_fresh_install/x2_recovery_ros/lib/x2_recovery_ros
+Installing x2_train script to <USER_HOME>/Documents/Codex/2026-09-20/hrs-irketindeki-agajan-troyev-kimdir-bi/hrs_x2_take_home/tmp/ros_fresh_install/x2_recovery_ros/lib/x2_recovery_ros
+
+Installed <USER_HOME>/Documents/Codex/2026-09-20/hrs-irketindeki-agajan-troyev-kimdir-bi/hrs_x2_take_home/tmp/ros_fresh_build/x2_recovery_ros
+running symlink_data
+creating <USER_HOME>/Documents/Codex/2026-09-20/hrs-irketindeki-agajan-troyev-kimdir-bi/hrs_x2_take_home/tmp/ros_fresh_install/x2_recovery_ros/share/ament_index
+creating <USER_HOME>/Documents/Codex/2026-09-20/hrs-irketindeki-agajan-troyev-kimdir-bi/hrs_x2_take_home/tmp/ros_fresh_install/x2_recovery_ros/share/ament_index/resource_index
+creating <USER_HOME>/Documents/Codex/2026-09-20/hrs-irketindeki-agajan-troyev-kimdir-bi/hrs_x2_take_home/tmp/ros_fresh_install/x2_recovery_ros/share/ament_index/resource_index/packages
+symbolically linking <USER_HOME>/Documents/Codex/2026-09-20/hrs-irketindeki-agajan-troyev-kimdir-bi/hrs_x2_take_home/tmp/ros_fresh_build/x2_recovery_ros/resource/x2_recovery_ros -> <USER_HOME>/Documents/Codex/2026-09-20/hrs-irketindeki-agajan-troyev-kimdir-bi/hrs_x2_take_home/tmp/ros_fresh_install/x2_recovery_ros/share/ament_index/resource_index/packages
+symbolically linking <USER_HOME>/Documents/Codex/2026-09-20/hrs-irketindeki-agajan-troyev-kimdir-bi/hrs_x2_take_home/tmp/ros_fresh_build/x2_recovery_ros/package.xml -> <USER_HOME>/Documents/Codex/2026-09-20/hrs-irketindeki-agajan-troyev-kimdir-bi/hrs_x2_take_home/tmp/ros_fresh_install/x2_recovery_ros/share/x2_recovery_ros
+creating <USER_HOME>/Documents/Codex/2026-09-20/hrs-irketindeki-agajan-troyev-kimdir-bi/hrs_x2_take_home/tmp/ros_fresh_install/x2_recovery_ros/share/x2_recovery_ros/launch
+symbolically linking <USER_HOME>/Documents/Codex/2026-09-20/hrs-irketindeki-agajan-troyev-kimdir-bi/hrs_x2_take_home/tmp/ros_fresh_build/x2_recovery_ros/launch/x2_recovery.launch.py -> <USER_HOME>/Documents/Codex/2026-09-20/hrs-irketindeki-agajan-troyev-kimdir-bi/hrs_x2_take_home/tmp/ros_fresh_install/x2_recovery_ros/share/x2_recovery_ros/launch
+creating <USER_HOME>/Documents/Codex/2026-09-20/hrs-irketindeki-agajan-troyev-kimdir-bi/hrs_x2_take_home/tmp/ros_fresh_install/x2_recovery_ros/share/x2_recovery_ros/config
+symbolically linking <USER_HOME>/Documents/Codex/2026-09-20/hrs-irketindeki-agajan-troyev-kimdir-bi/hrs_x2_take_home/tmp/ros_fresh_build/x2_recovery_ros/config/recovery.yaml -> <USER_HOME>/Documents/Codex/2026-09-20/hrs-irketindeki-agajan-troyev-kimdir-bi/hrs_x2_take_home/tmp/ros_fresh_install/x2_recovery_ros/share/x2_recovery_ros/config
+creating <USER_HOME>/Documents/Codex/2026-09-20/hrs-irketindeki-agajan-troyev-kimdir-bi/hrs_x2_take_home/tmp/ros_fresh_install/x2_recovery_ros/share/x2_recovery_ros/artifacts
+symbolically linking <USER_HOME>/Documents/Codex/2026-09-20/hrs-irketindeki-agajan-troyev-kimdir-bi/hrs_x2_take_home/tmp/ros_fresh_build/x2_recovery_ros/artifacts/recovery_policy.npz -> <USER_HOME>/Documents/Codex/2026-09-20/hrs-irketindeki-agajan-troyev-kimdir-bi/hrs_x2_take_home/tmp/ros_fresh_install/x2_recovery_ros/share/x2_recovery_ros/artifacts
+Finished <<< x2_recovery_ros [0.82s]
+
+Summary: 1 package finished [1.03s]

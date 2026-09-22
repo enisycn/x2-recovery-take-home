@@ -2,6 +2,7 @@
 """Subscribe before triggering recovery, then test actual concurrent rejection."""
 import json
 import time
+import subprocess
 import rclpy
 from rclpy.qos import QoSProfile, DurabilityPolicy, ReliabilityPolicy
 from sensor_msgs.msg import JointState
@@ -36,7 +37,39 @@ try:
     assert joints and len(joints[-1]['names'])==31 and len(joints[-1]['positions'])==31
     assert 'left_knee_joint' in joints[-1]['names']
     assert joints[-1]['stamp_sec'] > 0
-    print(json.dumps({'backend':'Isaac Lab / PhysX', 'accepted':first.result().success,
+    def cli_attempt(expected):
+        statuses.clear()
+        joints.clear()
+        command = ['ros2', 'service', 'call', '/x2/start_recovery', 'std_srvs/srv/Trigger', '{}']
+        process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
+        try:
+            deadline = time.monotonic() + 25.
+            while time.monotonic() < deadline:
+                rclpy.spin_once(node, timeout_sec=.05)
+                if process.poll() is not None and 'RUNNING' in statuses and any(s in ('SUCCEEDED', 'FAILED') for s in statuses[statuses.index('RUNNING') + 1:]):
+                    break
+            output, _ = process.communicate(timeout=2.)
+        finally:
+            if process.poll() is None:
+                process.kill()
+                process.wait()
+        assert process.returncode == 0 and 'success=True' in output, output
+        assert 'RUNNING' in statuses and expected in statuses[statuses.index('RUNNING') + 1:], (expected, statuses)
+        assert joints and len(joints[-1]['positions']) == 31
+        return {'command': command, 'cli_output': output, 'statuses': list(statuses),
+                'joint_samples': len(joints), 'last_joint_state': joints[-1]}
+
+    concurrent_trial = {'statuses': list(statuses), 'joint_samples':len(joints),
+                        'last_joint_state':joints[-1]}
+    # This is a literal ROS CLI request, in addition to the latency/busy probe.
+    cli_success = cli_attempt('SUCCEEDED')
+    parameter_command = ['ros2', 'param', 'set', '/x2_recovery', 'timeout_sec', '0.2']
+    parameter_result = subprocess.run(parameter_command, capture_output=True, text=True, timeout=10.)
+    assert parameter_result.returncode == 0 and 'successful' in parameter_result.stdout.lower()
+    cli_timeout = cli_attempt('FAILED')
+    print(json.dumps({'cli_success': cli_success, 'timeout_parameter_command': parameter_command,
+        'timeout_parameter_output': parameter_result.stdout, 'cli_timeout': cli_timeout,
+        'concurrent_trial': concurrent_trial, 'backend':'Isaac Lab / PhysX', 'accepted':first.result().success,
         'acceptance_wall_s':acceptance_s, 'busy_rejected':not second.result().success,
         'statuses':statuses, 'joint_samples':len(joints), 'last_joint_state':joints[-1],
         'success':True},indent=2),flush=True)

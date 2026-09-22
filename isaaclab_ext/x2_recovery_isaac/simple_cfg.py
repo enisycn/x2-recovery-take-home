@@ -122,6 +122,9 @@ class X2RelaxedRecoveryEnvCfg(X2SymmetricRecoveryEnvCfg):
     def __post_init__(self):
         super().__post_init__()
         from isaaclab.managers import SceneEntityCfg
+        # The submitted task starts EVERY episode supine (PDF requirement).
+        self.events.reset_back_pose.params["reference_probability_start"] = 0.0
+        self.events.reset_back_pose.params["reference_probability_end"] = 0.0
         self.rewards.relaxed_arms = RewTerm(
             func=mdp.relaxed_arms_when_stable, weight=40.0,
             params={

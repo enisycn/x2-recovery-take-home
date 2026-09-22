@@ -35,3 +35,5 @@ A fresh training run uses the same v4 supported-stance posture reward from initi
 The fresh run at iteration 200 recovered on seed 101 and ended in strict stance, with last-two-second shoulder error <=0.127 rad, but elbow target error <=0.707 rad. Iteration 250 failed the strict recovery test on all five seeds despite improved arm pose. Mean training return alone was therefore not used to select the policy.
 
 After fresh exploration, a stabilization trial resumes its iteration-300 checkpoint with seed 46, fixed learning rate 1e-4, fresh optimizer, initial action std 0.15 and entropy 0.001. The reward and physics are unchanged. CLI overrides record these differences in the saved agent YAML.
+
+Fresh iteration 300 passed recovery and ended standing on all five seeds. Four seeds also ended with continuous relaxed stance; seed 103 had shoulder error up to 0.3115 rad in the final two seconds, slightly outside the predeclared 0.30-rad posture tolerance. The tolerance was not relaxed to make this checkpoint pass. This motivates evaluating the stabilization trial against both criteria.

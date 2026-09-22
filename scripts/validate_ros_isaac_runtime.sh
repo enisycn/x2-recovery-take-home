@@ -48,7 +48,7 @@ done
 [[ -S "${socket_path}" ]] || { echo "Isaac socket did not appear" >&2; exit 1; }
 
 source /opt/ros/humble/setup.bash
-source "${project_dir}/install/setup.bash"
+source "${HRS_ROS_INSTALL:-${project_dir}/install}/setup.bash"
 set -u
 export PYTHONNOUSERSITE=1
 export ROS_DOMAIN_ID="${ROS_DOMAIN_ID:-94}"
@@ -65,4 +65,8 @@ for _ in $(seq 1 80); do
 done
 
 /usr/bin/python3 "${project_dir}/scripts/validate_ros_isaac_client.py"
-echo "ROS-Isaac runtime validation passed"
+# Keep observable telemetry and the real simulator timeout reason in the record.
+rg 'status=.*left_knee_joint=.*rad|Recovery failed.*timeout' "${runtime_dir}/launch.log"
+rg -q 'Recovery failed.*timeout' "${runtime_dir}/launch.log"
+rg -q 'status=RUNNING.*left_knee_joint=.*rad' "${runtime_dir}/launch.log"
+echo "ROS-Isaac runtime validation passed (CLI success, busy rejection, live telemetry, Isaac timeout)"
