@@ -45,7 +45,7 @@ def _write(stream, event: dict) -> None:
 
 
 def _policy_observation(observation):
-    return observation["policy"] if isinstance(observation, dict) else observation
+    return observation if isinstance(observation, torch.Tensor) else observation["policy"]
 
 
 def serve_attempt(stream, env, policy, request: dict, feet_cfg, all_bodies_cfg) -> None:

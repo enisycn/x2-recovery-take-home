@@ -1,3 +1,5 @@
+> Current selected result: **symmetric_v3 checkpoint 200, 5/5 true-supine recoveries**. See [current method](symmetric_v3.md), [shared formulas](simple_v2.md) and [final evaluation](../reports/symmetric_v3_evaluation.json). Earlier HumanUP/history and brake analyses below describe historical configurations, not the selected controller.
+
 # Evidence-to-design map
 
 Sources were selected in this order: official robot assets and documentation, peer-reviewed recovery research, primary preprints for recent work, and official simulator/ROS documentation. The papers motivate design choices; they do not prove that the selected X2 weights are optimal.

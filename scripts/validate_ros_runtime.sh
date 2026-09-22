@@ -48,20 +48,20 @@ wait_for_log() {
 }
 
 stop_launch() {
-  if [[ -n "${launch_pid}" ]] && kill -0 "${launch_pid}" 2>/dev/null; then
-    kill -TERM "${launch_pid}" 2>/dev/null || true
+  if [[ -n "${launch_pid}" ]]; then
+    kill -TERM -- "-${launch_pid}" 2>/dev/null || true
     for _ in $(seq 1 20); do
-      kill -0 "${launch_pid}" 2>/dev/null || break
+      kill -0 -- "-${launch_pid}" 2>/dev/null || break
       sleep 0.1
     done
-    kill -KILL "${launch_pid}" 2>/dev/null || true
+    kill -KILL -- "-${launch_pid}" 2>/dev/null || true
     wait "${launch_pid}" 2>/dev/null || true
   fi
   launch_pid=""
 }
 
 success_log="${runtime_dir}/success.log"
-ros2 launch x2_recovery_ros x2_recovery.launch.py >"${success_log}" 2>&1 &
+setsid ros2 launch x2_recovery_ros x2_recovery.launch.py >"${success_log}" 2>&1 &
 launch_pid="$!"
 wait_for_log "X2 recovery ready" "${success_log}"
 wait_for_service
@@ -82,7 +82,7 @@ stop_launch
 # handled by the new zero-policy node rather than a retiring success node.
 export ROS_DOMAIN_ID="$(( (base_domain_id + 1) % 233 ))"
 failure_log="${runtime_dir}/failure.log"
-ros2 launch x2_recovery_ros x2_recovery.launch.py \
+setsid ros2 launch x2_recovery_ros x2_recovery.launch.py \
   policy_mode:=zero timeout_sec:=0.5 >"${failure_log}" 2>&1 &
 launch_pid="$!"
 wait_for_log "X2 recovery ready" "${failure_log}"

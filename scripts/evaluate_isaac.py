@@ -14,6 +14,7 @@ from isaaclab.app import AppLauncher
 
 parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument("--checkpoint", type=Path, required=True, help="RSL-RL model checkpoint")
+parser.add_argument("--seeds", type=int, nargs="+", default=[101,102,103,104,105])
 parser.add_argument("--environment", choices=("humanup_rise", "simple_v2", "symmetric_v3"), default="humanup_rise")
 parser.add_argument("--output", type=Path, default=Path("reports/isaac_evaluation.json"))
 AppLauncher.add_app_launcher_args(parser)
@@ -41,7 +42,7 @@ from x2_recovery_isaac.env_cfg import (  # noqa: E402
 
 from x2_recovery_isaac.simple_cfg import X2SimpleRecoveryEnvCfg, X2SimplePPORunnerCfg, X2SymmetricRecoveryEnvCfg, X2SymmetricPPORunnerCfg
 
-SEEDS = (101, 102, 103, 104, 105)
+SEEDS = tuple(args.seeds)
 STABLE_STEPS = 10  # 0.5 s at the 20 Hz policy rate, as in the FRASA check.
 CONTACT_THRESHOLD_N = 15.0
 SUCCESS_LIMITS = {

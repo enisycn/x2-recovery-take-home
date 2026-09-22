@@ -1,3 +1,5 @@
+> Version status: the independent-action v2 experiment was rejected (0/5, inverted-pose exploit). Its reset/contact/measurement fixes and common reward definitions remain in use. The selected successful controller is [symmetric_v3](symmetric_v3.md), with explicitly documented changes.
+
 # Corrected compact baseline (22 September 2026)
 
 This is a new experiment, not a reinterpretation of the failed HumanUP-history checkpoint. The input/control contract is different; use `--environment simple_v2` for evaluation, rendering and the policy server. A successful recovery is not claimed until the recorded five-episode evaluation supports it.

@@ -37,6 +37,7 @@ def main() -> None:
     parser.add_argument("--initial", type=Path)
     parser.add_argument("--corrected", type=Path)
     parser.add_argument("--orientation-gated", type=Path)
+    parser.add_argument("--max-iteration", type=int, default=None)
     parser.add_argument("--final", type=Path, required=True)
     parser.add_argument("--output", type=Path, default=Path("reports/isaac_training_reward.png"))
     parser.add_argument("--csv", type=Path, default=Path("reports/isaac_training_reward.csv"))
@@ -51,6 +52,10 @@ def main() -> None:
         runs.append(("orientation_gated_diagnostic", args.orientation_gated, "#7c3aed"))
     runs.append(("final_audited", args.final, "#15803d"))
     series = [(label, *scalars(path, "Train/mean_reward"), color) for label, path, color in runs]
+
+    if args.max_iteration is not None:
+        series = [(label, steps[steps <= args.max_iteration], rewards[steps <= args.max_iteration], color)
+                  for label, steps, rewards, color in series]
 
     args.csv.parent.mkdir(parents=True, exist_ok=True)
     with args.csv.open("w", newline="", encoding="utf-8") as stream:

@@ -1,3 +1,5 @@
+> **Final selected result (22 September): symmetric_v3 / model 200, 5/5 true-supine recoveries, 8.62–8.90 s strict stance through episode end. Real Isaac–ROS integration returned SUCCEEDED.** See [evaluation](symmetric_v3_evaluation.json) and [ROS record](ros_isaac_symmetric_v3_validation.txt). Earlier sections below retain historical failed experiments.
+
 # Validation record
 
 Updated 22 September 2026. CPU-harness results are labelled separately and are never presented as X2 rigid-body evidence.
@@ -57,3 +59,38 @@ Commands:
 Observed after a fresh build: the first `/x2/start_recovery` call returned `success=True`; a concurrent call returned `success=False` with `Recovery already running`; timestamped 31-joint telemetry was received; the deterministic CPU contract scenario reached `SUCCEEDED`; and `policy_mode:=zero timeout_sec:=0.5` reached `FAILED`. The ROS-to-Isaac check loaded the verified 1,148-input HumanUP TorchScript, used the mode-0600 Unix socket, accepted the first request, rejected the busy request, published live simulator joint states and reached `FAILED` after 60 policy steps at the configured 3.0 s timeout. ROS and Isaac stayed in their separate Python environments.
 
 The CPU harness scores 5/5 only in its reduced NumPy model. That validates orchestration and metrics, not X2 dynamics or hardware readiness.
+
+
+## Corrected-controller work, 22 September 2026
+
+The earlier selected HumanUP-history result remains a failed 0/5 recovery experiment. It must not be presented as successful completion.
+
+- Local filtered-contact-history reset fix verified in live PhysX on a subset of environments. Current-force support tests replace historical maximum contact for strict success.
+- Pre-reset snapshots verified; diagnostic, imitation and ROS attempts stop at the first episode boundary. BC validation now holds out whole trajectories.
+- Formula/contact and ROS tests: **28 passed**, including rejection of stale foot support.
+- Fresh `validate_ros_runtime.sh`: accepted initial request, rejected concurrent request, published joint states; the reduced CPU harness succeeded in 109 steps and the zero-action harness failed on timeout in 10 steps. These are interface checks, not X2 recovery.
+- `simple_v2` live preflight: 168 finite observations, 31 outputs, .075 rad command sensitivity at standing, selective history reset. Constant target held strict stance for .70 s at 200 Hz and .80 s at 400 Hz, then fell. This establishes reachability/control behavior only.
+- `simple_v2` checkpoint 100: **0/5** from true supine; maximum heights .521–.525 m were an **inverted torso-supported exploit**, not righting progress. Peak upright score of the seed-101 highest state was −.864 and torso force was 370.9 N. Its graph export matched source inference exactly. The run was stopped after retaining checkpoint 200.
+- `symmetric_v3` preflight: 122 finite observations, 8 action synergies mapped to all 31 joint targets, same selective reset test, .182 rad command sensitivity, .70 s fixed-target stance. The successful training/evaluation outcome is recorded below.
+
+Source and configuration snapshots are retained under each new run's `params/` and `source/`; no installed Isaac source is edited. HRS processes use nice 15 and CPU set `<HOST_CPUSET>`.
+
+`symmetric_v3` iteration-100 seed-101 probe (one diagnostic episode, not the final five-seed test): peak pelvis .5235 m, gravity Z −.9758, both feet 122.02/111.57 N, no other floor support. It subsequently fell and ended at 2.86 s on the 2.5 m/s safety limit. Maximum strict duration 0 s. The preserved pre-reset terminal speed is 2.5768 m/s, confirming that the report did not accidentally sample a fresh zero-speed reset. This demonstrates real righting/foot support, not successful completion.
+
+## Selected successful controller: symmetric_v3 / checkpoint 200
+
+| Seed | Successful recovery | Continuous strict stance to episode end | End state |
+| --- | --- | --- | --- |
+| 101 | yes | 8.86 s | upright, two feet, no other support |
+| 102 | yes | 8.86 s | upright, two feet, no other support |
+| 103 | yes | 8.62 s | upright, two feet, no other support |
+| 104 | yes | 8.90 s | upright, two feet, no other support |
+| 105 | yes | 8.84 s | upright, two feet, no other support |
+
+Checkpoint SHA-256: `e8639b2175fe47d335b5d4a5adf98ed51fea9e452a6589d4823681ebebff58e1`. The final evaluator observes the whole 10 s episode, including pre-reset terminal state. All five satisfy the exact force, speed, orientation and height criteria; no reference starts or external forces are enabled. The selected training snapshot is `reports/configs/symmetric_v3_model200/`, and the selected-prefix reward CSV/plot ends at iteration 200. Subsequent background updates made while evaluating checkpoint 200 were not selected.
+
+The GIF is a direct Isaac render of the same checkpoint from seed 101, sampled at 25 fps for 10 s; it does not start from an imposed standing pose.
+
+Real ROS→Isaac integration passed with the selected TorchScript controller: service accepted, immediate concurrent request rejected, 31 actual simulator joint states received, terminal status **SUCCEEDED**. See `ros_isaac_symmetric_v3_validation.txt`. The first integration attempt exposed orphaned HRS CPU-test nodes from the older validator; they were stopped, and both validators now launch isolated process groups and terminate their children. A private per-test Unix socket avoids socket reuse. The successful rerun used the real Isaac backend, not the CPU harness.
+
+Final interface evidence: ROS accepted in 0.000735 s, rejected the immediate concurrent request, emitted 84 simulator joint samples (31 joints each), and transitioned `IDLE → RUNNING → SUCCEEDED`. Fresh colcon build: 1 package finished in 0.99 s. The updated CPU validator also passed both success and timeout paths; no HRS training, simulator-server or ROS test node remained afterward.

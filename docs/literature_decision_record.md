@@ -1,3 +1,5 @@
+> **Final decision, 22 September:** direct PPO succeeded on the nominal X2 task after the corrected measurement/control path, signed height reward and FRASA-inspired symmetric action subspace were combined. No demonstration or imitation training was needed for this selected policy. See [symmetric_v3](symmetric_v3.md) for adaptations and the 5/5 evidence; earlier unsuccessful method decisions below are historical.
+
 # Literature-to-implementation decision record
 
 This record separates published equations, official code behavior, X2 morphology adaptations, and assignment-specific additions. It is intended to make every training choice auditable rather than imply that a mixed implementation is a verbatim reproduction of one paper.

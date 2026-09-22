@@ -1,3 +1,5 @@
+> Current selected result: **symmetric_v3 checkpoint 200, 5/5 true-supine recoveries**. See [current method](symmetric_v3.md), [shared formulas](simple_v2.md) and [final evaluation](../reports/symmetric_v3_evaluation.json). Earlier HumanUP/history and brake analyses below describe historical configurations, not the selected controller.
+
 # Formula audit
 
 This note describes the executable HumanUP-history PPO path. The 19 numerical tests in `isaaclab_ext/test/test_reward_formulas.py` check reset orientation, geometry clearance, schedules, action mapping, reward gates and the strict-success predicate.

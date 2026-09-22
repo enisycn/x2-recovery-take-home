@@ -12,3 +12,9 @@ Each target is `centre + span*tanh(action)`, followed by the same URDF soft-limi
 [FRASA v3](https://arxiv.org/abs/2410.08655v3), Sections III.A–B, uses robot symmetry to observe/control five principal sagittal DoFs. It uses CrossQ and incremental desired-position commands on a smaller Sigmaban. Our 8-command X2 mapping, absolute targets and PPO are explicit adaptations. This reference supports reducing the search space; it does not prove the X2 policy will succeed. HumanUP/HoST still support the getting-up task/reward choices as documented in `simple_v2.md`.
 
 Use `--phase symmetric_v3` to train, and `--environment symmetric_v3` for evaluation, GIF rendering and the ROS policy server. Do not reuse the 31-output checkpoint. The new policy is trained from scratch.
+
+## Measured result
+
+Checkpoint 200 trained from scratch: 19,296,000 transitions, 7 min 48 s logged training time. Five fresh seeds 101–105 all passed: 8.86, 8.86, 8.62, 8.90 and 8.84 s continuous strict stance, extending to the end of each 10 s episode. Evaluation disables auxiliary starts, uses no force assistance and stops at the first episode boundary. The explicit 122-input/8-output exported graph matches the source actor with maximum absolute error 0.0 on the verification probe. This success required neither behavioral cloning nor demonstration data.
+
+These are nominal simulation results over the documented narrow reset distribution. No claim is made about arbitrary falls, terrain or physical-robot transfer.

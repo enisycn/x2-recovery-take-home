@@ -91,8 +91,8 @@ def main() -> None:
     cfg.events.reset_back_pose.params["reference_probability_end"] = 0.0
     cfg.video_recorder.window_width = 640
     cfg.video_recorder.window_height = 360
-    cfg.viewer.eye = (2.4, 2.4, 1.45)
-    cfg.viewer.lookat = (0.0, 0.0, 0.45)
+    cfg.viewer.eye = (2.7, 2.7, 1.65)
+    cfg.viewer.lookat = (0.0, 0.0, 0.65)
 
     agent_cfg = {"simple_v2": X2SimplePPORunnerCfg, "symmetric_v3": X2SymmetricPPORunnerCfg, "humanup_rise": X2HumanUpCurriculumPPORunnerCfg}[args.environment]()
     agent_cfg.device = args.device
@@ -117,26 +117,28 @@ def main() -> None:
         task.render(recompute=True)
         policy_frames: list[Image.Image] = []
         max_steps = round(cfg.episode_length_s / task.step_dt) - 1
+        frame_stride = max(1, round(0.04 / task.step_dt))
         consecutive = 0
         for step in range(max_steps):
             strict = bool(mdp.strict_success(task, feet_cfg=feet, all_bodies_cfg=allb)[0])
             consecutive = consecutive + 1 if strict else 0
             height = float(robot.data.root_pos_w.torch[0, 2].item())
             upright = float(-robot.data.projected_gravity_b.torch[0, 2].item())
-            policy_frames.append(
-                _frame(
-                    task,
-                    f"{args.environment} policy - gercek supine deneme",
-                    f"t={step * task.step_dt:4.2f}s  pelvis={height:.3f}m  upright={upright:.3f}  kararli={consecutive * task.step_dt:.2f}s",
+            if step % frame_stride == 0:
+                policy_frames.append(
+                    _frame(
+                        task,
+                        "X2 — sırtüstünden kalkış (PPO)",
+                        f"t={step * task.step_dt:4.2f}s  pelvis={height:.3f}m  upright={upright:.3f}  kararli={consecutive * task.step_dt:.2f}s",
+                    )
                 )
-            )
             with torch.no_grad():
                 action = policy(observation)
                 observation, _, done, _ = env.step(action)
                 if bool(done[0]):
                     break
         policy_path = output_dir / "x2_final_policy_attempt.gif"
-        _save_gif(policy_frames, policy_path, round(task.step_dt * 1000))
+        _save_gif(policy_frames, policy_path, round(frame_stride * task.step_dt * 1000))
         if args.environment != "humanup_rise":
             print(policy_path)
             return

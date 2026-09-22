@@ -1,0 +1,26 @@
+{
+  "environment": "symmetric_v3",
+  "checkpoint": "reports/checkpoints/x2_symmetric_v3_model200.pt",
+  "sha256": "e8639b2175fe47d335b5d4a5adf98ed51fea9e452a6589d4823681ebebff58e1",
+  "iteration": 200,
+  "obs_dim": 122,
+  "policy_action_dim": 8,
+  "actuated_joints": 31,
+  "sim_dt": 0.005,
+  "policy_dt": 0.02,
+  "training_run": "logs/rsl_rl/hrs_x2_symmetric_v3/2026-09-22_12-35-58_signed_height_symmetry",
+  "started_from_checkpoint": null,
+  "external_force": false,
+  "true_supine_reset_probability": 0.5,
+  "cpu_set": "<HOST_CPUSET>",
+  "nice": 15,
+  "normalized_observations": 19296000,
+  "training_elapsed_at_checkpoint_s": 468,
+  "successful_evaluation_episodes": 5,
+  "total_evaluation_episodes": 5,
+  "strict_stance_duration_range_s": [
+    8.62,
+    8.9
+  ],
+  "all_standing_at_episode_end": true
+}
