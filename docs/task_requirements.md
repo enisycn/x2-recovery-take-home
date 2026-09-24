@@ -41,9 +41,9 @@ Every required item is implemented and linked below. The selected result is a tr
 | Live joint telemetry | Complete | 100 samples in the success trial; 31 simulator joints and timestamps. |
 | Busy rejection | Complete | Concurrent trial accepted the first and rejected the second request. |
 | FAILED on timeout | Complete | `timeout_sec=0.2` produced `RUNNING -> FAILED` and 10 joint samples. |
-| Commands and outcomes in repository | Complete | README contains runnable commands; `docs/validation.md`, `docs/test_matrix.md` and the three validation reports record outcomes and distinguish pytest from system-level assignment validation. |
-| README contents | Complete | Setup/dependencies, model/import/compute, environment, rewards, RL settings/results, ROS responsibilities/commands and limitations are included. `docs/parameter_provenance.md` separates paper, framework, robot/task and local parameters. |
-| Commit history | Complete | Thirty logical development commits retain the experiment and correction sequence. |
+| Commands and outcomes in repository | Complete | `docs/commands.md` gives ordered runnable commands; `docs/validation.md`, `docs/test_matrix.md` and the three validation reports record outcomes and distinguish pytest from system-level assignment validation. |
+| README contents | Complete | Setup/dependencies, model/import/compute, environment, rewards, RL settings/results, ROS responsibilities, results and limitations are included, with one link to the command guide. `docs/parameter_provenance.md` separates paper, framework, robot/task and local parameters. |
+| Commit history | Complete | Thirty-one logical commits retain the experiment and correction sequence. |
 
 ## Direct validation commands
 

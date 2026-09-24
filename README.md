@@ -10,27 +10,15 @@ Isaac Lab / PhysX PPO recovery for the official AgiBot X2 Ultra v1.3.0 model, pl
 - [Reward curve](reports/relaxed_v4_training_reward.png)
 - [Requirement map](docs/task_requirements.md)
 - [Validation commands and outcomes](docs/validation.md)
+- [Commands from setup to ROS demo](docs/commands.md)
 
 ## Setup and dependencies
 
-Tested on Ubuntu 22.04.5, Isaac Lab 3.0.0-beta2.patch1, Isaac Sim 6.0.1, RSL-RL 5.0.1 and ROS 2 Humble. The experiment used one NVIDIA GeForce RTX 5080 Laptop GPU with 16 GB VRAM and 3000 parallel environments. Isaac uses its existing Python 3.12 environment; ROS uses system Python 3.10 in a separate process.
+Tested on Ubuntu 22.04.5 with one NVIDIA RTX 5080 Laptop GPU (16 GB), Isaac Sim 6.0.1, Isaac Lab 3.0.0-beta2.patch1, RSL-RL 5.0.1, and ROS 2 Humble. Isaac runs in Python 3.12 and ROS in system Python 3.10 as separate processes. The final training stage used 3,000 parallel environments; checkpoint playback needs far less GPU memory.
 
-Install Isaac Sim, Isaac Lab and RSL-RL using their upstream instructions, then install the small repository-level Python dependencies and ROS package dependencies:
+For a fresh machine, clone this repository, install [Isaac Sim 6.0.1](https://docs.isaacsim.omniverse.nvidia.com/6.0.1/installation/install_python.html), [Isaac Lab 3.0.0-beta2.patch1](https://github.com/isaac-sim/IsaacLab/releases/tag/v3.0.0-beta2.patch1), [RSL-RL 5.0.1](https://github.com/leggedrobotics/rsl_rl/releases/tag/v5.0.1) and [ROS 2 Humble](https://docs.ros.org/en/humble/Installation/Ubuntu-Install-Debs.html), then follow [the commands in order](docs/commands.md). Set `ISAAC_PYTHON` to the Python executable in the Isaac environment. The guide covers the clone, dependency check, official model fetch/import, training, checkpoint playback, evaluation, ROS build and live request. No user-specific path is required.
 
-```bash
-export ISAAC_PYTHON=/path/to/isaac/python
-"$ISAAC_PYTHON" -m pip install -r requirements.txt
-
-source /opt/ros/humble/setup.bash
-rosdep install --from-paths src --ignore-src -r -y
-```
-
-The model fetcher clones only the official repository, disables hooks and submodules, and verifies pinned commit `60c5de582c523cd188f563819e62d34cfdc3d2d0` before import:
-
-```bash
-./scripts/fetch_agibot_model.sh
-./scripts/import_x2_isaac.sh
-```
+The model fetcher takes only official AgiBot source at pinned commit `60c5de582c523cd188f563819e62d34cfdc3d2d0`, without hooks or submodules. Imported assets are local and ignored by Git.
 
 The imported robot is a 41.966521 kg floating articulation with 31 joints, 32 recursively monitored rigid bodies, self-collision, official actuator limits and one 98% soft joint-limit margin. Fixed links are merged during URDF-to-USD conversion. Geometry, mass, inertia, joint axes and actuator limits are not edited. The scene uses a repository-local 200 m x 200 m collision floor.
 
@@ -86,25 +74,7 @@ The extra final-pose check requires both shoulder-pitch errors and elbow errors 
 
 PPO uses clip 0.2, gamma 0.99, GAE lambda 0.95, five learning epochs, four minibatches, value-loss coefficient 1, clipped value loss, desired KL 0.01 and gradient clipping 1. The final stage uses 3000 environments, 32 steps/environment, seed 47, fixed learning rate 1e-4, initial action standard deviation 0.10 and entropy 0.001.
 
-The supplied parent reproduces the final 51-update stage:
-
-```bash
-./scripts/train_isaac.sh --phase relaxed_v4 --num_envs 3000 \
-  --max_iterations 51 --seed 47 --device cuda:0 \
-  --checkpoint reports/checkpoints/x2_relaxed_v4_parent_model400.pt \
-  --reset_optimizer --action_std_override 0.10 \
-  --learning_rate_override 0.0001 --learning_schedule fixed \
-  --entropy_coef 0.001
-
-./scripts/evaluate_isaac.sh reports/checkpoints/x2_relaxed_v4_model450.pt \
-  --environment relaxed_v4 --device cuda:0 \
-  --output reports/relaxed_v4_evaluation.json
-
-./scripts/render_isaac_gifs.sh \
-  --checkpoint reports/checkpoints/x2_relaxed_v4_model450.pt \
-  --environment relaxed_v4 --headless --device cuda:0 \
-  --output_dir reports/gifs_relaxed_v4
-```
+The supplied parent checkpoint supports re-running the final 51-update stage. [Commands](docs/commands.md) gives the training, playback and five-episode evaluation sequence.
 
 Every successful `train_isaac.sh` run automatically adds `reward.png`, `reward.csv` and `run_manifest.json` beside its TensorBoard events, parameter snapshots and checkpoints. The experiment-level `LATEST_RUN.txt` points to that directory. See [training outputs and file locations](docs/artifact_locations.md) for the exact tree and commands. Evaluation JSON and GIF rendering remain explicit simulator steps.
 
@@ -112,27 +82,7 @@ Earlier exploratory pretraining used 50% auxiliary upright-root squat/sitting re
 
 ## ROS 2
 
-Build and start the exported policy server, then launch both required ROS nodes:
-
-```bash
-./scripts/build_ros.sh
-
-# Terminal 1 - Isaac Python 3.12
-./scripts/serve_isaac_policy.sh reports/exported_relaxed_v4/policy.pt \
-  --environment relaxed_v4 --device cuda:0
-
-# Terminal 2 - ROS Humble Python 3.10
-export ROS_DOMAIN_ID=94
-export FASTRTPS_DEFAULT_PROFILES_FILE="$PWD/config/fastdds_shm.xml"
-source /opt/ros/humble/setup.bash
-source install/setup.bash
-ros2 launch x2_recovery_ros x2_recovery.launch.py timeout_sec:=10.0
-
-# Terminal 3
-ros2 service call /x2/start_recovery std_srvs/srv/Trigger '{}'
-ros2 topic echo /x2/recovery_status std_msgs/msg/String --qos-durability transient_local
-ros2 topic echo /x2/joint_states sensor_msgs/msg/JointState
-```
+Build and start the Isaac policy server, then launch the recovery and telemetry ROS nodes together. [Commands](docs/commands.md) separates the three terminals; [live demo](docs/live_demo.md) adds the busy rejection and timeout checks.
 
 The launch default is the real `isaac_ipc` backend. A mode-0600 local Unix socket separates the Isaac and ROS Python runtimes. The recovery node returns acceptance before timer-dispatched execution, rejects a second request while running and publishes `IDLE`, `RUNNING`, `SUCCEEDED` or `FAILED` plus 31 simulator joint positions and timestamps. Timeout is configurable. The telemetry node logs status and one joint at 1 Hz.
 
