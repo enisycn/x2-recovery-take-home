@@ -6,9 +6,9 @@ Isaac Lab / PhysX PPO recovery for the official AgiBot X2 Ultra v1.3.0 model, pl
 
 ## Recovery video
 
-https://github.com/user-attachments/assets/3cd71353-9c40-4e66-9f9c-ef9d5fe02d2c
+https://github.com/user-attachments/assets/1872c642-3a3f-480f-8671-0d59219bb702
 
-The first five seconds hold the initial supine frame for inspection; the following ten seconds show the recorded recovery episode. [Download the MP4](reports/videos/x2_recovery_supine_to_standing.mp4).
+The first two seconds hold the initial supine frame for inspection; the following ten seconds show the recorded recovery episode. On-screen labels are in English. [Download the MP4](reports/videos/x2_recovery_supine_to_standing.mp4).
 
 - [Final GIF](reports/gifs_relaxed_v4/x2_final_policy_attempt.gif)
 - [Five-episode evaluation](reports/relaxed_v4_evaluation.json)

@@ -50,7 +50,7 @@ To finish an older successful run that predates automatic finalization:
 | `reports/checkpoints/x2_relaxed_v4_parent_model400.pt` | Parent used to reproduce the final 51 updates. |
 | `reports/relaxed_v4_evaluation.json` | Five seeded evaluation episodes and success checks. |
 | `reports/gifs_relaxed_v4/x2_final_policy_attempt.gif` | Visual rollout from the selected checkpoint. |
-| `reports/videos/x2_recovery_supine_to_standing.mp4` | Five-second supine preview followed by the recorded ten-second episode. |
+| `reports/videos/x2_recovery_supine_to_standing.mp4` | Two-second supine preview followed by the recorded ten-second episode; English on-screen labels. |
 | `reports/exported_relaxed_v4/policy.pt` | TorchScript policy served to ROS. |
 | `reports/*validation.txt` | Recorded test, build and ROS-Isaac outcomes. |
 

@@ -139,7 +139,7 @@ ros2 param set /x2_recovery timeout_sec 10.0
 - `reports/relaxed_v4_pretraining_reward.png`: earlier training lineage plot.
 - `reports/relaxed_v4_evaluation.json`: seeds 101-105 and 5/5 result.
 - `reports/gifs_relaxed_v4/x2_final_policy_attempt.gif`: final visual result.
-- `reports/videos/x2_recovery_supine_to_standing.mp4`: supine preview and recorded episode.
+- `reports/videos/x2_recovery_supine_to_standing.mp4`: two-second supine preview and ten-second recorded episode.
 - `reports/ros_isaac_relaxed_v4_validation.txt`: recorded live ROS-Isaac outcomes.
 
 For a newly completed training run, `scripts/train_isaac.sh` also creates `reward.png`, `reward.csv` and `run_manifest.json` inside that run's timestamped `logs/rsl_rl/...` directory. `docs/artifact_locations.md` explains how to find the newest run.

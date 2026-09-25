@@ -128,8 +128,8 @@ def main() -> None:
                 policy_frames.append(
                     _frame(
                         task,
-                        "X2 — kalkış ve rahat kol duruşu" if args.environment == "relaxed_v4" else "X2 — sırtüstünden kalkış (PPO)",
-                        f"t={step * task.step_dt:4.2f}s  pelvis={height:.3f}m  upright={upright:.3f}  kararli={consecutive * task.step_dt:.2f}s",
+                        "X2 - recovery and relaxed arms" if args.environment == "relaxed_v4" else "X2 - supine recovery (PPO)",
+                        f"t={step * task.step_dt:4.2f}s  pelvis={height:.3f}m  upright={upright:.3f}  stable={consecutive * task.step_dt:.2f}s",
                     )
                 )
             with torch.no_grad():
