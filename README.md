@@ -32,18 +32,18 @@ The imported robot is a 41.966521 kg floating articulation with 31 joints, 32 re
 
 PhysX runs at 200 Hz and policy targets at 50 Hz. Episodes last 10 s. Every final `relaxed_v4` episode starts supine at pelvis height 0.190 m, with zero velocity and small seeded pose perturbations.
 
-The 122 policy inputs are pelvis height; body-frame linear/angular velocity; three-component projected gravity; 31 joint positions and velocities; two foot contacts; 32 whole-body ground-contact bits; and two previous 8-value actions. Eight bilateral commands map to all 31 absolute joint-position targets as:
+The 122 policy inputs are pelvis height; body-frame linear/angular velocity; three-component projected gravity; 31 joint positions and velocities; two foot contacts; 32 whole-body ground-contact bits; and two previous 8-value actions. The network outputs eight numbers, one per joint group. Most groups command the same target for left and right joints; joints outside these groups keep their neutral targets. Each commanded joint receives a position target in radians:
 
 ```text
 q_target = centre + span * tanh(action)
 q_target = clamp(q_target, imported soft joint limits)
 ```
 
-Actor and critic are separate normalized ELU MLPs with widths `[512, 256, 128]`. The eight action groups control bilateral hip pitch, knee, ankle pitch, shoulder pitch, elbow, waist pitch, ankle roll and hip roll. Remaining joints stay at neutral targets.
+`centre` is the group's reference angle, `span` its maximum offset, and `tanh` bounds the offset between -1 and 1. For both hip-pitch joints, `centre = -0.9` and `span = 1.4`: an action of 0 targets -0.9 rad; an action of +1 targets about +0.17 rad before the limit clamp. These are joint-position controller targets, not instantaneous joint angles or direct torque commands. The groups cover hip pitch, knee, ankle pitch, shoulder pitch, elbow, waist pitch, ankle roll and hip roll. Actor and critic are separate normalized ELU MLPs with widths `[512, 256, 128]`.
 
 ### Rewards
 
-Isaac RewardManager integrates each weighted term with policy timestep 0.02 s. Reward formulas are in [mdp.py](isaaclab_ext/x2_recovery_isaac/mdp.py); the final weights and enabled terms are in [simple_cfg.py](isaaclab_ext/x2_recovery_isaac/simple_cfg.py).
+At each 0.02 s policy step, Isaac RewardManager adds `weight × term value × 0.02` across the active terms. Positive weights encourage a behavior; negative weights penalize it. These are reward coefficients, not neural-network weights. Reward formulas are in [mdp.py](isaaclab_ext/x2_recovery_isaac/mdp.py); the final weights and enabled terms are in [simple_cfg.py](isaaclab_ext/x2_recovery_isaac/simple_cfg.py). The exact resolved settings saved with the checkpoint are in [env.yaml](reports/configs/relaxed_v4_model450/env.yaml).
 
 | Term | Weight | Definition and purpose |
 | --- | ---: | --- |
