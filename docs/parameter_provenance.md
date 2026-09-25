@@ -77,7 +77,7 @@ The raw `agent.yaml` records the dataclass before the post-load action-standard-
 | Self-collision | enabled | **TASK/LOCAL.** Required for credible contact-rich recovery. |
 | PhysX step | 0.005 s = 200 Hz | **LOCAL.** Stable contact resolution within available compute. HumanUP used 1000 Hz simulation but 50 Hz low-level control; its exact simulation rate was not copied. |
 | Policy step | decimation 4 = 0.02 s = 50 Hz | **PAPER-INFORMED + LOCAL.** Matches HumanUP's 50 Hz low-level control rate and local timing tests. |
-| Episode | 10 s = 500 policy steps | **TASK/LOCAL.** Long enough to rise and demonstrate maintained stance. |
+| Episode | 10 s = 500 policy steps | **TASK/LOCAL.** Long enough to rise and verify maintained stance. |
 | Floor | local 200 m × 200 m × 0.1 m cuboid | **LOCAL/GEOMETRY.** Covers the complete cloned grid; avoids a remote Nucleus asset. |
 | Ground friction | static 0.9, dynamic 0.8, restitution 0 | **LOCAL NOMINAL.** No paper claim and no final randomization. |
 | Initial pelvis height | 0.190 m | **LOCAL/MEASURED.** Collision hull extends 0.1803007 m below the pelvis, leaving at least millimetres of clearance. |

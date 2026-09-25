@@ -1,4 +1,4 @@
-"""Compact telemetry consumer for the recovery demonstration."""
+"""Compact telemetry consumer for recovery episodes."""
 
 from __future__ import annotations
 

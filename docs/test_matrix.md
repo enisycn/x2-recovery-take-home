@@ -37,4 +37,4 @@ The HRS task asks for system-level evidence that cannot be established by these 
 | Busy rejection | The same real ROS-Isaac validation records one concurrent request accepted and the other rejected. |
 | Timeout reaches `FAILED` | The real runtime is tested with `timeout_sec=0.2`. |
 
-The concise meeting statement is: **the 29 tests protect implementation contracts; the 5/5 Isaac evaluation establishes recovery behavior; and the live ROS-Isaac validation establishes end-to-end communication and error handling.**
+**The 29 tests protect implementation contracts; the 5/5 Isaac evaluation establishes recovery behavior; the live ROS-Isaac validation establishes end-to-end communication and error handling.**

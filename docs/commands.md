@@ -1,6 +1,6 @@
 # Commands, in order
 
-Run commands from the root of this repository. Training is optional for a quick demo: the submitted checkpoint and exported ROS policy are already in `reports/`.
+Run commands from the root of this repository. Training is optional when validating the submitted checkpoint and ROS interface: the checkpoint and exported policy are already in `reports/`.
 
 ## 1. One-time setup
 
@@ -123,4 +123,4 @@ ros2 topic echo /x2/joint_states sensor_msgs/msg/JointState
 ros2 service call /x2/start_recovery std_srvs/srv/Trigger '{}'
 ```
 
-For the busy-request and `FAILED` timeout checks, use the exact steps in [live demo](live_demo.md). Recorded outputs are in [validation](validation.md).
+For the busy-request and `FAILED` timeout checks, use the exact steps in [live validation](ros_live_validation.md). Recorded outputs are in [validation](validation.md).

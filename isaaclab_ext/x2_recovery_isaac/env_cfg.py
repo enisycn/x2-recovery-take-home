@@ -908,7 +908,7 @@ class X2RiseEnvCfg(X2RecoveryEnvCfg):
 
 @configclass
 class X2ImitationCollectionEnvCfg(X2RiseEnvCfg):
-    """Read-only rollout environment for successful expert demonstrations."""
+    """Read-only rollout environment for successful expert trajectories."""
 
     observations: ImitationCollectionObservationsCfg = ImitationCollectionObservationsCfg()
 

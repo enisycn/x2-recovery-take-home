@@ -50,6 +50,7 @@ To finish an older successful run that predates automatic finalization:
 | `reports/checkpoints/x2_relaxed_v4_parent_model400.pt` | Parent used to reproduce the final 51 updates. |
 | `reports/relaxed_v4_evaluation.json` | Five seeded evaluation episodes and success checks. |
 | `reports/gifs_relaxed_v4/x2_final_policy_attempt.gif` | Visual rollout from the selected checkpoint. |
+| `reports/videos/x2_recovery_supine_to_standing.mp4` | Five-second supine preview followed by the recorded ten-second episode. |
 | `reports/exported_relaxed_v4/policy.pt` | TorchScript policy served to ROS. |
 | `reports/*validation.txt` | Recorded test, build and ROS-Isaac outcomes. |
 
@@ -67,4 +68,4 @@ Evaluation and GIF rendering are explicit steps because they launch additional s
 
 ## ROS runtime output
 
-ROS topics are live streams rather than training artifacts. The required recorded evidence is `reports/ros_isaac_relaxed_v4_validation.txt`; normal ROS process logs are written by ROS 2 below `~/.ros/log/`. See `docs/live_demo.md` for the exact launch, service and topic commands.
+ROS topics are live streams rather than training artifacts. The required recorded evidence is `reports/ros_isaac_relaxed_v4_validation.txt`; normal ROS process logs are written by ROS 2 below `~/.ros/log/`. See `docs/ros_live_validation.md` for the exact launch, service and topic commands.

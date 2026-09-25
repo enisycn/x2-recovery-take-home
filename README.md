@@ -4,13 +4,19 @@ Isaac Lab / PhysX PPO recovery for the official AgiBot X2 Ultra v1.3.0 model, pl
 
 **Selected result: 5/5 true-supine recoveries.** The final policy remains in strict unsupported two-foot stance for 8.54-8.94 s of each 10 s episode and satisfies the relaxed-arm criterion for the full final two seconds. The final experiment, evaluation and ROS runtime use no lift force, reference reset, observation noise or domain randomization.
 
+## Recovery video
+
+https://github.com/user-attachments/assets/3cd71353-9c40-4e66-9f9c-ef9d5fe02d2c
+
+The first five seconds hold the initial supine frame for inspection; the following ten seconds show the recorded recovery episode. [Download the MP4](reports/videos/x2_recovery_supine_to_standing.mp4).
+
 - [Final GIF](reports/gifs_relaxed_v4/x2_final_policy_attempt.gif)
 - [Five-episode evaluation](reports/relaxed_v4_evaluation.json)
 - [Checkpoint](reports/checkpoints/x2_relaxed_v4_model450.pt)
 - [Reward curve](reports/relaxed_v4_training_reward.png)
 - [Requirement map](docs/task_requirements.md)
 - [Validation commands and outcomes](docs/validation.md)
-- [Commands from setup to ROS demo](docs/commands.md)
+- [Setup, training and ROS commands](docs/commands.md)
 
 ## Setup and dependencies
 
@@ -37,7 +43,7 @@ Actor and critic are separate normalized ELU MLPs with widths `[512, 256, 128]`.
 
 ### Rewards
 
-Isaac RewardManager integrates each weighted term with policy timestep 0.02 s.
+Isaac RewardManager integrates each weighted term with policy timestep 0.02 s. Reward formulas are in [mdp.py](isaaclab_ext/x2_recovery_isaac/mdp.py); the final weights and enabled terms are in [simple_cfg.py](isaaclab_ext/x2_recovery_isaac/simple_cfg.py).
 
 | Term | Weight | Definition and purpose |
 | --- | ---: | --- |
@@ -78,11 +84,11 @@ The supplied parent checkpoint supports re-running the final 51-update stage. [C
 
 Every successful `train_isaac.sh` run automatically adds `reward.png`, `reward.csv` and `run_manifest.json` beside its TensorBoard events, parameter snapshots and checkpoints. The experiment-level `LATEST_RUN.txt` points to that directory. See [training outputs and file locations](docs/artifact_locations.md) for the exact tree and commands. Evaluation JSON and GIF rendering remain explicit simulator steps.
 
-Earlier exploratory pretraining used 50% auxiliary upright-root squat/sitting resets. Those states were neither demonstrations nor a continuous supine trajectory. The submitted final stage, evaluation and ROS runtime use 100% supine resets. See [development history](docs/development_history.md).
+Earlier exploratory pretraining used 50% auxiliary upright-root squat/sitting resets. Those states were neither expert trajectories nor a continuous supine trajectory. The submitted final stage, evaluation and ROS runtime use 100% supine resets. See [development history](docs/development_history.md).
 
 ## ROS 2
 
-Build and start the Isaac policy server, then launch the recovery and telemetry ROS nodes together. [Commands](docs/commands.md) separates the three terminals; [live demo](docs/live_demo.md) adds the busy rejection and timeout checks.
+Build and start the Isaac policy server, then launch the recovery and telemetry ROS nodes together. [Commands](docs/commands.md) separates the three terminals; [live validation](docs/ros_live_validation.md) adds the busy rejection and timeout checks.
 
 The launch default is the real `isaac_ipc` backend. A mode-0600 local Unix socket separates the Isaac and ROS Python runtimes. The recovery node returns acceptance before timer-dispatched execution, rejects a second request while running and publishes `IDLE`, `RUNNING`, `SUCCEEDED` or `FAILED` plus 31 simulator joint positions and timestamps. Timeout is configurable. The telemetry node logs status and one joint at 1 Hz.
 
