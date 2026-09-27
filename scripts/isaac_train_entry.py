@@ -9,6 +9,7 @@ from __future__ import annotations
 import argparse
 import importlib.metadata
 import json
+import subprocess
 import traceback
 from datetime import datetime
 from pathlib import Path
@@ -25,7 +26,7 @@ parser.add_argument("--learning_schedule", choices=("fixed", "adaptive"), defaul
 parser.add_argument("--entropy_coef", type=float, default=None)
 parser.add_argument("--checkpoint", default=None, help="Optional RSL-RL checkpoint to resume from.")
 parser.add_argument("--stability_refinement", action="store_true",
-                    help="Use support-gated height and motion regularization; keep every reset supine.")
+                    help="Use dense stance shaping and action regularization; keep every reset supine.")
 parser.add_argument(
     "--action_std_override",
     type=float,
@@ -35,7 +36,7 @@ parser.add_argument(
 parser.add_argument(
     "--reset_optimizer",
     action="store_true",
-    help="Load actor/critic weights but initialize a fresh PPO optimizer.",
+    help="Initialize a fresh optimizer; stability refinement also resets the critic for the changed reward.",
 )
 parser.add_argument(
     "--learning_rate_override",
@@ -155,6 +156,21 @@ def main() -> Path:
             "reset": "supine_only",
             "external_assistance": False,
         }
+        # Preserve the implementation used by this run even before a commit.
+        repository = Path(__file__).resolve().parents[1]
+        try:
+            runtime_settings["source_commit"] = subprocess.check_output(
+                ["git", "rev-parse", "HEAD"], cwd=repository, text=True,
+            ).strip()
+            patch = subprocess.check_output(
+                ["git", "diff", "HEAD", "--", "isaaclab_ext", "scripts"],
+                cwd=repository, text=True,
+            )
+            if patch:
+                (log_dir / "params" / "source_changes.patch").write_text(patch, encoding="utf-8")
+                runtime_settings["source_patch"] = "source_changes.patch"
+        except (OSError, subprocess.CalledProcessError) as error:
+            runtime_settings["source_capture_error"] = str(error)
         (log_dir / "params" / "runtime_settings.json").write_text(
             json.dumps(runtime_settings, indent=2) + "\n", encoding="utf-8"
         )

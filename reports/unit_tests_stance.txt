@@ -1,0 +1,10 @@
+Validation command
+PYTHONPATH=isaaclab_ext:src/x2_recovery_ros python -m pytest -q isaaclab_ext/test/test_reward_formulas.py src/x2_recovery_ros/test
+
+Result
+32 passed, 37 warnings in 2.66s
+
+Warnings
+2 Isaac Lab RigidBodyMaterialCfg deprecation warnings.
+35 PyTorch torch.jit.script deprecation warnings.
+No test failure or skip. This suite checks implementation contracts, not recovery success.

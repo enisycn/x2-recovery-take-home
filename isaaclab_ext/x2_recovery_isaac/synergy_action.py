@@ -4,9 +4,10 @@ FRASA motivates reducing the sagittal search space. X2 keeps two additional
 lateral balance commands. Limits here restrict commanded motion inside, never
 expand, the official URDF ranges. This is an X2 adaptation, not a FRASA replica.
 """
+import math
 import torch
 from isaaclab.managers import ActionTerm, ActionTermCfg
-from isaaclab.utils import configclass
+from isaaclab.utils.configclass import configclass
 
 # group, centre, half-range (radians). Left/right axes have the same URDF sign.
 GROUPS = (
@@ -21,6 +22,14 @@ GROUPS = (
 )
 
 
+def effective_raw_interval(limits, centre, span, threshold=2.5):
+    """Raw Gaussian interval before either tanh or imported-limit saturation."""
+    ratio = (limits - centre) / span
+    ratio = ratio.clamp(-math.tanh(threshold), math.tanh(threshold))
+    bounds = torch.atanh(ratio)
+    return torch.stack((bounds[..., 0].amax(dim=-1), bounds[..., 1].amin(dim=-1)), dim=-1)
+
+
 class SymmetricRecoveryAction(ActionTerm):
     def __init__(self, cfg, env):
         super().__init__(cfg, env)
@@ -29,12 +38,16 @@ class SymmetricRecoveryAction(ActionTerm):
         self._joint_ids = list(range(self._asset.num_joints))
         self._map = torch.zeros((len(GROUPS), self._asset.num_joints), device=env.device)
         self._centre = self._targets[0].clone()
+        self._raw_limits = torch.empty((env.num_envs, len(GROUPS), 2), device=env.device)
         for group, (names, centre, span) in enumerate(GROUPS):
             ids, resolved = self._asset.find_joints(list(names), preserve_order=True)
             if tuple(resolved) != names:
                 raise RuntimeError(f'Unexpected joint mapping: {resolved}')
             self._centre[ids] = centre
             self._map[group, ids] = span
+            self._raw_limits[:, group] = effective_raw_interval(
+                self._asset.data.soft_joint_pos_limits.torch[:, ids], centre, span,
+            )
 
     @property
     def action_dim(self): return len(GROUPS)
@@ -44,6 +57,9 @@ class SymmetricRecoveryAction(ActionTerm):
 
     @property
     def processed_actions(self): return self._targets
+
+    @property
+    def effective_raw_limits(self): return self._raw_limits
 
     def process_actions(self, actions):
         self._raw[:] = actions

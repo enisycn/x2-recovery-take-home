@@ -144,22 +144,36 @@ class X2RelaxedRecoveryEnvCfg(X2SymmetricRecoveryEnvCfg):
 
 @configclass
 class X2StabilityRefinementEnvCfg(X2RelaxedRecoveryEnvCfg):
-    """Optional supine-only refinement of ballistic recovery into supported stance."""
+    """Supine-only recovery with dense stance shaping and action regularization."""
 
     def __post_init__(self):
         super().__post_init__()
-        self.rewards.pelvis_height = RewTerm(
-            func=mdp.supported_height_progress, weight=40.0,
-            params={"feet_cfg": foot_contact_cfg(), "all_bodies_cfg": all_contact_cfg()},
-        )
+        # Keep ascent shaping continuous through the hand-to-foot transition.
+        # Requiring foot support inside this term created a reward drop before
+        # stance; contact quality and motion are scored by separate terms.
+        self.rewards.feet.weight = 10.0
         self.rewards.balance.weight = 20.0
         self.rewards.stance_proximity = RewTerm(
             func=mdp.strict_stance_proximity, weight=20.0,
-            params={"feet_cfg": foot_contact_cfg(), "all_bodies_cfg": all_contact_cfg()},
+            params={
+                "feet_cfg": foot_contact_cfg(), "all_bodies_cfg": all_contact_cfg(),
+                "max_tilt": 0.35, "max_linear_speed": 0.8, "max_angular_speed": 2.0,
+            },
         )
         self.rewards.near_stance_motion = RewTerm(func=mdp.near_stance_motion_cost, weight=-2.0)
         self.rewards.joint_speed = RewTerm(func=mdp.joint_vel_l2, weight=-0.0005)
         self.rewards.action_rate.weight = -0.02
+        from isaaclab.managers import SceneEntityCfg
+        self.rewards.standing_leg_pose = RewTerm(
+            func=mdp.final_leg_pose_exp, weight=20.0,
+            params={
+                "gate_start_height": 0.40, "target_height": 0.68, "std": 0.7,
+                "asset_cfg": SceneEntityCfg("robot", joint_names=[
+                    ".*_hip_pitch_joint", ".*_knee_joint", ".*_ankle_pitch_joint",
+                ]),
+            },
+        )
+        self.rewards.action_saturation = RewTerm(func=mdp.saturated_action_cost, weight=-0.5)
 
 
 @configclass

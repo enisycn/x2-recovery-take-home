@@ -2,7 +2,7 @@
 
 Isaac Lab / PhysX PPO recovery for the official AgiBot X2 Ultra v1.3.0 model, plus a ROS 2 Humble interface that starts a real simulator episode and publishes measured joint state.
 
-**Selected result: 5/5 true-supine recoveries.** The final policy remains in strict unsupported two-foot stance for 8.54-8.94 s of each 10 s episode and satisfies the relaxed-arm criterion for the full final two seconds. The final experiment, evaluation and ROS runtime use no lift force, reference reset, observation noise or domain randomization.
+**Selected result: 5/5 true-supine recoveries.** This checkpoint includes mixed-start pretraining; it is not the result of the supine-only scratch command below. The final policy remains in strict unsupported two-foot stance for 8.54-8.94 s of each 10 s episode and satisfies the relaxed-arm criterion for the full final two seconds. The final experiment, evaluation and ROS runtime use no lift force, reference reset, observation noise or domain randomization.
 
 ## Recovery video
 

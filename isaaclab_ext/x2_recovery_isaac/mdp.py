@@ -742,6 +742,20 @@ def near_stance_motion_cost(env: ManagerBasedRLEnv) -> torch.Tensor:
     return height_gate * upright.square() * (linear + 0.1 * angular)
 
 
+def saturated_action_cost(env: ManagerBasedRLEnv) -> torch.Tensor:
+    """Discourage Gaussian outputs that lose control resolution after tanh.
+
+    At |a|=2.5, tanh already covers 98.66% of the configured half-range.
+    Imported soft limits can saturate the command sooner (notably ankles).
+    The action term derives the effective interval from those actual limits.
+    Every target in that interval, including knee extension, remains available.
+    """
+    bounds = env.action_manager.get_term("joint_position").effective_raw_limits
+    action = env.action_manager.action
+    return (torch.relu(bounds[..., 0] - action).square()
+            + torch.relu(action - bounds[..., 1]).square()).sum(dim=1)
+
+
 def standing_still(
     env: ManagerBasedRLEnv,
     target_height: float,

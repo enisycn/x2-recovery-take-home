@@ -269,6 +269,18 @@ def test_strict_stance_proximity_is_bounded_and_orders_nearby_states() -> None:
     assert result[2] < 0.30
     assert result[0] > 0.80
 
+    # Broader training widths provide braking feedback without making the
+    # unchanged binary evaluation count a rotating robot as successful.
+    env.scene["robot"].data.root_ang_vel_w = TorchField(torch.zeros((count, 3)))
+    env.scene["robot"].data.root_ang_vel_w.torch[0, 0] = 3.0
+    broad = mdp.strict_stance_proximity(
+        env, feet_cfg=feet, all_bodies_cfg=all_bodies,
+        max_tilt=0.35, max_linear_speed=0.8, max_angular_speed=2.0,
+    )
+    strict = mdp.strict_success(env, feet_cfg=feet, all_bodies_cfg=all_bodies)
+    assert broad[0] > 0.7
+    assert not strict[0]
+
 
 def test_strict_success_ignores_internal_self_collision_for_support() -> None:
     """Only floor contact, not equal/opposite link contact, is body support."""
@@ -321,6 +333,27 @@ def test_x2_knee_soft_margin_still_permits_near_extension() -> None:
     half_soft_range = 0.5 * factor * (hard_upper - hard_lower)
     soft_lower = midpoint - half_soft_range
     assert 0.0 < soft_lower < 0.03
+
+
+def test_action_saturation_cost_preserves_knee_extension_and_penalizes_large_means():
+    from x2_recovery_isaac.synergy_action import effective_raw_interval
+    knee_soft_min = 0.5 * 2.407 * (1.0 - 0.98)
+    knee_command = math.atanh((knee_soft_min - 1.15) / 1.15)
+    action = torch.tensor([
+        [0.0, knee_command, 2.5], [3.0, -4.0, 0.0], [-3.0, 4.0, 0.0],
+    ])
+    bounds = torch.tensor([[[-2.5, 2.5]] * 3]).expand(3, -1, -1)
+    term = SimpleNamespace(effective_raw_limits=bounds)
+    env = SimpleNamespace(action_manager=SimpleNamespace(action=action, get_term=lambda _: term))
+    cost = mdp.saturated_action_cost(env)
+    assert cost[0] == 0.0
+    assert torch.allclose(cost[1:], torch.tensor([2.5, 2.5]))
+    assert math.tanh(2.5) > 0.986
+    knee_bounds = effective_raw_interval(torch.tensor([[[knee_soft_min, 2.407-knee_soft_min]]]), 1.15, 1.15)
+    assert math.isclose(float(knee_bounds[0, 0]), knee_command, abs_tol=1e-5)
+    ankle_bounds = effective_raw_interval(torch.tensor([[[-.79044, .44044]]]), -.15, .70)
+    assert 1.23 < float(ankle_bounds[0, 1]) < 1.24
+    assert -1.56 < float(ankle_bounds[0, 0]) < -1.55
 
 
 def test_reset_workaround_invalidates_all_root_frame_buffers() -> None:

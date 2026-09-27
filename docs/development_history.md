@@ -46,6 +46,25 @@ The supplied model450 was obtained by continuing the mixed-start pretraining lin
 The current supine reset has a dedicated function with no reference-pose parameters. Fresh runs also begin with an episode clock of zero. Historical curriculum functions remain for earlier variants and development evidence; they are not the reset used by relaxed_v4.
 
 
-## Supine-only scratch run and stabilization
+## Supine-only scratch experiments
 
-A separate 500-update scratch run used supine-only resets throughout and scored 0/5 at the final model499 checkpoint. Height and upright shaping could reward airborne high states while strict supported stance remained absent. Mean action std grew from 1.0 to 2.08045. The optional stability refinement targets the observed ballistic behavior with supported-height shaping, near-stance motion regularization and reduced exploration. It reuses only this supine-trained actor; it does not load the mixed-start model450. After 100 additional updates, model598 also scored 0/5, so this experiment is not a demonstrated fix. This combined intervention does not isolate the effect of any individual change. See [design and evidence](design_and_evidence.md) for formulas, measured results and provenance.
+The original 500-update scratch run scored 0/5: height/upright shaping rewarded
+ballistic motion while strict supported stance was never visited. The submitted
+model450 had mixed-start pretraining; its result did not establish successful
+training from random weights with supine-only resets.
+
+| Experiment | Initialization | Updates | Five-seed result |
+| --- | --- | ---: | --- |
+| Original scratch | Random, std 1.0, entropy 0.005 | 500 | 0/5; no strict stance. |
+| Support-gated refinement | Original scratch model499, std 0.3 | 100 | 0/5; no strict stance. |
+| Action-resolution refinement | Original scratch model499, std 0.3 | 300 | 0/5; saturation decreased, unstable rise remained. |
+| Dense-stance scratch | Random, std 0.8, entropy 0 | 500 | 0/5; at most 0.04 s strict stance. |
+
+All four experiments reset every episode supine. None uses the mixed-start
+model450, expert actions, reference starts or lift forces. The current optional
+preset removes the contact gate from height shaping, broadens training-only
+stance proximity, scores leg posture, and regularizes ineffective saturated
+commands. Its success criterion is unchanged. These combined interventions do
+not isolate the contribution of a single reward. Exact run configurations,
+checkpoints and results remain in their individual log directories; see
+[design and evidence](design_and_evidence.md) for formulas and measured failures.

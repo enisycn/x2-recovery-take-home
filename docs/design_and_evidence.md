@@ -39,14 +39,58 @@ Our earlier HumanUP-inspired history/RMA variant was an X2 adaptation, not a rep
 The five episodes cover nominal flat-floor simulation only. There is no domain randomization, observation noise, hardware state-estimation error, actuator latency, thermal constraint or real-robot validation. Whole-body contact and exact base height may require different sensing on hardware. The symmetric action subspace limits asymmetric recovery.
 
 
-## Supine-only stabilization experiment
+## Supine-only training diagnosis
 
-The 500-update supine-only checkpoint reached 0.763-0.783 m in five episodes but maintained strict stance for zero seconds. At its maximum-height snapshots neither foot carried load, and angular speed was 5.36-9.38 rad/s. The required maximum is 0.35 rad/s. Its final mean Gaussian action standard deviation was 2.08045; the selected model450 had 0.07514. Deterministic evaluation removes sampling noise, so noise alone cannot explain the failed deployed motion. These facts support a ballistic local solution to the shaping objective, rather than an isolated URDF/frame defect.
+The original 500-update scratch run scored 0/5. It reached 0.763–0.783 m while
+both feet were airborne; angular speed at those maximum-height snapshots was
+5.36–9.38 rad/s. Strict stance reward was exactly zero throughout training.
+Mixed-start pretraining had already observed this reward at iteration 3.
+Its reset distribution and random seed differed, so this is evidence of missing
+standing experience, not a controlled proof that curriculum is necessary.
 
-`--stability_refinement` is an optional training reward preset. It keeps the same floating robot, flat floor, supine resets, observation/action contract, actuator limits and strict evaluation thresholds. The ordinary `relaxed_v4` preset and submitted checkpoint remain reproducible.
+The original target mapping can saturate. Its derivative is
+`span * (1 - tanh(action)^2)`: at raw action 5 the dimensionless sensitivity is
+only 0.000182. In three saved snapshots per evaluation episode, 62/120 action
+values from the failed model exceeded magnitude 2.5, versus 9/120 for the selected
+model450. These counts describe selected snapshots, not entire trajectories.
+Reducing Gaussian std cannot by itself correct a saturated mean action.
 
-Let `o = clip((1-g_z)/2, 0, 1)` and `g = clip((z-0.45)/0.13, 0, 1)`. Let `s` mean both feet have at least 15 N ground contact and no other body reaches that threshold. The refinement height term is `clip(z/0.68, 0, 1) * o * (1-g+g*s)`, weight 40. It retains low-height recovery shaping while removing standing-height reward for airborne or other-supported states. The motion cost is `g * o^2 * (||v||^2 + 0.1*||omega||^2)`, weight -2. It discourages ballistic motion near stance without penalizing floor-level recovery. Balance weight increases to 20; a continuous proximity term to the unchanged stance predicate has weight 20. Joint-speed cost is -0.0005 and action-change cost -0.02.
+## Experimental dense-stance reward preset
 
-[HumanUP, Appendix A.2](https://arxiv.org/html/2502.12152v2#A2) motivates velocity and control regularization after discovery. [HoST](https://www.roboticsproceedings.org/rss21/p064.html) also constrains smoothness and motion speed. Contact-gated height, gate thresholds, weights and refinement PPO values above are local X2 choices, not constants copied from either paper; neither complete paper pipeline is reproduced.
+`--stability_refinement` selects this optional preset for either a fresh run or a
+continuation. Robot physics, action mapping, supine resets and strict evaluation
+limits remain identical to `relaxed_v4`. The following changes are local X2
+engineering choices; they are not paper constants.
 
-The first refinement continued only the supine-trained model499 for 100 PPO updates, reset optimizer and critic for the changed reward, started action std at 0.3, and used fixed learning rate 1e-4 and entropy coefficient 0. No upright or squat resets were added. Its final model598 scored **0/5** under the original success checks. Maximum continuous strict stance remained 0 s for every seed. At the maximum-height snapshots both foot forces were still 0 N; angular speeds for seeds 101–105 were 9.13, 5.24, 5.30, 4.93 and 5.01 rad/s. Reduced exploration and these reward changes did not establish recovery within this budget. The preset remains experimental and does not replace the submitted model450 or its recorded 5/5 result.
+| Term | Weight | Definition or change |
+| --- | ---: | --- |
+| Signed pelvis height | 40 | Original continuous height/orientation shaping retained. |
+| Two-foot support | 10 | Original height/upright-gated contact term. |
+| Standing still | 20 | Original balance term, increased weight. |
+| Stance proximity | 20 | Exponential pose/speed proximity with two-foot contact; training widths: tilt 0.35, linear speed 0.8 m/s, angular speed 2 rad/s. |
+| Near-stance motion | -2 | `g * o^2 * (norm(v)^2 + 0.1*norm(omega)^2)`. |
+| Leg pose | 20 | `height_gate * upright_gate * exp(-mean(q_leg^2)/0.7^2)` for hip pitch, knee and ankle pitch. Height gate rises from 0.40 to 0.68 m. |
+| Action saturation | -0.5 | Squared raw-action excess beyond each group's effective interval. Bounds account for both imported soft-limit clipping and `abs(action)=2.5` tanh saturation. |
+| Joint speed | -0.0005 | Sum of squared joint velocities. |
+| Action change | -0.02 | Sum of squared successive raw-action differences. |
+
+Here `o=clip((1-g_z)/2,0,1)` and `g=clip((z-0.45)/0.13,0,1)`.
+Ankle-pitch soft-limit clipping begins near raw -1.557 and 1.233; knee extension
+near -2.275 remains available. All other reward terms retain their original
+settings. **The validator still requires tilt <=0.15, linear speed <=0.25 m/s,
+angular speed <=0.35 rad/s, correct orientation, height and foot-only support for
+0.5 continuous seconds.** Training widths do not relax these checks.
+
+[FRASA, Section IV-D](https://arxiv.org/html/2410.08655v3#S4.SS4) motivates
+exponential proximity to the desired pose. Its near-neutral reset sampling is
+not used here. [HumanUP, Appendix A.2](https://arxiv.org/html/2502.12152v2#A2)
+motivates velocity/control regularization; this repository does not reproduce
+its slowed-trajectory tracking stage.
+
+Two earlier refinements of the failed scratch actor scored 0/5 after 100 and 300
+updates. They used contact-gated height, which created a reward drop before
+hand-to-foot transfer completed. The current preset restores continuous height
+shaping and scores contact separately. A new 500-update random-weight run with
+the current preset also scored 0/5: seeds 103 and 105 briefly met all criteria
+for 0.04 s, below the required 0.5 s. This is partial progress, not recovery.
+The experiments remain separate from the historical model450 and its 5/5 record.
