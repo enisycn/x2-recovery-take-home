@@ -718,5 +718,132 @@
       9.06
     ],
     "reset": "supine_only"
+  },
+  {
+    "experiment": "Final reward combination from scratch, 500 updates",
+    "checkpoint": "logs/rsl_rl/hrs_x2_relaxed_v4/2026-09-27_14-51-08_supine_final_rewards_scratch500/model_499.pt",
+    "checkpoint_sha256": "0ea33b5132869aefd635ee7bec1bf1a68fc538b084e0fabb191229f94776e4d8",
+    "source_commit": "456a9065e0589eab999d2b6aa55412d61da0739b",
+    "evaluation_report": "logs/rsl_rl/hrs_x2_relaxed_v4/2026-09-27_14-51-08_supine_final_rewards_scratch500/evaluation.json",
+    "parent_checkpoint": null,
+    "initialization": "random actor and critic",
+    "lineage_updates": 500,
+    "num_envs": 3000,
+    "training_seed": 47,
+    "initial_action_std": 0.8,
+    "initial_learning_rate": 0.0003,
+    "learning_schedule": "adaptive",
+    "entropy_coef": 0,
+    "reward_configuration": "X2PostureRefinementEnvCfg; shoulder_command_variance=1.0, unchanged throughout training",
+    "reset": "supine_only",
+    "successes": 0,
+    "episodes": 5,
+    "standing_at_end": 0,
+    "neutral_arms_final_two_seconds": 0,
+    "seeds": [
+      101,
+      102,
+      103,
+      104,
+      105
+    ],
+    "results": [
+      {
+        "seed": 101,
+        "success": false,
+        "steps": 500,
+        "ended_by_safety_termination": false,
+        "maximum_pelvis_height_m": 0.731,
+        "maximum_strict_stable_s": 0.0,
+        "final_strict_stable_s": 0.0,
+        "standing_at_episode_end": false,
+        "criterion_fraction": {
+          "height": 0.132,
+          "upright": 0.284,
+          "linear_speed": 0.056,
+          "angular_speed": 0.008,
+          "both_feet": 0.376,
+          "no_other_support": 0.624
+        },
+        "failure_reason": "strict height/orientation/speed/contact criteria never overlapped"
+      },
+      {
+        "seed": 102,
+        "success": false,
+        "steps": 500,
+        "ended_by_safety_termination": false,
+        "maximum_pelvis_height_m": 0.7179,
+        "maximum_strict_stable_s": 0.0,
+        "final_strict_stable_s": 0.0,
+        "standing_at_episode_end": false,
+        "criterion_fraction": {
+          "height": 0.08,
+          "upright": 0.024,
+          "linear_speed": 0.164,
+          "angular_speed": 0.014,
+          "both_feet": 0.158,
+          "no_other_support": 0.302
+        },
+        "failure_reason": "strict height/orientation/speed/contact criteria never overlapped"
+      },
+      {
+        "seed": 103,
+        "success": false,
+        "steps": 500,
+        "ended_by_safety_termination": false,
+        "maximum_pelvis_height_m": 0.7615,
+        "maximum_strict_stable_s": 0.0,
+        "final_strict_stable_s": 0.0,
+        "standing_at_episode_end": false,
+        "criterion_fraction": {
+          "height": 0.176,
+          "upright": 0.304,
+          "linear_speed": 0.044,
+          "angular_speed": 0.014,
+          "both_feet": 0.362,
+          "no_other_support": 0.632
+        },
+        "failure_reason": "strict height/orientation/speed/contact criteria never overlapped"
+      },
+      {
+        "seed": 104,
+        "success": false,
+        "steps": 500,
+        "ended_by_safety_termination": false,
+        "maximum_pelvis_height_m": 0.7423,
+        "maximum_strict_stable_s": 0.0,
+        "final_strict_stable_s": 0.0,
+        "standing_at_episode_end": false,
+        "criterion_fraction": {
+          "height": 0.198,
+          "upright": 0.298,
+          "linear_speed": 0.036,
+          "angular_speed": 0.01,
+          "both_feet": 0.358,
+          "no_other_support": 0.67
+        },
+        "failure_reason": "strict height/orientation/speed/contact criteria never overlapped"
+      },
+      {
+        "seed": 105,
+        "success": false,
+        "steps": 500,
+        "ended_by_safety_termination": false,
+        "maximum_pelvis_height_m": 0.7424,
+        "maximum_strict_stable_s": 0.0,
+        "final_strict_stable_s": 0.0,
+        "standing_at_episode_end": false,
+        "criterion_fraction": {
+          "height": 0.184,
+          "upright": 0.342,
+          "linear_speed": 0.056,
+          "angular_speed": 0.004,
+          "both_feet": 0.41,
+          "no_other_support": 0.644
+        },
+        "failure_reason": "strict height/orientation/speed/contact criteria never overlapped"
+      }
+    ],
+    "selected_for_submission": false
   }
 ]

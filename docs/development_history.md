@@ -124,3 +124,20 @@ guarantee; see [OpenAI's PPO explanation](https://spinningup.openai.com/en/lates
 Final measurements: maximum final-window shoulder error 0.233 rad, elbow error
 0.099 rad, arm-joint position range 0.00195 rad and velocity RMS 0.0261 rad/s.
 These are 50 Hz simulation measurements, not hardware performance claims.
+
+## Fixed final rewards from scratch: 500-update check
+
+A separate 3,000-environment run starts actor and critic from random weights and keeps the entire final reward configuration fixed for all 500 updates. Every reset remains supine. Seed 47, initial std 0.8, entropy 0 and adaptive learning rate starting at 3e-4 match the earlier scratch setup. No checkpoint is loaded. The final `model_499.pt` represents 500 updates / 48 million environment steps; training took 17 min 19 s excluding simulator startup.
+
+```bash
+./scripts/train_isaac.sh --phase relaxed_v4 --num_envs 3000 \
+  --max_iterations 500 --seed 47 --device cuda:0 \
+  --run_name supine_final_rewards_scratch500 \
+  --stability_refinement --posture_refinement --shoulder_command_variance 1 \
+  --action_std_override 0.8 --entropy_coef 0 \
+  --learning_rate_override 0.0003 --learning_schedule adaptive
+```
+
+Seeds 101-105 scored **0/5**. All five ran the full 500 evaluation steps without a safety termination, reaching 0.718-0.762 m pelvis height but zero time satisfying all strict stance conditions together. Orientation and base speed remained unstable. The final training mean return was 398.02, demonstrating that rising reward alone does not establish recovery. Per-seed criteria, checkpoint hash and source revision are recorded in `reports/supine_experiments.json`; the complete local run preserves the reward plot, checkpoint, configuration, evaluation and seed-101 video.
+
+This single run shows that 500 updates were insufficient for this fixed configuration and seed. It does not establish a universal minimum budget or prove that another reward/exploration setup cannot succeed faster. The selected model2248 and its verified 5/5 result remain unchanged.
