@@ -32,7 +32,7 @@ The later successful supine lineage added stance proximity, near-stance motion
 cost, joint-speed cost, leg-posture shaping and action-saturation cost; it also
 changed foot, balance and action-change weights. It reached 5/5 stance after
 1,000 updates, then received a focused shoulder-command objective and further
-training to reach the selected neutral-arm result after 2,254 inherited
+training to reach the selected neutral-arm result after 2,404 inherited
 updates. Those additions are **not active** in this new run. Neither are the
 controlled-rise or load-transfer presets.
 
@@ -76,7 +76,7 @@ and [diagnostic totals](../reports/experiments/original_rewards2000/rollout_diag
 Increasing the original experiment's budget to 2,000 did not solve recovery
 in this run. Keep the selected, separately validated supine-only policy: its
 dense-stance ancestor reached 5/5 at 1,000 updates, and the later arm refinement
-reached 5/5 with neutral arms after 2,254 inherited updates. This experiment is
+reached 5/5 with neutral arms after 2,404 inherited updates. This experiment is
 retained as a failed comparison and was not promoted to the ROS policy.
 
 Evidence: [evaluation](../reports/experiments/original_rewards2000/evaluation.json),

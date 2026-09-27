@@ -2,7 +2,7 @@
 
 Isaac Lab / PhysX PPO recovery for the official AgiBot X2 Ultra v1.3.0 model, plus a ROS 2 Humble interface that starts a real simulator episode and publishes measured joint state.
 
-**Selected result: 5/5 recoveries, with neutral arms throughout the final two seconds.** The PPO lineage begins with random weights and every training reset is supine. It uses 2,254 selected updates, without mixed-start pretraining, imitation or lift assistance. Seeds 101–105 all recover and remain standing at episode end for 8.94–9.14 s. Every sample of the final two seconds also meets the separate neutral-arm check: maximum shoulder error 0.233 rad and elbow error 0.099 rad, below the 0.30 rad limits. The largest arm-joint position range is 0.0019 rad and velocity RMS 0.026 rad/s in that window (50 Hz measurements).
+**Selected result: 5/5 recoveries, with neutral arms throughout the final two seconds.** The PPO lineage starts from random weights and every training reset is supine. It uses 2,404 selected updates without mixed-start pretraining, imitation or lift assistance. Seeds 101–105 all recover and remain standing at episode end for 8.94–9.12 s. The separate final-two-second neutral-arm check also passes in all five; worst shoulder error is 0.116 rad (previous checkpoint: 0.233 rad), and worst elbow error is 0.104 rad. Largest final-window arm-joint range is 0.0011 rad and velocity RMS is 0.020 rad/s at 50 Hz.
 
 ## Recovery video
 
@@ -12,7 +12,7 @@ The first two seconds hold the initial supine frame for inspection; the followin
 
 - [Final GIF](reports/gifs_relaxed_v4/x2_final_policy_attempt.gif)
 - [Five-episode evaluation](reports/relaxed_v4_evaluation.json)
-- [Checkpoint](reports/checkpoints/x2_supine_model2248.pt)
+- [Checkpoint](reports/checkpoints/x2_supine_model2397.pt)
 - [Reward curve](reports/relaxed_v4_training_reward.png)
 - [Standing and arm metrics](reports/arm_validation.png)
 - [Submission report (PDF)](docs/submission_report.pdf)
@@ -45,7 +45,7 @@ q_target = clamp(q_target, imported soft joint limits)
 
 ### Rewards
 
-At each 0.02 s policy step, Isaac RewardManager adds `weight × term value × 0.02` across the active terms. Positive weights encourage a behavior; negative weights penalize it. These are reward coefficients, not neural-network weights. Reward formulas are in [mdp.py](isaaclab_ext/x2_recovery_isaac/mdp.py); the final weights and enabled terms are in [simple_cfg.py](isaaclab_ext/x2_recovery_isaac/simple_cfg.py). The exact resolved settings saved with the checkpoint are in [env.yaml](reports/configs/supine_model2248/env.yaml).
+At each 0.02 s policy step, Isaac RewardManager adds `weight × term value × 0.02` across the active terms. Positive weights encourage a behavior; negative weights penalize it. These are reward coefficients, not neural-network weights. Reward formulas are in [mdp.py](isaaclab_ext/x2_recovery_isaac/mdp.py); the final weights and enabled terms are in [simple_cfg.py](isaaclab_ext/x2_recovery_isaac/simple_cfg.py). The exact resolved settings saved with the checkpoint are in [env.yaml](reports/configs/supine_model2397/env.yaml).
 
 | Term | Weight | Definition and purpose |
 | --- | ---: | --- |
@@ -57,7 +57,7 @@ At each 0.02 s policy step, Isaac RewardManager adds `weight × term value × 0.
 | Balance | 20 | Low root speed near upright standing |
 | Strict stance | 20 | Complete recovery predicate below |
 | Relaxed arms | 40 | Supported-upright gate and arm-pose Gaussian; shoulder 0, elbow -0.15 rad |
-| Shoulder command | 80 | Supported-upright gate × `exp(-(a_shoulder-atanh(.25))^2/v)`; added after 1,000 updates with `v=9`, then narrowed to `v=1` for the final pose |
+| Shoulder command | 80 | Supported-upright gate × `exp(-(a_shoulder-atanh(r))^2/v)`; `r=.25` after 1,000 updates, `v=9` then `v=1`, and `r=.15` for the final 150-update posture adjustment |
 | Action change | -0.02 | Squared successive action difference |
 | Stance proximity | 20 | Smooth distance to upright, supported low-speed stance; training widths 0.35 tilt, 0.8 m/s and 2 rad/s |
 | Leg pose | 20 | Neutral hip pitch, knee and ankle pitch above 0.40 m; orientation gated |
@@ -88,11 +88,11 @@ The extra final-pose check requires shoulder-pitch and elbow errors <=0.30 rad w
 
 PPO uses clip 0.2, gamma 0.99, GAE lambda 0.95, five learning epochs, four minibatches, value-loss coefficient 1, clipped value loss, desired KL 0.01 and gradient clipping 1. All stages use 3,000 environments, 32 steps/environment, seed 47 and entropy coefficient 0. Initial action std is 0.8. The first 1,000 updates use adaptive learning rate starting at 3e-4; shoulder refinement starts at 1e-4, first fixed and finally adaptive.
 
-[Commands](docs/commands.md) records the selected continuation chain. Actor, critic, optimizer and per-channel learned std are retained. `--stability_refinement` selects dense stance shaping. After 1,000 updates, `--posture_refinement` adds the shoulder-command objective; every reset remains supine. There is no reset curriculum, but there is an explicitly documented reward change. A late fixed-rate regression was rejected and training resumed from its earlier stable checkpoint with adaptive KL-based step sizing. RSL-RL repeats the loaded index, so model2248 represents 2,254 selected updates. A separate 500-update random-weight trial using the complete final reward combination scored 0/5; see [development history](docs/development_history.md). This is an empirical recipe, not a minimum training budget or a guarantee of bit-for-bit PhysX retraining.
+[Commands](docs/commands.md) records the selected continuation chain. Actor, critic, optimizer and learned per-channel std are retained. Every reset remains supine. Dense stance shaping is active from the beginning; the shoulder-command reward is added after 1,000 updates, narrowed after 2,054, then its target ratio shifts from 0.25 to 0.15 for the final 150 updates. This last change moves measured shoulders closer to neutral without adding a reward term or changing success thresholds. There is no reset curriculum. A rejected fixed-rate branch is excluded. RSL-RL repeats loaded indices, so model2397 represents 2,404 selected updates. A separate 500-update random-weight trial with all final reward terms scored 0/5; see [development history](docs/development_history.md).
 
 For graphical checkpoint playback, pass `--viz kit --start-delay 2` to view the supine reset pose for two wall-clock seconds before recovery. The preview does not advance physics or the episode clock. Without a preview, use `--start-delay 0`. Pass `--viz kit` to open the viewer; without a selected visualizer this Isaac Lab version runs headlessly. The guide includes an adjustable seed and a five-seed playback command.
 
-The reward curve covers **all 2,254 updates in the selected ancestry**, including the initial 500-update 0/5 stage. Faint: logged mean return; solid: trailing 20-update mean. Markers identify continuations, the added shoulder objective and its final narrower width. Reward scales differ across those changes. The rejected tail of the fixed-rate trial is a separate branch, documented in development history; it is not inherited by the selected weights. Physical evaluation establishes recovery independently of return.
+The reward curve covers **all 2,404 updates in the selected ancestry**, including the initial 500-update 0/5 stage. Faint: logged mean return; solid: trailing 20-update mean. Markers identify continuations and shoulder-reward changes at 1,000, 2,054 and 2,254 updates. Reward scales differ across these changes, so physical evaluation establishes recovery independently of return. The rejected fixed-rate tail is a separate, uninherited branch.
 
 Every successful `train_isaac.sh` run automatically adds `reward.png`, `reward.csv` and `run_manifest.json` beside its TensorBoard events, parameter snapshots and checkpoints. The experiment-level `LATEST_RUN.txt` points to that directory. See [training outputs and file locations](docs/artifact_locations.md) for the exact tree and commands. Evaluation JSON and GIF rendering remain explicit simulator steps.
 
@@ -118,6 +118,6 @@ See [validation](docs/validation.md) for the fresh build, busy rejection, live t
 
 ## Results and limits
 
-Seeds 101–105 all recover and remain standing at episode end for 8.94–9.14 s. Every sample of the final two seconds also meets the separate neutral-arm check: maximum shoulder error 0.233 rad and elbow error 0.099 rad, below the 0.30 rad limits. The largest arm-joint position range is 0.0019 rad and velocity RMS 0.026 rad/s in that window (50 Hz measurements). There are no failures among these five nominal tests. Earlier failures and the rejected late refinement remain documented in [development history](docs/development_history.md).
+Seeds 101–105 all end standing for 8.94–9.12 s of continuous strict stance. Every sample of the final two seconds meets the separate neutral-arm check: maximum shoulder error 0.116 rad, elbow error 0.104 rad, joint range 0.0011 rad and velocity RMS 0.020 rad/s. There are no failures in these five nominal tests. Earlier failures are documented in [development history](docs/development_history.md).
 
 These are nominal simulation results, not hardware or general robustness claims. Observation noise, dynamics randomization, terrain variation, actuator latency and hardware safety validation remain future work. The original 500-update parent and the 1,000-update stance checkpoint remain available for lineage inspection. Configuration snapshots, runtime overrides, source patches and the complete reward curve document the selected lineage. The recipe is reproducible as an experiment, not a guarantee of bit-for-bit PhysX retraining.

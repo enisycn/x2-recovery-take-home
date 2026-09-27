@@ -82,7 +82,7 @@ pose. Less motion did not establish recovery.
 The learned action standard deviations averaged 0.066 (hip/knee about 0.02),
 down from initial 0.8. This combination made exploration narrow. These data
 do not isolate a single coefficient as the cause. The trial is retained as
-unsuccessful and does not replace the selected model2248.
+unsuccessful and does not replace the selected model2397.
 
 ## Follow-up: load transfer, same 500-update budget per run
 

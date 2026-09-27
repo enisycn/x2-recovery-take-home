@@ -1287,7 +1287,9 @@ def supported_posture_command_proximity(env, feet_cfg, all_bodies_cfg):
     return gate * torch.exp(-error / 8.0)
 
 
-def supported_shoulder_command_proximity(env, feet_cfg, all_bodies_cfg, variance: float = 9.0):
+def supported_shoulder_command_proximity(
+    env, feet_cfg, all_bodies_cfg, variance: float = 9.0, target_ratio: float = 0.25
+):
     """Guide saturated shoulder outputs without coupling in the waist target.
 
     The physical arm-pose reward remains active. This additional raw-command
@@ -1297,8 +1299,10 @@ def supported_shoulder_command_proximity(env, feet_cfg, all_bodies_cfg, variance
     """
     if not math.isfinite(variance) or variance <= 0.0:
         raise ValueError("Shoulder command variance must be finite and positive")
+    if not math.isfinite(target_ratio) or not -1.0 < target_ratio < 1.0:
+        raise ValueError("Shoulder target ratio must be finite and inside (-1, 1)")
     gate, _ = _supported_posture_command_error(env, feet_cfg, all_bodies_cfg)
-    error = env.action_manager.action[:, 3] - math.atanh(.25)
+    error = env.action_manager.action[:, 3] - math.atanh(target_ratio)
     return gate * torch.exp(-error.square() / variance)
 
 

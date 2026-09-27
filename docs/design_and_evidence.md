@@ -127,4 +127,4 @@ then receive more distinct scores without changing the target or maximum
 reward. Both widths are local choices and are saved in the run configuration.
 The original broad reward remains reproducible by omitting this override.
 
-Final precision model2248 passes all five canonical recoveries and the full final-two-second neutral-arm check. The selected ancestry contains 2,254 PPO updates, every reset supine. Exact stages, rejected branches and physical arm measurements are recorded in [development history](development_history.md) and [validation](validation.md).
+Precision model2248 passes all five canonical recoveries and the full final-two-second neutral-arm check. A subsequent 150-update change moves the shoulder-command target ratio from 0.25 to 0.15; model2397 retains 5/5 recovery, and the selected ancestry contains 2,404 PPO updates with every reset supine. Exact stages, rejected branches and physical arm measurements are recorded in [development history](development_history.md) and [validation](validation.md).

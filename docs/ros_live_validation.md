@@ -135,8 +135,7 @@ ros2 param set /x2_recovery timeout_sec 10.0
 
 ## Graphs and result files to open
 
-- `reports/relaxed_v4_training_reward.png`: final training-stage reward plot.
-- `reports/relaxed_v4_pretraining_reward.png`: earlier training lineage plot.
+- `reports/relaxed_v4_training_reward.png`: complete selected all-supine training lineage.
 - `reports/relaxed_v4_evaluation.json`: seeds 101-105 and 5/5 result.
 - `reports/gifs_relaxed_v4/x2_final_policy_attempt.gif`: final visual result.
 - `reports/videos/x2_recovery_supine_to_standing.mp4`: two-second supine preview and ten-second recorded episode.
@@ -148,4 +147,4 @@ For a newly completed training run, `scripts/train_isaac.sh` also creates `rewar
 
 Press `Ctrl+C` in Terminal 2, then Terminal 1. The interactive inspection terminal can remain open.
 
-The selected supine-only checkpoint passes the physical stance criterion. Its arms remain forward; neutral-arm posture is an additional evaluation metric, not a ROS success condition. ROS and the evaluator share the same strict stance thresholds.
+The selected supine-only checkpoint passes the physical stance criterion and the separately reported neutral-arm check. Neutral-arm posture is not a ROS success condition. ROS and the evaluator share the same strict stance thresholds.

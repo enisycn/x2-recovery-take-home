@@ -308,6 +308,13 @@ def test_posture_command_cost_requires_unsupported_upright_stance():
     narrow = mdp.supported_shoulder_command_proximity(env, feet, bodies, variance=1.0)
     assert narrow[0] == 1 and 0 < narrow[1] < shoulder[1]
     assert torch.equal(shoulder[2:], torch.zeros(3))
+    action[0, 3] = math.atanh(.15)
+    forward_target = mdp.supported_shoulder_command_proximity(
+        env, feet, bodies, variance=1.0, target_ratio=.15)
+    assert forward_target[0] == 1
+    assert mdp.supported_shoulder_command_proximity(
+        env, feet, bodies, variance=1.0)[0] < forward_target[0]
+    action[0, 3] = math.atanh(.25)
     action[0, 5] = 6.0
     assert mdp.supported_shoulder_command_proximity(env, feet, bodies)[0] == 1
     forces[1, 1, 0, 2] = 0.

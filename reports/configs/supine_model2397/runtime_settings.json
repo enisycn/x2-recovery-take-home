@@ -1,0 +1,19 @@
+{
+  "parent_checkpoint": "reports/checkpoints/x2_supine_model2248.pt",
+  "stability_refinement": true,
+  "posture_refinement": true,
+  "controlled_rise": false,
+  "load_transfer": false,
+  "shoulder_command_variance": 1.0,
+  "shoulder_target_ratio": 0.15,
+  "reset_optimizer": false,
+  "critic_initialization": "checkpoint",
+  "action_std_override": null,
+  "learning_rate": 0.0001,
+  "learning_schedule": "adaptive",
+  "entropy_coef": 0.0,
+  "reset": "supine_only",
+  "external_assistance": false,
+  "source_commit": "29728a35174bc9de66544e1bea8773bab17ff037",
+  "source_patch": "source_changes.patch"
+}

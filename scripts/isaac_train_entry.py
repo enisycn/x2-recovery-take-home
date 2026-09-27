@@ -36,6 +36,8 @@ parser.add_argument("--load_transfer", action="store_true",
                     help="Scratch preset rewarding transfer of ground support onto the feet.")
 parser.add_argument("--shoulder_command_variance", type=float, default=None,
                     help="Optional positive width for the supported shoulder-command reward.")
+parser.add_argument("--shoulder_target_ratio", type=float, default=None,
+                    help="Optional tanh-space shoulder command target; default 0.25 maps to 0 rad.")
 parser.add_argument(
     "--action_std_override",
     type=float,
@@ -70,6 +72,9 @@ if args.posture_refinement and not args.stability_refinement:
 if args.shoulder_command_variance is not None:
     if not args.posture_refinement or not math.isfinite(args.shoulder_command_variance) or args.shoulder_command_variance <= 0:
         parser.error("--shoulder_command_variance requires --posture_refinement and a finite positive value")
+if args.shoulder_target_ratio is not None:
+    if not args.posture_refinement or not math.isfinite(args.shoulder_target_ratio) or not -1.0 < args.shoulder_target_ratio < 1.0:
+        parser.error("--shoulder_target_ratio requires --posture_refinement and a finite ratio inside (-1, 1)")
 app_launcher = AppLauncher(args)
 simulation_app = app_launcher.app
 
@@ -98,6 +103,8 @@ def main() -> Path:
     env_cfg.seed = args.seed
     if args.shoulder_command_variance is not None:
         env_cfg.rewards.posture_command.params["variance"] = args.shoulder_command_variance
+    if args.shoulder_target_ratio is not None:
+        env_cfg.rewards.posture_command.params["target_ratio"] = args.shoulder_target_ratio
 
     agent_cfg = X2RelaxedPPORunnerCfg()
     if args.learning_schedule is not None:
@@ -178,6 +185,7 @@ def main() -> Path:
             "controlled_rise": args.controlled_rise,
             "load_transfer": args.load_transfer,
             "shoulder_command_variance": args.shoulder_command_variance,
+            "shoulder_target_ratio": args.shoulder_target_ratio,
             "reset_optimizer": args.reset_optimizer,
             "critic_initialization": "random_weights" if not args.checkpoint or
                 (args.reset_optimizer and args.stability_refinement) else "checkpoint",

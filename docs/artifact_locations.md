@@ -47,10 +47,10 @@ To finish an older successful run that predates automatic finalization:
 | File or directory | Meaning |
 | --- | --- |
 | `docs/submission_report.pdf` | Four-page English summary of the method, reward curve, five-episode evaluation and ROS integration. |
-| `reports/relaxed_v4_training_reward.png` | Complete selected lineage: 2,254 selected PPO updates. |
+| `reports/relaxed_v4_training_reward.png` | Complete selected lineage: 2,404 selected PPO updates. |
 | `reports/relaxed_v4_training_reward.csv` | Exact values behind that curve. |
-| `reports/configs/supine_model2248/lineage_audit.json` | Every reset is supine; parent hashes, unchanged physics and the explicit shoulder-reward change are recorded. |
-| `reports/checkpoints/x2_supine_model2248.pt` | Selected policy checkpoint. |
+| `reports/configs/supine_model2397/lineage_audit.json` | Every reset is supine; parent hashes, unchanged physics and the explicit shoulder-reward change are recorded. |
+| `reports/checkpoints/x2_supine_model2397.pt` | Selected policy checkpoint. |
 | `reports/checkpoints/x2_supine_parent_model499.pt` | Supine-only 500-update parent used for the next 500 updates. |
 | `reports/relaxed_v4_evaluation.json` | Five seeded evaluation episodes and success checks. |
 | `reports/gifs_relaxed_v4/x2_final_policy_attempt.gif` | Visual rollout from the selected checkpoint. |

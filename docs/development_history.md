@@ -24,7 +24,7 @@ Superseded engineering outcomes remain visible in chronological commits. Early r
 
 ## Curriculum disclosure
 
-Earlier pretraining mixed true-supine starts with auxiliary upright-root squat/sitting starts. These were reset states, not expert trajectories. A historical reference sequence did not cover the true lower supine-to-bridge transition, explaining why a policy could work from a reference pose yet score 0/5 from the floor. The historical final 51-update experiment used supine resets, but inherited the earlier mixed-start weights. The selected model2248 descends from a new, independent random-weight lineage with every training reset supine.
+Earlier pretraining mixed true-supine starts with auxiliary upright-root squat/sitting starts. These were reset states, not expert trajectories. A historical reference sequence did not cover the true lower supine-to-bridge transition, explaining why a policy could work from a reference pose yet score 0/5 from the floor. The historical final 51-update experiment used supine resets, but inherited the earlier mixed-start weights. The selected model2397 descends from a new, independent random-weight lineage with every training reset supine.
 
 ## Imitation tooling disclosure
 
@@ -99,10 +99,11 @@ None loads mixed-start weights or demonstration data.
 | Same reward, fixed rate 1e-4 | 454 to model1750 | 3/3 end standing; shoulders 0.46–0.49 rad. |
 | Rejected later tail of that run | 146 additional, not inherited | Model1896 ends standing in only 1/3 development episodes. |
 | Resume model1750 with adaptive KL schedule | 300 | Model2049: 3/3 standing; shoulders 0.35–0.37 rad, still outside 0.30 rad tolerance. |
-| Shoulder denominator narrowed to 1 | 200 | **Model2248: canonical seeds 101–105, 5/5 recovery and 5/5 neutral arms throughout the final two seconds.** |
+| Shoulder denominator narrowed to 1 | 200 | Model2248: 5/5 recovery and neutral arms; shoulders still slightly behind the neutral pose. |
+| Shoulder target shifted from ratio 0.25 to 0.15 | 150 | **Model2397: 5/5 recovery, 5/5 neutral arms, shoulder error at most 0.116 rad.** |
 
-The complete selected ancestry has 2,254 updates: 500 + 500 + 300 + 454 + 300 + 200.
-RSL-RL repeats the loaded index at each continuation, producing filename model2248.
+The complete selected ancestry has 2,404 updates: 500 + 500 + 300 + 454 + 300 + 200 + 150.
+RSL-RL repeats the loaded index at each continuation, producing filename model2397.
 The full 600-update fixed-rate attempt remains in its run log; its last 146 updates
 are a rejected branch, not hidden training in the selected policy. The main curve
 contains every update inherited by the selected weights, including the 0/5 start.
@@ -121,8 +122,8 @@ all six development screens. This is evidence from these runs, not an ablation
 proving KL alone caused the regression. PPO clipping is not a strict trust-region
 guarantee; see [OpenAI's PPO explanation](https://spinningup.openai.com/en/latest/algorithms/ppo.html).
 
-Final measurements: maximum final-window shoulder error 0.233 rad, elbow error
-0.099 rad, arm-joint position range 0.00195 rad and velocity RMS 0.0261 rad/s.
+Final model2397 measurements: maximum final-window shoulder error 0.116 rad, elbow error
+0.104 rad, arm-joint position range 0.00111 rad and velocity RMS 0.0196 rad/s. The preceding model2248 had 0.233 rad worst shoulder error; the change is measured, not inferred from appearance.
 These are 50 Hz simulation measurements, not hardware performance claims.
 
 ## Fixed final rewards from scratch: 500-update check
@@ -140,7 +141,7 @@ A separate 3,000-environment run starts actor and critic from random weights and
 
 Seeds 101-105 scored **0/5**. All five ran the full 500 evaluation steps without a safety termination, reaching 0.718-0.762 m pelvis height but zero time satisfying all strict stance conditions together. Orientation and base speed remained unstable. The final training mean return was 398.02, demonstrating that rising reward alone does not establish recovery. Per-seed criteria, checkpoint hash and source revision are recorded in `reports/supine_experiments.json`; the complete local run preserves the reward plot, checkpoint, configuration, evaluation and seed-101 video.
 
-This single run shows that 500 updates were insufficient for this fixed configuration and seed. It does not establish a universal minimum budget or prove that another reward/exploration setup cannot succeed faster. The selected model2248 and its verified 5/5 result remain unchanged.
+This single run shows that 500 updates were insufficient for this fixed configuration and seed. It does not establish a universal minimum budget or prove that another reward/exploration setup cannot succeed faster. The selected model2397 and its verified 5/5 result remain separate from this 500-update trial.
 
 ## Controlled-rise reward experiment
 
@@ -161,4 +162,8 @@ near 400; the robot continued rising and falling without settling. This budget
 extension did not solve the original experiment. It is not an isolated reward
 ablation against the selected model, which also used different exploration
 settings. See [the comparison and reproduction commands](original_rewards_experiment.md).
-The selected model2248, exported ROS policy and validated results remain unchanged.
+The selected model2397, exported ROS policy and validated results remain separate from this original-reward trial.
+
+## Final shoulder target adjustment
+
+From the fully validated model2248, 150 more PPO updates changed only the existing supported shoulder-command reward's target ratio from 0.25 to 0.15. The reward's weight, denominator and gate, the robot dynamics, observations, actions, termination and evaluator thresholds stayed fixed. The optimizer and learned action std were retained. Five fresh physical episodes again scored 5/5, all standing at the end, with worst shoulder error 0.116 rad rather than 0.233 rad. This is a small local posture refinement, not a new reward term or a demonstration. The seven-stage parent hash/configuration audit is saved with model2397.
