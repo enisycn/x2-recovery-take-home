@@ -81,7 +81,7 @@ The extra final-pose check requires both shoulder-pitch errors and elbow errors 
 
 PPO uses clip 0.2, gamma 0.99, GAE lambda 0.95, five learning epochs, four minibatches, value-loss coefficient 1, clipped value loss, desired KL 0.01 and gradient clipping 1. The final stage uses 3000 environments, 32 steps/environment, seed 47, fixed learning rate 1e-4, initial action standard deviation 0.10 and entropy 0.001.
 
-The supplied parent checkpoint supports re-running the final 51-update stage. [Commands](docs/commands.md) gives the training, playback and five-episode evaluation sequence.
+[Commands](docs/commands.md) starts a new supine-only PPO experiment from random weights, without loading a checkpoint. Its fresh-run settings are adaptive learning rate 3e-4, initial action standard deviation 1.0 and entropy 0.005. The reset is fixed throughout training, with no auxiliary poses or lift assistance; reward gates remain active. This is a new experiment, whose results are separate from the supplied model. Earlier continuation settings are retained in [development history](docs/development_history.md).
 
 For graphical checkpoint playback, pass `--viz kit --start-delay 2` to view the supine reset pose for two wall-clock seconds before recovery. The preview does not advance physics or the episode clock. Without a preview, use `--start-delay 0`. Pass `--viz kit` to open the viewer; without a selected visualizer this Isaac Lab version runs headlessly. The guide includes an adjustable seed and a five-seed playback command.
 

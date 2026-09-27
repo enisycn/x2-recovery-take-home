@@ -6,6 +6,7 @@ claim to reproduce the complete HumanUP method.
 """
 from isaaclab.utils import configclass
 from isaaclab.managers import RewardTermCfg as RewTerm
+from isaaclab.managers import EventTermCfg as EventTerm
 from . import mdp
 from .env_cfg import (X2RecoveryEnvCfg, HumanUpActionsCfg, HumanUpTerminationsCfg,
                       foot_contact_cfg, all_contact_cfg, _humanup_head_cfg)
@@ -117,14 +118,20 @@ class X2SymmetricPPORunnerCfg(X2SimplePPORunnerCfg):
 
 @configclass
 class X2RelaxedRecoveryEnvCfg(X2SymmetricRecoveryEnvCfg):
-    """Preserve v3 recovery, refine only stable final arm posture."""
+    """Supine-only recovery with a supported-standing arm posture objective."""
 
     def __post_init__(self):
         super().__post_init__()
         from isaaclab.managers import SceneEntityCfg
-        # The submitted task starts EVERY episode supine (PDF requirement).
-        self.events.reset_back_pose.params["reference_probability_start"] = 0.0
-        self.events.reset_back_pose.params["reference_probability_end"] = 0.0
+        reset_params = self.events.reset_back_pose.params
+        self.events.reset_back_pose = EventTerm(
+            func=mdp.reset_supine, mode="reset",
+            params={
+                "supine_pose_range": reset_params["supine_pose_range"],
+                "velocity_range": reset_params["velocity_range"],
+            },
+        )
+        self.curriculum = None
         self.rewards.relaxed_arms = RewTerm(
             func=mdp.relaxed_arms_when_stable, weight=40.0,
             params={

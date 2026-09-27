@@ -34,20 +34,17 @@ rosdep install --from-paths src --ignore-src -r -y
 
 ## 2. Train (optional)
 
-This re-runs the submitted final 51-update stage from its supplied parent checkpoint. It uses the GPU and 3,000 environments; a smaller environment count is a new experiment, not a reproduction of the recorded result.
+This starts a new PPO experiment from random actor/critic weights. Every episode starts supine with neutral joints and zero velocity; there are no auxiliary poses, reset schedule or lift assistance. Do not add `--checkpoint` when training from scratch. Reward gates stay active; they control when rewards apply, not the initial pose.
 
 ```bash
 ./scripts/train_isaac.sh --phase relaxed_v4 --num_envs 3000 \
-  --max_iterations 51 --seed 47 --device cuda:0 \
-  --checkpoint reports/checkpoints/x2_relaxed_v4_parent_model400.pt \
-  --reset_optimizer --action_std_override 0.10 \
-  --learning_rate_override 0.0001 --learning_schedule fixed \
-  --entropy_coef 0.001
+  --max_iterations 500 --seed 47 --device cuda:0 \
+  --run_name supine_from_scratch
 ```
 
 Every **completed** training run writes a checkpoint, `reward.png`, `reward.csv`, and `run_manifest.json` to its timestamped directory.
 
-New runs do not overwrite the submitted plot or checkpoint in `reports/`. Add `--run_name trial_01` to the training command to append that name to its new timestamped directory.
+New runs do not overwrite the submitted plot or checkpoint in `reports/`. Change `--run_name` to label another experiment. `--max_iterations 500` is a chosen experiment budget, not a guarantee of recovery. The fresh run uses learning rate 3e-4 (adaptive), initial action standard deviation 1.0 and entropy coefficient 0.005. Its result must be evaluated separately; the recorded 5/5 result belongs to the supplied checkpoint. The earlier continuation settings are documented in [development history](development_history.md).
 
 Find the latest completed run:
 

@@ -164,11 +164,12 @@ def main() -> None:
     cfg.events.pelvis_com = None
     cfg.events.actuator_gains = None
     cfg.events.lift_assist = None
-    # Training uses a reference curriculum. Evaluation always begins from a
-    # perturbed true back-lying state and gives the policy no assistance.
+    # Older variants have reference resets. All evaluated variants must begin
+    # from a perturbed true back-lying state without assistance.
     reset_params = cfg.events.reset_back_pose.params
-    reset_params["reference_probability_start"] = 0.0
-    reset_params["reference_probability_end"] = 0.0
+    if args.environment != "relaxed_v4":
+        reset_params["reference_probability_start"] = 0.0
+        reset_params["reference_probability_end"] = 0.0
 
     agent_cfg = {"simple_v2": X2SimplePPORunnerCfg, "symmetric_v3": X2SymmetricPPORunnerCfg, "relaxed_v4": X2RelaxedPPORunnerCfg, "humanup_rise": X2HumanUpCurriculumPPORunnerCfg}[args.environment]()
     agent_cfg.device = args.device

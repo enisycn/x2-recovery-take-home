@@ -126,8 +126,9 @@ def main() -> None:
     config.events.pelvis_com = None
     config.events.actuator_gains = None
     config.events.lift_assist = None
-    config.events.reset_back_pose.params["reference_probability_start"] = 0.0
-    config.events.reset_back_pose.params["reference_probability_end"] = 0.0
+    if args.environment != "relaxed_v4":
+        config.events.reset_back_pose.params["reference_probability_start"] = 0.0
+        config.events.reset_back_pose.params["reference_probability_end"] = 0.0
     env = gym.make("HRS-X2-Recovery-Play-v0", cfg=config)
     feet_cfg = foot_contact_cfg()
     all_bodies_cfg = all_contact_cfg()

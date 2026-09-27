@@ -906,6 +906,30 @@ def reset_root_state_uniform_fresh(
     _invalidate_root_derived_buffers(env.scene[asset_cfg.name])
 
 
+def reset_supine(
+    env: ManagerBasedRLEnv,
+    env_ids: torch.Tensor,
+    supine_pose_range: dict[str, tuple[float, float]],
+    velocity_range: dict[str, tuple[float, float]],
+    asset_cfg: SceneEntityCfg = SceneEntityCfg("robot"),
+) -> None:
+    """Start on the back with neutral joints; no reference poses or schedule."""
+
+    if env_ids is None:
+        env_ids = torch.arange(env.scene.num_envs, device=env.device)
+    reset_root_state_uniform_fresh(
+        env, env_ids, pose_range=supine_pose_range,
+        velocity_range=velocity_range, asset_cfg=asset_cfg,
+    )
+    robot: Articulation = env.scene[asset_cfg.name]
+    robot.write_joint_position_to_sim_index(
+        position=robot.data.default_joint_pos.torch[env_ids].clone(), env_ids=env_ids,
+    )
+    robot.write_joint_velocity_to_sim_index(
+        velocity=robot.data.default_joint_vel.torch[env_ids].clone(), env_ids=env_ids,
+    )
+
+
 def reset_root_state_recovery_curriculum(
     env: ManagerBasedRLEnv,
     env_ids: torch.Tensor,

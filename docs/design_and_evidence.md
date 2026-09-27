@@ -26,6 +26,14 @@ See [parameter and evidence provenance](parameter_provenance.md) for the neural-
 
 No trustworthy time-aligned X2 expert state-action trajectory was available. Self-generated rollouts from the failed teacher would clone its failures. Direct PPO was therefore simpler and more defensible for a cheap, parallel simulator with an explicit physical success predicate.
 
+## What the cited methods actually use
+
+[HumanUP, Sections III-A and III-B](https://arxiv.org/html/2502.12152v2#S3) trains both stages with PPO. Stage I discovers a recovery motion; Stage II tracks an eight-times slowed version of that discovered trajectory using tracking rewards and stronger control regularization. This is motion imitation through RL, not supervised behavioral cloning of human demonstrations. Its history-based regularized online adaptation is also distinct from an expert state-action dataset.
+
+[HoST](https://www.roboticsproceedings.org/rss21/p064.html) learns standing-up from scratch with reinforcement learning, multiple critics and curricula. It does not require an expert demonstration trajectory.
+
+Our earlier HumanUP-inspired history/RMA variant was an X2 adaptation, not a reproduction of the complete published pipeline. It failed the true-supine evaluation while reference starts omitted the lower recovery transition and several state/contact/control defects were still present. These diagnoses do not isolate the history encoder or prove that imitation learning fails. The selected controller uses PPO, 122 observations and eight symmetric action channels, without a history encoder or imitation loss. The new scratch command keeps the same reward gates and starts every episode supine; its recovery performance is not yet measured.
+
 ## Main limitations
 
 The five episodes cover nominal flat-floor simulation only. There is no domain randomization, observation noise, hardware state-estimation error, actuator latency, thermal constraint or real-robot validation. Whole-body contact and exact base height may require different sensing on hardware. The symmetric action subspace limits asymmetric recovery.

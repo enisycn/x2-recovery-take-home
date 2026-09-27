@@ -87,8 +87,9 @@ def main() -> None:
     cfg.events.pelvis_com = None
     cfg.events.actuator_gains = None
     cfg.events.lift_assist = None
-    cfg.events.reset_back_pose.params["reference_probability_start"] = 0.0
-    cfg.events.reset_back_pose.params["reference_probability_end"] = 0.0
+    if args.environment != "relaxed_v4":
+        cfg.events.reset_back_pose.params["reference_probability_start"] = 0.0
+        cfg.events.reset_back_pose.params["reference_probability_end"] = 0.0
     cfg.video_recorder.window_width = 640
     cfg.video_recorder.window_height = 360
     cfg.viewer.eye = (2.7, 2.7, 1.65)
