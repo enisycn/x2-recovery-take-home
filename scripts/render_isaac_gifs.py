@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Render honest GIFs for the selected HumanUP policy and reachability probe."""
+"""Render a selected recovery policy and the historical HumanUP reachability probe."""
 
 from __future__ import annotations
 
@@ -171,8 +171,8 @@ def main() -> None:
             standing_frames.append(
                 _frame(
                     task,
-                    "Reachability probe - ayakta BASLIYOR",
-                    f"t={(step + 1) * task.step_dt:4.2f}s  pelvis={height:.3f}m  upright={upright:.3f}  recovery sonucu degil",
+                    "Reachability probe - starts standing",
+                    f"t={(step + 1) * task.step_dt:4.2f}s  pelvis={height:.3f}m  upright={upright:.3f}  not a recovery result",
                 )
             )
         standing_path = output_dir / "x2_standing_reachability_only.gif"

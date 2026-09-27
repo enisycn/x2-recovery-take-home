@@ -120,3 +120,9 @@ PPO training, not a claim of unchanged rewards throughout the whole lineage.
 The evaluator reports final-two-second arm position ranges and joint-velocity
 RMS alongside actual pose errors. These quantities are measured at 50 Hz and
 are separate from the unchanged recovery predicate.
+
+The optional `--shoulder_command_variance` controls the exponential denominator
+(default 9). A final precision experiment uses 1: near-neutral command errors
+then receive more distinct scores without changing the target or maximum
+reward. Both widths are local choices and are saved in the run configuration.
+The original broad reward remains reproducible by omitting this override.
