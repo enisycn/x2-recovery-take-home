@@ -42,6 +42,15 @@ This starts a new PPO experiment from random actor/critic weights. Every episode
   --run_name supine_from_scratch
 ```
 
+Training prints progress after each completed PPO iteration: iteration number, mean reward, mean episode length (policy steps), reward terms, elapsed time and ETA. Output is unbuffered. No completed episodes means the mean episode metrics are not available yet. The training console prints the temporary log path as `[HRS] Live console log:`. For a compact view refreshed every five seconds, run this in a second terminal while one training run is active:
+
+```bash
+train_log=$(ls -t "${TMPDIR:-/tmp}"/hrs_x2_train.*.log | head -n 1)
+watch -n 5 -x bash -c 'tail -n 80 "$1" | grep -E "Learning iteration|Mean reward:|Mean episode length:|Iteration time:|Time elapsed:|ETA:"' _ "$train_log"
+```
+
+`Ctrl+C` in the monitoring terminal stops only the monitor. This selects the newest temporary training log; if multiple runs are active, set `train_log` to the exact printed path. The temporary log is removed when its training launcher exits; saved TensorBoard metrics and checkpoints remain in the run directory.
+
 Every **completed** training run writes a checkpoint, `reward.png`, `reward.csv`, and `run_manifest.json` to its timestamped directory.
 
 New runs do not overwrite the submitted plot or checkpoint in `reports/`. Change `--run_name` to label another experiment. `--max_iterations 500` is a chosen experiment budget, not a guarantee of recovery. The fresh run uses learning rate 3e-4 (adaptive), initial action standard deviation 1.0 and entropy coefficient 0.005. Its result must be evaluated separately; the recorded 5/5 result belongs to the supplied checkpoint. The earlier continuation settings are documented in [development history](development_history.md).
@@ -55,6 +64,8 @@ cat "$run_dir/run_manifest.json"
 xdg-open "$run_dir/reward.png"
 ls -lh "$run_dir"/model_*.pt
 ```
+
+The directory name is `timestamp_run_name`, using the label supplied with `--run_name`. `LATEST_RUN.txt` stores the name of the last run whose finalization completed, regardless of its label. Another completed run changes that pointer; keep the full directory path to revisit a particular experiment.
 
 The submitted reward plot is [here](../reports/relaxed_v4_training_reward.png). See [output locations](artifact_locations.md) for the full layout.
 

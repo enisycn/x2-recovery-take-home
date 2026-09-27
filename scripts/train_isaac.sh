@@ -14,8 +14,10 @@ cleanup() {
 }
 trap cleanup EXIT
 
+printf "[HRS] Live console log: %s\n" "${capture_file}"
+
 set +e
-run_isaac_offline "${ISAAC_PYTHON}" scripts/isaac_train_entry.py \
+run_isaac_offline "${ISAAC_PYTHON}" -u scripts/isaac_train_entry.py \
   --headless --kit_args "${HRS_KIT_OFFLINE_ARGS}" "$@" 2>&1 | tee "${capture_file}"
 train_status=${PIPESTATUS[0]}
 set -e
