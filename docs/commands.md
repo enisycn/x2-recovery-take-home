@@ -68,9 +68,11 @@ Playback needs `--viz kit` to open the Isaac viewer in this version. Set `seed` 
 ```bash
 seed=101
 ./scripts/play_isaac.sh reports/checkpoints/x2_relaxed_v4_model450.pt \
-  --environment relaxed_v4 --device cuda:0 --viz kit \
+  --environment relaxed_v4 --device cuda:0 --viz kit --start-delay 2 \
   --seeds "$seed" --output "/tmp/x2_play_seed_${seed}.json"
 ```
+
+`--start-delay 2` shows the frozen supine reset pose for two wall-clock seconds before each episode. Only the viewer updates during this preview; physics, policy inference and the 10-second episode clock have not started. Set it to `0` to start immediately. Headless evaluation uses no preview.
 
 The viewer closes after evaluation finishes. A 10-second simulation episode can run faster than wall-clock time. The supplied path selects `model450` explicitly; it does not automatically choose the latest training checkpoint. Seeds change small initial supine root-pose perturbations; the model weights, neutral joint angles and zero initial velocities remain the same.
 
@@ -78,7 +80,7 @@ Play all five seeds sequentially in one viewer session:
 
 ```bash
 ./scripts/play_isaac.sh reports/checkpoints/x2_relaxed_v4_model450.pt \
-  --environment relaxed_v4 --device cuda:0 --viz kit \
+  --environment relaxed_v4 --device cuda:0 --viz kit --start-delay 2 \
   --seeds 101 102 103 104 105 --output /tmp/x2_play_all_seeds.json
 ```
 
@@ -91,6 +93,12 @@ Evaluation runs those five fixed seeds headlessly and writes a JSON result:
 ```
 
 The recorded result is [5/5](../reports/relaxed_v4_evaluation.json). To evaluate a checkpoint from your own run, replace the checkpoint path with one shown in its `run_manifest.json`.
+
+At completion, expect one result line per seed and `successes=N/5 report=/tmp/x2_evaluation.json`. Inspect `successful_recoveries`, `total_episodes`, and each episode's `success`, `standing_at_episode_end` and `failure_reason` in that JSON. `export.succeeded` checks the policy export separately. Evaluation does not generate a training reward graph.
+
+```bash
+"$ISAAC_PYTHON" -m json.tool /tmp/x2_evaluation.json
+```
 
 ## 4. Build and run ROS 2
 

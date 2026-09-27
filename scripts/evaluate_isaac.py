@@ -7,6 +7,8 @@ import argparse
 import copy
 import importlib.metadata
 import json
+import math
+import time
 import traceback
 from pathlib import Path
 
@@ -17,8 +19,14 @@ parser.add_argument("--checkpoint", type=Path, required=True, help="RSL-RL model
 parser.add_argument("--seeds", type=int, nargs="+", default=[101,102,103,104,105])
 parser.add_argument("--environment", choices=("humanup_rise", "simple_v2", "symmetric_v3", "relaxed_v4"), default="humanup_rise")
 parser.add_argument("--output", type=Path, default=Path("reports/isaac_evaluation.json"))
+parser.add_argument("--start-delay", type=float, default=0.0,
+                    help="Show the frozen reset pose for this many wall-clock seconds before each graphical rollout")
 AppLauncher.add_app_launcher_args(parser)
 args = parser.parse_args()
+if not math.isfinite(args.start_delay) or args.start_delay < 0:
+    parser.error("--start-delay must be a finite, non-negative number")
+if args.start_delay and args.headless:
+    parser.error("--start-delay requires graphical playback; use play_isaac.sh with --viz kit")
 app_launcher = AppLauncher(args)
 simulation_app = app_launcher.app
 
@@ -126,6 +134,24 @@ def _failure_mode(max_height: float, max_stable_s: float, ended_early: bool) -> 
     return "strict height/orientation/speed/contact criteria never overlapped"
 
 
+def _show_initial_pose(task, seconds: float) -> None:
+    if seconds == 0.0:
+        return
+    if "kit" not in task.sim.resolve_visualizer_types():
+        raise ValueError("--start-delay requires the Kit viewer; add --viz kit")
+    # Render only: leave physics, observations and episode counters at reset.
+    physics_steps = task.sim.get_physics_step_count()
+    task.sim.render()
+    deadline = time.monotonic() + seconds
+    while time.monotonic() < deadline:
+        if not simulation_app.is_running():
+            raise KeyboardInterrupt("Viewer closed during the initial-pose preview")
+        task.sim.render()
+        time.sleep(min(1.0 / 60.0, max(0.0, deadline - time.monotonic())))
+    if task.sim.get_physics_step_count() != physics_steps:
+        raise RuntimeError("Physics advanced during the initial-pose preview")
+
+
 def main() -> None:
     checkpoint = args.checkpoint.expanduser().resolve(strict=True)
     cfg = {"simple_v2": X2SimpleRecoveryEnvCfg, "symmetric_v3": X2SymmetricRecoveryEnvCfg, "relaxed_v4": X2RelaxedRecoveryEnvCfg, "humanup_rise": X2HumanUpRiseEnvCfg}[args.environment]()
@@ -203,6 +229,10 @@ def main() -> None:
                 and initial_snapshot["angular_speed_rad_s"] < 1.0e-4
             ):
                 raise RuntimeError(f"Seed {seed} did not produce a fresh supine reset: {initial_snapshot}")
+
+            if args.start_delay:
+                print(f"seed={seed}: showing reset pose for {args.start_delay:g} s before recovery", flush=True)
+                _show_initial_pose(task, args.start_delay)
 
             consecutive_strict = maximum_consecutive_strict = 0
             consecutive_two_feet = maximum_consecutive_two_feet = 0
@@ -311,6 +341,7 @@ def main() -> None:
                 "domain_randomization": False,
                 "policy_rate_hz": round(1.0 / task.step_dt),
                 "episode_limit_s": cfg.episode_length_s,
+                "initial_preview_wall_time_s": args.start_delay,
             },
             "arm_posture_definition": {
                 "shoulder_pitch_target_rad": 0.0, "elbow_target_rad": -0.15,

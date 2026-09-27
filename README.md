@@ -83,7 +83,7 @@ PPO uses clip 0.2, gamma 0.99, GAE lambda 0.95, five learning epochs, four minib
 
 The supplied parent checkpoint supports re-running the final 51-update stage. [Commands](docs/commands.md) gives the training, playback and five-episode evaluation sequence.
 
-For graphical checkpoint playback, pass `--viz kit`; without a selected visualizer this Isaac Lab version runs headlessly. The guide includes an adjustable seed and a five-seed playback command.
+For graphical checkpoint playback, pass `--viz kit --start-delay 2` to view the supine reset pose for two wall-clock seconds before recovery. The preview does not advance physics or the episode clock. Without a preview, use `--start-delay 0`. Pass `--viz kit` to open the viewer; without a selected visualizer this Isaac Lab version runs headlessly. The guide includes an adjustable seed and a five-seed playback command.
 
 The final reward curve covers PPO iterations 400-450, continuing from the supplied parent rather than starting from random weights. The faint line is the logged mean episode reward; the solid line is its trailing 20-iteration mean. This refinement stage uses supine-only starts and includes the relaxed-arm objective. Reward is a training metric; the separate five-episode evaluation establishes recovery success.
 
