@@ -12,8 +12,8 @@ Every required item is implemented and linked below. The selected result is a tr
 | Collision and joint/actuator limits | Complete | Self-collision, recursive 32-body ground contact and imported URDF limits with one 98% soft margin. Geometry, inertia and axes are unchanged. |
 | Observation and action spaces | Complete | 122 observations; eight bilateral absolute actions mapped to 31 joint targets. README and `synergy_action.py`. |
 | Reward and episode termination | Complete | Term-by-term formulas, weights and intent are in README and `mdp.py`. Timeout and safety terminations are documented separately from success. |
-| PPO training experiment | Complete | RSL-RL PPO, 3000 environments, 32 steps/environment, seed 47; 1,000 PPO updates, exclusively supine resets. Exact hyperparameters and command are in README and config snapshots. |
-| Checkpoint and reward plot | Complete | `x2_supine_model998.pt`, supine parent499 checkpoint, reward CSV and PNG under `reports/`. Every successful supported training run also writes its own graph, CSV and manifest; see `docs/artifact_locations.md`. |
+| PPO training experiment | Complete | RSL-RL PPO, 3000 environments, 32 steps/environment, seed 47; 2,254 selected PPO updates, exclusively supine resets. Exact hyperparameters and command are in README and config snapshots. |
+| Checkpoint and reward plot | Complete | `x2_supine_model2248.pt`, supine parent499 checkpoint, reward CSV and PNG under `reports/`. Every successful supported training run also writes its own graph, CSV and manifest; see `docs/artifact_locations.md`. |
 
 ## ROS 2 integration and interfaces
 

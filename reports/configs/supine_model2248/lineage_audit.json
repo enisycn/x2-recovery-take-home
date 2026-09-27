@@ -1,0 +1,514 @@
+{
+  "all_resets_supine": true,
+  "parent_hash_chain_verified": true,
+  "unchanged_physical_task": {
+    "scene": true,
+    "sim": true,
+    "actions": true,
+    "observations": true,
+    "terminations": true
+  },
+  "changed_rewards_after_1000_updates": [
+    "posture_command"
+  ],
+  "same_rewards_until_precision_stage": true,
+  "precision_stage_change": {
+    "reward": "posture_command",
+    "denominator_before": 9.0,
+    "denominator_after": 1.0
+  },
+  "runs": [
+    {
+      "run": "logs/rsl_rl/hrs_x2_relaxed_v4/2026-09-27_12-02-27_supine_dense_stance_scratch",
+      "runtime": {
+        "parent_checkpoint": null,
+        "stability_refinement": true,
+        "reset_optimizer": false,
+        "critic_initialization": "random_weights",
+        "action_std_override": 0.8,
+        "learning_rate": 0.0003,
+        "learning_schedule": "adaptive",
+        "entropy_coef": 0.0,
+        "reset": "supine_only",
+        "external_assistance": false,
+        "source_commit": "cdc3821297c3e196b645eb17ea55fce4b5d97bdd",
+        "source_patch": "source_changes.patch",
+        "reward_preset_revision": "dense_stance_with_imported_action_bounds"
+      },
+      "verified_parent_sha256": null,
+      "reset": {
+        "func": "x2_recovery_isaac.mdp:reset_supine",
+        "params": {
+          "supine_pose_range": {
+            "x": [
+              "-0.04",
+              "0.04"
+            ],
+            "y": [
+              "-0.04",
+              "0.04"
+            ],
+            "z": [
+              "-0.001",
+              "0.001"
+            ],
+            "roll": [
+              "-0.005",
+              "0.005"
+            ],
+            "pitch": [
+              "-0.005",
+              "0.005"
+            ],
+            "yaw": [
+              "-0.02",
+              "0.02"
+            ]
+          },
+          "velocity_range": {
+            "x": [
+              "0.0",
+              "0.0"
+            ],
+            "y": [
+              "0.0",
+              "0.0"
+            ],
+            "z": [
+              "0.0",
+              "0.0"
+            ],
+            "roll": [
+              "0.0",
+              "0.0"
+            ],
+            "pitch": [
+              "0.0",
+              "0.0"
+            ],
+            "yaw": [
+              "0.0",
+              "0.0"
+            ]
+          }
+        },
+        "mode": "reset",
+        "interval_range_s": "null",
+        "is_global_time": "false",
+        "min_step_count_between_reset": "0"
+      },
+      "curriculum": null,
+      "lift_assist": null
+    },
+    {
+      "run": "logs/rsl_rl/hrs_x2_relaxed_v4/2026-09-27_12-23-27_supine_dense_stance_continue",
+      "runtime": {
+        "parent_checkpoint": "logs/rsl_rl/hrs_x2_relaxed_v4/2026-09-27_12-02-27_supine_dense_stance_scratch/model_499.pt",
+        "stability_refinement": true,
+        "reset_optimizer": false,
+        "critic_initialization": "checkpoint",
+        "action_std_override": null,
+        "learning_rate": 0.0003,
+        "learning_schedule": "adaptive",
+        "entropy_coef": 0.0,
+        "reset": "supine_only",
+        "external_assistance": false,
+        "source_commit": "cdc3821297c3e196b645eb17ea55fce4b5d97bdd",
+        "source_patch": "source_changes.patch"
+      },
+      "verified_parent_sha256": "9ac5af13ffb4af62e32466f8f910a65151a70e05918256e46469c4d798ca8445",
+      "reset": {
+        "func": "x2_recovery_isaac.mdp:reset_supine",
+        "params": {
+          "supine_pose_range": {
+            "x": [
+              "-0.04",
+              "0.04"
+            ],
+            "y": [
+              "-0.04",
+              "0.04"
+            ],
+            "z": [
+              "-0.001",
+              "0.001"
+            ],
+            "roll": [
+              "-0.005",
+              "0.005"
+            ],
+            "pitch": [
+              "-0.005",
+              "0.005"
+            ],
+            "yaw": [
+              "-0.02",
+              "0.02"
+            ]
+          },
+          "velocity_range": {
+            "x": [
+              "0.0",
+              "0.0"
+            ],
+            "y": [
+              "0.0",
+              "0.0"
+            ],
+            "z": [
+              "0.0",
+              "0.0"
+            ],
+            "roll": [
+              "0.0",
+              "0.0"
+            ],
+            "pitch": [
+              "0.0",
+              "0.0"
+            ],
+            "yaw": [
+              "0.0",
+              "0.0"
+            ]
+          }
+        },
+        "mode": "reset",
+        "interval_range_s": "null",
+        "is_global_time": "false",
+        "min_step_count_between_reset": "0"
+      },
+      "curriculum": null,
+      "lift_assist": null
+    },
+    {
+      "run": "logs/rsl_rl/hrs_x2_relaxed_v4/2026-09-27_13-34-13_supine_shoulder_focus",
+      "runtime": {
+        "parent_checkpoint": "reports/checkpoints/x2_supine_model998.pt",
+        "stability_refinement": true,
+        "posture_refinement": true,
+        "reset_optimizer": false,
+        "critic_initialization": "checkpoint",
+        "action_std_override": null,
+        "learning_rate": 0.0001,
+        "learning_schedule": "fixed",
+        "entropy_coef": 0.0,
+        "reset": "supine_only",
+        "external_assistance": false,
+        "source_commit": "fc0ac88ec456a85352c7d4970b9e3dd60528da88",
+        "source_patch": "source_changes.patch"
+      },
+      "verified_parent_sha256": "968f3ab0c57af8e361c998e27efc3b4a82ff954747a17783fc18f4dec36a71fa",
+      "reset": {
+        "func": "x2_recovery_isaac.mdp:reset_supine",
+        "params": {
+          "supine_pose_range": {
+            "x": [
+              "-0.04",
+              "0.04"
+            ],
+            "y": [
+              "-0.04",
+              "0.04"
+            ],
+            "z": [
+              "-0.001",
+              "0.001"
+            ],
+            "roll": [
+              "-0.005",
+              "0.005"
+            ],
+            "pitch": [
+              "-0.005",
+              "0.005"
+            ],
+            "yaw": [
+              "-0.02",
+              "0.02"
+            ]
+          },
+          "velocity_range": {
+            "x": [
+              "0.0",
+              "0.0"
+            ],
+            "y": [
+              "0.0",
+              "0.0"
+            ],
+            "z": [
+              "0.0",
+              "0.0"
+            ],
+            "roll": [
+              "0.0",
+              "0.0"
+            ],
+            "pitch": [
+              "0.0",
+              "0.0"
+            ],
+            "yaw": [
+              "0.0",
+              "0.0"
+            ]
+          }
+        },
+        "mode": "reset",
+        "interval_range_s": "null",
+        "is_global_time": "false",
+        "min_step_count_between_reset": "0"
+      },
+      "curriculum": null,
+      "lift_assist": null
+    },
+    {
+      "run": "logs/rsl_rl/hrs_x2_relaxed_v4/2026-09-27_13-51-17_supine_shoulder_continue",
+      "runtime": {
+        "parent_checkpoint": "logs/rsl_rl/hrs_x2_relaxed_v4/2026-09-27_13-34-13_supine_shoulder_focus/model_1297.pt",
+        "stability_refinement": true,
+        "posture_refinement": true,
+        "reset_optimizer": false,
+        "critic_initialization": "checkpoint",
+        "action_std_override": null,
+        "learning_rate": 0.0001,
+        "learning_schedule": "fixed",
+        "entropy_coef": 0.0,
+        "reset": "supine_only",
+        "external_assistance": false,
+        "source_commit": "fc0ac88ec456a85352c7d4970b9e3dd60528da88",
+        "source_patch": "source_changes.patch"
+      },
+      "verified_parent_sha256": "92d3de2bedec7bcf23a942b31e4a9a6e1863e41ad3b842b40bbb5cd987b3c1da",
+      "reset": {
+        "func": "x2_recovery_isaac.mdp:reset_supine",
+        "params": {
+          "supine_pose_range": {
+            "x": [
+              "-0.04",
+              "0.04"
+            ],
+            "y": [
+              "-0.04",
+              "0.04"
+            ],
+            "z": [
+              "-0.001",
+              "0.001"
+            ],
+            "roll": [
+              "-0.005",
+              "0.005"
+            ],
+            "pitch": [
+              "-0.005",
+              "0.005"
+            ],
+            "yaw": [
+              "-0.02",
+              "0.02"
+            ]
+          },
+          "velocity_range": {
+            "x": [
+              "0.0",
+              "0.0"
+            ],
+            "y": [
+              "0.0",
+              "0.0"
+            ],
+            "z": [
+              "0.0",
+              "0.0"
+            ],
+            "roll": [
+              "0.0",
+              "0.0"
+            ],
+            "pitch": [
+              "0.0",
+              "0.0"
+            ],
+            "yaw": [
+              "0.0",
+              "0.0"
+            ]
+          }
+        },
+        "mode": "reset",
+        "interval_range_s": "null",
+        "is_global_time": "false",
+        "min_step_count_between_reset": "0"
+      },
+      "curriculum": null,
+      "lift_assist": null
+    },
+    {
+      "run": "logs/rsl_rl/hrs_x2_relaxed_v4/2026-09-27_14-15-20_supine_shoulder_kl",
+      "runtime": {
+        "parent_checkpoint": "logs/rsl_rl/hrs_x2_relaxed_v4/2026-09-27_13-51-17_supine_shoulder_continue/model_1750.pt",
+        "stability_refinement": true,
+        "posture_refinement": true,
+        "reset_optimizer": false,
+        "critic_initialization": "checkpoint",
+        "action_std_override": null,
+        "learning_rate": 0.0001,
+        "learning_schedule": "adaptive",
+        "entropy_coef": 0.0,
+        "reset": "supine_only",
+        "external_assistance": false,
+        "source_commit": "6b476139fdf90442bb700a51a438c42f8a7d8a75",
+        "source_patch": "source_changes.patch"
+      },
+      "verified_parent_sha256": "838f27f24731a68f34e07f82c0a2f09bdfe7adf5739cff8ef63995bf32179263",
+      "reset": {
+        "func": "x2_recovery_isaac.mdp:reset_supine",
+        "params": {
+          "supine_pose_range": {
+            "x": [
+              "-0.04",
+              "0.04"
+            ],
+            "y": [
+              "-0.04",
+              "0.04"
+            ],
+            "z": [
+              "-0.001",
+              "0.001"
+            ],
+            "roll": [
+              "-0.005",
+              "0.005"
+            ],
+            "pitch": [
+              "-0.005",
+              "0.005"
+            ],
+            "yaw": [
+              "-0.02",
+              "0.02"
+            ]
+          },
+          "velocity_range": {
+            "x": [
+              "0.0",
+              "0.0"
+            ],
+            "y": [
+              "0.0",
+              "0.0"
+            ],
+            "z": [
+              "0.0",
+              "0.0"
+            ],
+            "roll": [
+              "0.0",
+              "0.0"
+            ],
+            "pitch": [
+              "0.0",
+              "0.0"
+            ],
+            "yaw": [
+              "0.0",
+              "0.0"
+            ]
+          }
+        },
+        "mode": "reset",
+        "interval_range_s": "null",
+        "is_global_time": "false",
+        "min_step_count_between_reset": "0"
+      },
+      "curriculum": null,
+      "lift_assist": null
+    },
+    {
+      "run": "logs/rsl_rl/hrs_x2_relaxed_v4/2026-09-27_14-29-34_supine_shoulder_precision",
+      "runtime": {
+        "parent_checkpoint": "logs/rsl_rl/hrs_x2_relaxed_v4/2026-09-27_14-15-20_supine_shoulder_kl/model_2049.pt",
+        "stability_refinement": true,
+        "posture_refinement": true,
+        "shoulder_command_variance": 1.0,
+        "reset_optimizer": false,
+        "critic_initialization": "checkpoint",
+        "action_std_override": null,
+        "learning_rate": 0.0001,
+        "learning_schedule": "adaptive",
+        "entropy_coef": 0.0,
+        "reset": "supine_only",
+        "external_assistance": false,
+        "source_commit": "6b476139fdf90442bb700a51a438c42f8a7d8a75",
+        "source_patch": "source_changes.patch"
+      },
+      "verified_parent_sha256": "ccb802927741fbfd1f380282b982b4e0670dff362250c592007dd1328df2b416",
+      "reset": {
+        "func": "x2_recovery_isaac.mdp:reset_supine",
+        "params": {
+          "supine_pose_range": {
+            "x": [
+              "-0.04",
+              "0.04"
+            ],
+            "y": [
+              "-0.04",
+              "0.04"
+            ],
+            "z": [
+              "-0.001",
+              "0.001"
+            ],
+            "roll": [
+              "-0.005",
+              "0.005"
+            ],
+            "pitch": [
+              "-0.005",
+              "0.005"
+            ],
+            "yaw": [
+              "-0.02",
+              "0.02"
+            ]
+          },
+          "velocity_range": {
+            "x": [
+              "0.0",
+              "0.0"
+            ],
+            "y": [
+              "0.0",
+              "0.0"
+            ],
+            "z": [
+              "0.0",
+              "0.0"
+            ],
+            "roll": [
+              "0.0",
+              "0.0"
+            ],
+            "pitch": [
+              "0.0",
+              "0.0"
+            ],
+            "yaw": [
+              "0.0",
+              "0.0"
+            ]
+          }
+        },
+        "mode": "reset",
+        "interval_range_s": "null",
+        "is_global_time": "false",
+        "min_step_count_between_reset": "0"
+      },
+      "curriculum": null,
+      "lift_assist": null
+    }
+  ]
+}

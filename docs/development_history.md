@@ -24,7 +24,7 @@ Superseded engineering outcomes remain visible in chronological commits. Early r
 
 ## Curriculum disclosure
 
-Earlier pretraining mixed true-supine starts with auxiliary upright-root squat/sitting starts. These were reset states, not expert trajectories. A historical reference sequence did not cover the true lower supine-to-bridge transition, explaining why a policy could work from a reference pose yet score 0/5 from the floor. The historical final 51-update experiment used supine resets, but inherited the earlier mixed-start weights. The currently selected model998 belongs to a new, independent random-weight lineage with every training reset supine.
+Earlier pretraining mixed true-supine starts with auxiliary upright-root squat/sitting starts. These were reset states, not expert trajectories. A historical reference sequence did not cover the true lower supine-to-bridge transition, explaining why a policy could work from a reference pose yet score 0/5 from the floor. The historical final 51-update experiment used supine resets, but inherited the earlier mixed-start weights. The selected model2248 descends from a new, independent random-weight lineage with every training reset supine.
 
 ## Imitation tooling disclosure
 
@@ -59,8 +59,8 @@ training from random weights with supine-only resets.
 | Support-gated refinement | Original scratch model499, std 0.3 | 100 | 0/5; no strict stance. |
 | Action-resolution refinement | Original scratch model499, std 0.3 | 300 | 0/5; saturation decreased, unstable rise remained. |
 | Dense-stance scratch | Random, std 0.8, entropy 0 | 500 | 0/5; at most 0.04 s strict stance. |
-| Same-preset continuation (selected) | Dense-stance model499; critic/optimizer/std retained | +500 (1,000 total) | **5/5; 8.78–9.02 s strict stance at episode end. Arms forward.** |
-| Positive posture refinement (rejected) | Selected model998, std 0.15, fixed 1e-4 | +200 | 3/5; still fails neutral-arm check. |
+| Same-preset continuation (parent) | Dense-stance model499; critic/optimizer/std retained | +500 (1,000 total) | **5/5; 8.78–9.02 s strict stance at episode end. Arms forward.** |
+| Positive posture refinement (rejected) | Stance model998, std 0.15, fixed 1e-4 | +200 | 3/5; still fails neutral-arm check. |
 
 All of these experiments reset every episode supine. None uses the mixed-start
 model450, expert actions, reference starts or lift forces. The current optional
@@ -72,8 +72,7 @@ checkpoints and results remain in their individual log directories; see
 [design and evidence](design_and_evidence.md) for formulas and measured failures.
 
 
-The complete selected curve combines the two 500-update runs. The failed
-posture refinement is a branch and is not included in that curve or checkpoint.
+The first two 500-update runs form the stance parent. The earlier failed combined posture refinements are separate branches and are not inherited by the final model.
 A separate negative posture-cost experiment achieved brief success in 2/3
 development screens but ended standing in 0/3; this was not the canonical
 five-seed evaluation. Neither posture experiment is selected.
@@ -88,3 +87,40 @@ The earlier published artifacts are available at commit
 [`4c97e60`](https://github.com/enisycn/x2-recovery-take-home/tree/4c97e60/reports).
 The selected lineage source snapshots include the uncommitted changes that were
 present during training; commit IDs alone are not presented as exact source evidence.
+
+## Neutral arms from the supine-only lineage
+
+All continuations retain actor, critic, optimizer and learned per-channel std.
+None loads mixed-start weights or demonstration data.
+
+| Stage | Selected updates | Measured outcome |
+| --- | ---: | --- |
+| Focused shoulder command, width denominator 9 | 300 | 3/3 development episodes end standing; shoulders still 1.11–1.20 rad. |
+| Same reward, fixed rate 1e-4 | 454 to model1750 | 3/3 end standing; shoulders 0.46–0.49 rad. |
+| Rejected later tail of that run | 146 additional, not inherited | Model1896 ends standing in only 1/3 development episodes. |
+| Resume model1750 with adaptive KL schedule | 300 | Model2049: 3/3 standing; shoulders 0.35–0.37 rad, still outside 0.30 rad tolerance. |
+| Shoulder denominator narrowed to 1 | 200 | **Model2248: canonical seeds 101–105, 5/5 recovery and 5/5 neutral arms throughout the final two seconds.** |
+
+The complete selected ancestry has 2,254 updates: 500 + 500 + 300 + 454 + 300 + 200.
+RSL-RL repeats the loaded index at each continuation, producing filename model2248.
+The full 600-update fixed-rate attempt remains in its run log; its last 146 updates
+are a rejected branch, not hidden training in the selected policy. The main curve
+contains every update inherited by the selected weights, including the 0/5 start.
+
+The original shoulder raw output was saturated, so nearby actions produced nearly
+identical position targets. The focused raw-command score supplied a gradient in
+reward beyond that saturation without overriding deployed actions. The broad
+score later distinguished small pose errors weakly; narrowing its denominator
+increased that distinction while retaining the same target and maximum reward.
+The physical success and 0.30-rad arm tolerances were not relaxed.
+
+In [RSL-RL 5.0.1](https://github.com/leggedrobotics/rsl_rl/blob/v5.0.1/rsl_rl/algorithms/ppo.py),
+KL adjusts the learning rate only with the adaptive schedule. The fixed-rate tail
+regressed; resuming the earlier checkpoint with adaptation preserved stance in
+all six development screens. This is evidence from these runs, not an ablation
+proving KL alone caused the regression. PPO clipping is not a strict trust-region
+guarantee; see [OpenAI's PPO explanation](https://spinningup.openai.com/en/latest/algorithms/ppo.html).
+
+Final measurements: maximum final-window shoulder error 0.233 rad, elbow error
+0.099 rad, arm-joint position range 0.00195 rad and velocity RMS 0.0261 rad/s.
+These are 50 Hz simulation measurements, not hardware performance claims.

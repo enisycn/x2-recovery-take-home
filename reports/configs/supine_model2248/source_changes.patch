@@ -1,0 +1,109 @@
+diff --git a/isaaclab_ext/test/test_reward_formulas.py b/isaaclab_ext/test/test_reward_formulas.py
+index db8570e..b531223 100644
+--- a/isaaclab_ext/test/test_reward_formulas.py
++++ b/isaaclab_ext/test/test_reward_formulas.py
+@@ -305,6 +305,8 @@ def test_posture_command_cost_requires_unsupported_upright_stance():
+     assert torch.equal(proximity[2:], torch.zeros(3))
+     shoulder = mdp.supported_shoulder_command_proximity(env, feet, bodies)
+     assert shoulder[0] == 1 and shoulder[1] > proximity[1]
++    narrow = mdp.supported_shoulder_command_proximity(env, feet, bodies, variance=1.0)
++    assert narrow[0] == 1 and 0 < narrow[1] < shoulder[1]
+     assert torch.equal(shoulder[2:], torch.zeros(3))
+     action[0, 5] = 6.0
+     assert mdp.supported_shoulder_command_proximity(env, feet, bodies)[0] == 1
+diff --git a/isaaclab_ext/x2_recovery_isaac/mdp.py b/isaaclab_ext/x2_recovery_isaac/mdp.py
+index 74388f3..8089a60 100644
+--- a/isaaclab_ext/x2_recovery_isaac/mdp.py
++++ b/isaaclab_ext/x2_recovery_isaac/mdp.py
+@@ -1224,7 +1224,7 @@ def supported_posture_command_proximity(env, feet_cfg, all_bodies_cfg):
+     return gate * torch.exp(-error / 8.0)
+ 
+ 
+-def supported_shoulder_command_proximity(env, feet_cfg, all_bodies_cfg):
++def supported_shoulder_command_proximity(env, feet_cfg, all_bodies_cfg, variance: float = 9.0):
+     """Guide saturated shoulder outputs without coupling in the waist target.
+ 
+     The physical arm-pose reward remains active. This additional raw-command
+@@ -1232,9 +1232,11 @@ def supported_shoulder_command_proximity(env, feet_cfg, all_bodies_cfg):
+     targets at deployment nor requires a reference trajectory. Width and
+     support gate are local X2 choices, not published constants.
+     """
++    if not math.isfinite(variance) or variance <= 0.0:
++        raise ValueError("Shoulder command variance must be finite and positive")
+     gate, _ = _supported_posture_command_error(env, feet_cfg, all_bodies_cfg)
+     error = env.action_manager.action[:, 3] - math.atanh(.25)
+-    return gate * torch.exp(-error.square() / 9.0)
++    return gate * torch.exp(-error.square() / variance)
+ 
+ 
+ def relaxed_arms_when_stable(
+diff --git a/scripts/isaac_train_entry.py b/scripts/isaac_train_entry.py
+index 92cf10b..cddd207 100644
+--- a/scripts/isaac_train_entry.py
++++ b/scripts/isaac_train_entry.py
+@@ -10,6 +10,7 @@ import argparse
+ import importlib.metadata
+ import json
+ import subprocess
++import math
+ import traceback
+ from datetime import datetime
+ from pathlib import Path
+@@ -29,6 +30,8 @@ parser.add_argument("--stability_refinement", action="store_true",
+                     help="Use dense stance shaping and action regularization; keep every reset supine.")
+ parser.add_argument("--posture_refinement", action="store_true",
+                     help="Add positive supported neutral-command shaping to the stability preset.")
++parser.add_argument("--shoulder_command_variance", type=float, default=None,
++                    help="Optional positive width for the supported shoulder-command reward.")
+ parser.add_argument(
+     "--action_std_override",
+     type=float,
+@@ -54,6 +57,9 @@ AppLauncher.add_app_launcher_args(parser)
+ args = parser.parse_args()
+ if args.posture_refinement and not args.stability_refinement:
+     parser.error("--posture_refinement requires --stability_refinement")
++if args.shoulder_command_variance is not None:
++    if not args.posture_refinement or not math.isfinite(args.shoulder_command_variance) or args.shoulder_command_variance <= 0:
++        parser.error("--shoulder_command_variance requires --posture_refinement and a finite positive value")
+ app_launcher = AppLauncher(args)
+ simulation_app = app_launcher.app
+ 
+@@ -77,6 +83,8 @@ def main() -> Path:
+     env_cfg.scene.num_envs = args.num_envs
+     env_cfg.sim.device = args.device
+     env_cfg.seed = args.seed
++    if args.shoulder_command_variance is not None:
++        env_cfg.rewards.posture_command.params["variance"] = args.shoulder_command_variance
+ 
+     agent_cfg = X2RelaxedPPORunnerCfg()
+     if args.learning_schedule is not None:
+@@ -152,6 +160,7 @@ def main() -> Path:
+             "parent_checkpoint": args.checkpoint,
+             "stability_refinement": args.stability_refinement,
+             "posture_refinement": args.posture_refinement,
++            "shoulder_command_variance": args.shoulder_command_variance,
+             "reset_optimizer": args.reset_optimizer,
+             "critic_initialization": "random_weights" if not args.checkpoint or
+                 (args.reset_optimizer and args.stability_refinement) else "checkpoint",
+diff --git a/scripts/render_isaac_gifs.py b/scripts/render_isaac_gifs.py
+index 87770f9..c827397 100755
+--- a/scripts/render_isaac_gifs.py
++++ b/scripts/render_isaac_gifs.py
+@@ -1,5 +1,5 @@
+ #!/usr/bin/env python3
+-"""Render honest GIFs for the selected HumanUP policy and reachability probe."""
++"""Render a selected recovery policy and the historical HumanUP reachability probe."""
+ 
+ from __future__ import annotations
+ 
+@@ -171,8 +171,8 @@ def main() -> None:
+             standing_frames.append(
+                 _frame(
+                     task,
+-                    "Reachability probe - ayakta BASLIYOR",
+-                    f"t={(step + 1) * task.step_dt:4.2f}s  pelvis={height:.3f}m  upright={upright:.3f}  recovery sonucu degil",
++                    "Reachability probe - starts standing",
++                    f"t={(step + 1) * task.step_dt:4.2f}s  pelvis={height:.3f}m  upright={upright:.3f}  not a recovery result",
+                 )
+             )
+         standing_path = output_dir / "x2_standing_reachability_only.gif"

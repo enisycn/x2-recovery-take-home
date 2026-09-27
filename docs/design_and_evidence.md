@@ -93,7 +93,7 @@ hand-to-foot transfer completed. The current preset restores continuous height
 shaping and scores contact separately. A new 500-update random-weight run with
 the current preset also scored 0/5: seeds 103 and 105 briefly met all criteria
 for 0.04 s, below the required 0.5 s. This is partial progress, not recovery.
-Continuing the same reward preset for 500 more updates reached **5/5**, with 8.78–9.02 s strict stance at episode end. All training resets in this new lineage were supine. The additional neutral-arm criterion remains unmet. This combined reward/exploration change and larger training budget is not a single-factor ablation. The historical mixed-start model450 remains separate.
+Continuing the same reward preset for 500 more updates reached **5/5**, with 8.78–9.02 s strict stance at episode end. All training resets in this new lineage were supine. At that 1,000-update stage, the additional neutral-arm criterion was still unmet. This combined reward/exploration change and larger training budget is not a single-factor ablation. The historical mixed-start model450 remains separate.
 
 ## Shoulder refinement
 
@@ -126,3 +126,5 @@ The optional `--shoulder_command_variance` controls the exponential denominator
 then receive more distinct scores without changing the target or maximum
 reward. Both widths are local choices and are saved in the run configuration.
 The original broad reward remains reproducible by omitting this override.
+
+Final precision model2248 passes all five canonical recoveries and the full final-two-second neutral-arm check. The selected ancestry contains 2,254 PPO updates, every reset supine. Exact stages, rejected branches and physical arm measurements are recorded in [development history](development_history.md) and [validation](validation.md).

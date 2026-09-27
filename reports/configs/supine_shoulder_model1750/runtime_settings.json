@@ -1,0 +1,15 @@
+{
+  "parent_checkpoint": "logs/rsl_rl/hrs_x2_relaxed_v4/2026-09-27_13-34-13_supine_shoulder_focus/model_1297.pt",
+  "stability_refinement": true,
+  "posture_refinement": true,
+  "reset_optimizer": false,
+  "critic_initialization": "checkpoint",
+  "action_std_override": null,
+  "learning_rate": 0.0001,
+  "learning_schedule": "fixed",
+  "entropy_coef": 0.0,
+  "reset": "supine_only",
+  "external_assistance": false,
+  "source_commit": "fc0ac88ec456a85352c7d4970b9e3dd60528da88",
+  "source_patch": "source_changes.patch"
+}

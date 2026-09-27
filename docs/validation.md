@@ -2,11 +2,11 @@
 
 ## Policy
 
-`reports/relaxed_v4_evaluation.json` records model998 in five deterministic 10 s episodes, seeds 101–105. All five recover and remain in unsupported two-foot stance at the end; all complete 500 steps without safety termination. Final uninterrupted strict stance lasts 8.78–9.02 s.
+`reports/relaxed_v4_evaluation.json` records `x2_supine_model2248` in five deterministic 10 s episodes, seeds 101–105. All complete 500 steps without safety termination.
 
-The separate neutral-arm check fails for all five: the arms remain forward. HRS recovery and ROS success use the unchanged physical stance predicate, not this extra arm preference.
+Seeds 101–105 all recover and remain standing at episode end for 8.94–9.14 s. Every sample of the final two seconds also meets the separate neutral-arm check: maximum shoulder error 0.233 rad and elbow error 0.099 rad, below the 0.30 rad limits. The largest arm-joint position range is 0.0019 rad and velocity RMS 0.026 rad/s in that window (50 Hz measurements).
 
-The selected lineage began with random weights and trained for 500 + 500 updates using supine resets only. The same dense reward preset was used in both runs; no reset curriculum, reference starts, lift assistance, imitation, observation noise or dynamics randomization was used.
+The selected lineage began with random weights and uses 2,254 updates with supine resets only. There is no mixed-start pretraining, lift assistance or imitation. The supported shoulder reward is added after the initial 1,000 updates. Later continuation changes fixed learning rate to the adaptive KL schedule, then narrows the shoulder reward denominator from 9 to 1 for the final 200 updates. Configuration snapshots and the parent hash audit record this distinction.
 
 ## ROS 2
 
@@ -20,7 +20,7 @@ The selected lineage began with random weights and trained for 500 + 500 updates
 - literal successful CLI episode;
 - timeout changed to 0.2 s, producing `FAILED` after the real simulator timed out.
 
-The recovery states are `IDLE`, `RUNNING`, `SUCCEEDED` and `FAILED`.
+The recovery states are `IDLE`, `RUNNING`, `SUCCEEDED` and `FAILED`. The recorded CLI recovery published 78 joint samples; acceptance took 1.08 ms, and the 0.2 s timeout trial published 10 samples before `FAILED`. ROS ends after the physical 0.5 s success hold. Final arm posture is established by the separate full 10 s evaluation, not this shorter service episode.
 
 ## Tests
 
@@ -32,4 +32,4 @@ The dedicated reset was checked in the actual Isaac/PhysX environment with 32 ro
 
 The historical model450 was also re-evaluated for all five seeds with the dedicated reset: 5/5 recovered, and the complete episode records matched the earlier reset implementation. This is a regression check of the existing checkpoint, not a result for the new scratch experiment.
 
-The ROS server previously required neutral arms as well as stance. A model998 trial therefore timed out despite standing. That additional check was removed from ROS success to match the evaluator and HRS task; it remains a separately reported evaluation limitation. The rerun below uses the identical height, orientation, speed, support and 0.5 s hold thresholds.
+The ROS server previously required neutral arms as well as stance. A model998 trial therefore timed out despite standing. That additional check was removed from ROS success to match the evaluator and HRS task; it remains a separately reported evaluation metric. The current runtime validation uses the identical height, orientation, speed, support and 0.5 s hold thresholds.
