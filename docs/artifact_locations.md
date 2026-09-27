@@ -43,6 +43,7 @@ To finish an older successful run that predates automatic finalization:
 
 | File or directory | Meaning |
 | --- | --- |
+| `docs/submission_report.pdf` | Four-page English summary of the method, reward curve, five-episode evaluation and ROS integration. |
 | `reports/relaxed_v4_training_reward.png` | Submitted final-stage reward curve. |
 | `reports/relaxed_v4_training_reward.csv` | Exact values behind that curve. |
 | `reports/relaxed_v4_pretraining_reward.png/.csv` | Earlier lineage, clearly separated from the final stage. |

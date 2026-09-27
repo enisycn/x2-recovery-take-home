@@ -7,11 +7,11 @@ Run commands from the root of this repository. Training is optional when validat
 Clone this repository using its GitHub URL, then enter it:
 
 ```bash
-git clone https://github.com/OWNER/REPO.git hrs_x2_take_home
+git clone https://github.com/enisycn/x2-recovery-take-home.git hrs_x2_take_home
 cd hrs_x2_take_home
 ```
 
-Replace `OWNER/REPO` with the URL shown by GitHub's **Code** button. Install [Isaac Sim 6.0.1](https://docs.isaacsim.omniverse.nvidia.com/6.0.1/installation/install_python.html), [Isaac Lab 3.0.0-beta2.patch1](https://github.com/isaac-sim/IsaacLab/releases/tag/v3.0.0-beta2.patch1), [RSL-RL 5.0.1](https://github.com/leggedrobotics/rsl_rl/releases/tag/v5.0.1), and [ROS 2 Humble](https://docs.ros.org/en/humble/Installation/Ubuntu-Install-Debs.html) in their respective environments. The tested host was Ubuntu 22.04.5 with an NVIDIA RTX 5080 Laptop GPU (16 GB). Isaac used Python 3.12; ROS used system Python 3.10. Keep those environments separate.
+Install [Isaac Sim 6.0.1](https://docs.isaacsim.omniverse.nvidia.com/6.0.1/installation/install_python.html), [Isaac Lab 3.0.0-beta2.patch1](https://github.com/isaac-sim/IsaacLab/releases/tag/v3.0.0-beta2.patch1), [RSL-RL 5.0.1](https://github.com/leggedrobotics/rsl_rl/releases/tag/v5.0.1), and [ROS 2 Humble](https://docs.ros.org/en/humble/Installation/Ubuntu-Install-Debs.html) in their respective environments. The tested host was Ubuntu 22.04.5 with an NVIDIA RTX 5080 Laptop GPU (16 GB). Isaac used Python 3.12; ROS used system Python 3.10. Keep those environments separate.
 
 Activate the Isaac environment and record its Python executable:
 
@@ -45,7 +45,11 @@ This re-runs the submitted final 51-update stage from its supplied parent checkp
   --entropy_coef 0.001
 ```
 
-Every **completed** training run writes a checkpoint, `reward.png`, `reward.csv`, and `run_manifest.json` to its timestamped directory. Find the latest:
+Every **completed** training run writes a checkpoint, `reward.png`, `reward.csv`, and `run_manifest.json` to its timestamped directory.
+
+New runs do not overwrite the submitted plot or checkpoint in `reports/`. Add `--run_name trial_01` to the training command to append that name to its new timestamped directory.
+
+Find the latest completed run:
 
 ```bash
 experiment=logs/rsl_rl/hrs_x2_relaxed_v4
@@ -59,12 +63,28 @@ The submitted reward plot is [here](../reports/relaxed_v4_training_reward.png). 
 
 ## 3. Play and evaluate the supplied checkpoint
 
-Play opens the Isaac viewer. Evaluation runs five fixed seeded episodes headlessly and writes a JSON result.
+Playback needs `--viz kit` to open the Isaac viewer in this version. Set `seed` to 101, 102, 103, 104 or 105 for a single episode:
+
+```bash
+seed=101
+./scripts/play_isaac.sh reports/checkpoints/x2_relaxed_v4_model450.pt \
+  --environment relaxed_v4 --device cuda:0 --viz kit \
+  --seeds "$seed" --output "/tmp/x2_play_seed_${seed}.json"
+```
+
+The viewer closes after evaluation finishes. A 10-second simulation episode can run faster than wall-clock time. The supplied path selects `model450` explicitly; it does not automatically choose the latest training checkpoint. Seeds change small initial supine root-pose perturbations; the model weights, neutral joint angles and zero initial velocities remain the same.
+
+Play all five seeds sequentially in one viewer session:
 
 ```bash
 ./scripts/play_isaac.sh reports/checkpoints/x2_relaxed_v4_model450.pt \
-  --environment relaxed_v4 --device cuda:0
+  --environment relaxed_v4 --device cuda:0 --viz kit \
+  --seeds 101 102 103 104 105 --output /tmp/x2_play_all_seeds.json
+```
 
+Evaluation runs those five fixed seeds headlessly and writes a JSON result:
+
+```bash
 ./scripts/evaluate_isaac.sh reports/checkpoints/x2_relaxed_v4_model450.pt \
   --environment relaxed_v4 --device cuda:0 \
   --output /tmp/x2_evaluation.json

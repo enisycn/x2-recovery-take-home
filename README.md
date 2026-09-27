@@ -14,6 +14,7 @@ The first two seconds hold the initial supine frame for inspection; the followin
 - [Five-episode evaluation](reports/relaxed_v4_evaluation.json)
 - [Checkpoint](reports/checkpoints/x2_relaxed_v4_model450.pt)
 - [Reward curve](reports/relaxed_v4_training_reward.png)
+- [Submission report (PDF)](docs/submission_report.pdf)
 - [Requirement map](docs/task_requirements.md)
 - [Validation commands and outcomes](docs/validation.md)
 - [Setup, training and ROS commands](docs/commands.md)
@@ -81,6 +82,10 @@ The extra final-pose check requires both shoulder-pitch errors and elbow errors 
 PPO uses clip 0.2, gamma 0.99, GAE lambda 0.95, five learning epochs, four minibatches, value-loss coefficient 1, clipped value loss, desired KL 0.01 and gradient clipping 1. The final stage uses 3000 environments, 32 steps/environment, seed 47, fixed learning rate 1e-4, initial action standard deviation 0.10 and entropy 0.001.
 
 The supplied parent checkpoint supports re-running the final 51-update stage. [Commands](docs/commands.md) gives the training, playback and five-episode evaluation sequence.
+
+For graphical checkpoint playback, pass `--viz kit`; without a selected visualizer this Isaac Lab version runs headlessly. The guide includes an adjustable seed and a five-seed playback command.
+
+The final reward curve covers PPO iterations 400-450, continuing from the supplied parent rather than starting from random weights. The faint line is the logged mean episode reward; the solid line is its trailing 20-iteration mean. This refinement stage uses supine-only starts and includes the relaxed-arm objective. Reward is a training metric; the separate five-episode evaluation establishes recovery success.
 
 Every successful `train_isaac.sh` run automatically adds `reward.png`, `reward.csv` and `run_manifest.json` beside its TensorBoard events, parameter snapshots and checkpoints. The experiment-level `LATEST_RUN.txt` points to that directory. See [training outputs and file locations](docs/artifact_locations.md) for the exact tree and commands. Evaluation JSON and GIF rendering remain explicit simulator steps.
 

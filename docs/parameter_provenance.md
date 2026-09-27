@@ -36,6 +36,8 @@ DAgger, DAPG, GAIL and DeepMimic are comparison methods only; the selected check
 | Initial standard deviation | `0.10` at final-stage resume | **LOCAL.** Explicit CLI override to limit destructive exploration around the working parent. The serialized config still shows its class default `1.0` because the override is applied to the loaded runner after config serialization. |
 | Final learned standard deviations | `[0.0171, 0.0855, 0.0634, 0.0838, 0.0965, 0.0668, 0.0961, 0.0919]` | **MEASURED.** Values stored in selected checkpoint, action order matching `synergy_action.py`. |
 
+The parent `model400` stores action standard deviations `[0.0144, 0.1156, 0.0839, 0.0987, 0.1423, 0.0816, 0.1430, 0.1343]` (mean 0.1017). The resume override resets all eight entries to 0.10, increasing some and decreasing others; it is not a uniform reduction from the parent's learned values. They remain learnable and reach a mean of 0.0751 in `model450`. The reward curve shows the combined refinement experiment, not a controlled comparison isolating standard deviation. Playback and evaluation use deterministic mean actions, so no Gaussian exploration noise is sampled there.
+
 The final actor has no autoencoder, decoder, reconstruction loss, diffusion model, CNN, RNN, privileged latent, behavior-cloning loss or expert dataset. HumanUP's history/RMA-style model was implemented and evaluated historically, but it achieved 0/5 from strict true-supine resets and is not part of the selected policy.
 
 ## PPO and optimization
