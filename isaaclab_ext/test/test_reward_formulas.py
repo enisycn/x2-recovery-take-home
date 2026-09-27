@@ -282,6 +282,32 @@ def test_strict_stance_proximity_is_bounded_and_orders_nearby_states() -> None:
     assert not strict[0]
 
 
+def test_posture_command_cost_requires_unsupported_upright_stance():
+    heights = torch.tensor([.68, .68, .19, .68, .68])
+    gravity = torch.tensor([[0., 0., -1.], [0., 0., -1.], [-1., 0., 0.],
+                            [0., 0., -1.], [0., 0., 1.]])
+    forces = torch.zeros((5, 3, 1, 3))
+    forces[:, :2, 0, 2] = 100.
+    forces[3, 2, 0, 2] = 50.
+    sensor = SimpleNamespace(data=SimpleNamespace(force_matrix_w=TorchField(forces)))
+    action = torch.zeros((5, 8))
+    action[:, 3:6] = torch.tensor([math.atanh(.25), math.atanh(.8125), 0.])
+    action[1:, 3] = 5.
+    env = SimpleNamespace(scene=FakeScene(fake_robot(heights, gravity), sensor),
+                          action_manager=SimpleNamespace(action=action))
+    feet = SimpleNamespace(name="contact_forces", body_ids=[0, 1])
+    bodies = SimpleNamespace(name="contact_forces", body_ids=[0, 1, 2])
+    cost = mdp.supported_posture_command_cost(env, feet, bodies)
+    assert cost[0] == 0 and cost[1] > 20
+    assert torch.equal(cost[2:], torch.zeros(3))
+    proximity = mdp.supported_posture_command_proximity(env, feet, bodies)
+    assert proximity[0] == 1 and 0 < proximity[1] < 0.1
+    assert torch.equal(proximity[2:], torch.zeros(3))
+    forces[1, 1, 0, 2] = 0.
+    assert mdp.supported_posture_command_cost(env, feet, bodies)[1] == 0
+    assert mdp.supported_posture_command_proximity(env, feet, bodies)[1] == 0
+
+
 def test_strict_success_ignores_internal_self_collision_for_support() -> None:
     """Only floor contact, not equal/opposite link contact, is body support."""
 

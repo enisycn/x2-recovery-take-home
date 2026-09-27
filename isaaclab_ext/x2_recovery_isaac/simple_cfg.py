@@ -177,6 +177,18 @@ class X2StabilityRefinementEnvCfg(X2RelaxedRecoveryEnvCfg):
 
 
 @configclass
+class X2PostureRefinementEnvCfg(X2StabilityRefinementEnvCfg):
+    """Same supine task, with a positive supported neutral-command objective."""
+
+    def __post_init__(self):
+        super().__post_init__()
+        self.rewards.posture_command = RewTerm(
+            func=mdp.supported_posture_command_proximity, weight=20.0,
+            params={"feet_cfg": foot_contact_cfg(), "all_bodies_cfg": all_contact_cfg()},
+        )
+
+
+@configclass
 class X2RelaxedPPORunnerCfg(X2SymmetricPPORunnerCfg):
     experiment_name = "hrs_x2_relaxed_v4"
     save_interval = 50

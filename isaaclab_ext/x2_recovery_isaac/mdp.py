@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Sequence
+import math
 from typing import TYPE_CHECKING
 
 import torch
@@ -844,7 +845,8 @@ def strict_stance_proximity(
     height = robot.data.root_pos_w.torch[:, 2]
     projected_gravity = robot.data.projected_gravity_b.torch
     # FRASA uses exp(-w ||state-target||^2). Here the state error is written
-    # in units of the assignment tolerances. Height is one-sided: exceeding
+    # in units of the supplied training widths, which may be broader than
+    # the unchanged validation tolerances. Height is one-sided: exceeding
     # the minimum is acceptable, while falling short stays dense over a 10 cm
     # margin. The explicit error sum avoids a product of tiny exponentials.
     height_error = torch.relu(min_height - height) / 0.10
@@ -878,7 +880,7 @@ def strict_stance_proximity(
         + torch.square(signed_upright_error)
         # The exact thresholds remain binary validation criteria.  A 0.1
         # coefficient keeps the FRASA exponential informative while the
-        # robot is still braking instead of underflowing several threshold
+        # robot is still braking instead of underflowing several training
         # widths away from the final stance.
         + 0.1 * torch.square(linear_error)
         + 0.1 * torch.square(angular_error)
@@ -1186,6 +1188,40 @@ def apply_humanup_height_scaled_force(
 
 # Re-export standard Isaac Lab MDP terms through one task-local module.
 from isaaclab.envs.mdp import *  # noqa: E402,F403
+
+
+def _supported_posture_command_error(env, feet_cfg, all_bodies_cfg):
+    robot = env.scene["robot"]
+    height_gate = ((robot.data.root_pos_w.torch[:, 2] - .50) / .15).clamp(0., 1.)
+    upright_gate = ((-robot.data.projected_gravity_b.torch[:, 2] - .95) / .04).clamp(0., 1.)
+    feet = _contact_mask(env, feet_cfg, 15.).all(dim=1)
+    no_other = unsupported_contacts(env, all_bodies_cfg=all_bodies_cfg,
+                                    feet_cfg=feet_cfg, threshold=15.) == 0
+    # Inverse of GROUPS' map for shoulder=0, elbow=-0.15 and waist=0 rad.
+    action = env.action_manager.action
+    shoulder = action[:, 3] - math.atanh(.25)
+    elbow = action[:, 4] - math.atanh(.8125)
+    waist = action[:, 5]
+    gate = height_gate * upright_gate * feet * no_other
+    error = shoulder.square() + elbow.square() + .25 * waist.square()
+    return gate, error
+
+
+def supported_posture_command_cost(env, feet_cfg, all_bodies_cfg):
+    """Historical negative-command experiment; retained for its saved config."""
+    gate, error = _supported_posture_command_error(env, feet_cfg, all_bodies_cfg)
+    return gate * error
+
+
+def supported_posture_command_proximity(env, feet_cfg, all_bodies_cfg):
+    """Positive neutral-command shaping, informative beyond tanh saturation.
+
+    Unlike subtracting a gated cost, acquiring foot support cannot activate a
+    new negative term. Targets and width are X2 engineering choices; this is
+    not demonstration tracking or a change to the action-to-target mapping.
+    """
+    gate, error = _supported_posture_command_error(env, feet_cfg, all_bodies_cfg)
+    return gate * torch.exp(-error / 8.0)
 
 
 def relaxed_arms_when_stable(

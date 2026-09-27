@@ -27,6 +27,8 @@ parser.add_argument("--entropy_coef", type=float, default=None)
 parser.add_argument("--checkpoint", default=None, help="Optional RSL-RL checkpoint to resume from.")
 parser.add_argument("--stability_refinement", action="store_true",
                     help="Use dense stance shaping and action regularization; keep every reset supine.")
+parser.add_argument("--posture_refinement", action="store_true",
+                    help="Add positive supported neutral-command shaping to the stability preset.")
 parser.add_argument(
     "--action_std_override",
     type=float,
@@ -50,6 +52,8 @@ parser.add_argument(
 )
 AppLauncher.add_app_launcher_args(parser)
 args = parser.parse_args()
+if args.posture_refinement and not args.stability_refinement:
+    parser.error("--posture_refinement requires --stability_refinement")
 app_launcher = AppLauncher(args)
 simulation_app = app_launcher.app
 
@@ -63,12 +67,13 @@ from isaaclab_rl.rsl_rl import RslRlVecEnvWrapper, handle_deprecated_rsl_rl_cfg 
 import x2_recovery_isaac  # noqa: E402,F401
 from x2_recovery_isaac.env_cfg import ALL_CONTACT_BODIES, CONTACT_SENSOR_NAME  # noqa: E402
 from x2_recovery_isaac.simple_cfg import (  # noqa: E402
-    X2RelaxedRecoveryEnvCfg, X2RelaxedPPORunnerCfg, X2StabilityRefinementEnvCfg,
+    X2RelaxedRecoveryEnvCfg, X2RelaxedPPORunnerCfg, X2StabilityRefinementEnvCfg, X2PostureRefinementEnvCfg,
 )
 
 
 def main() -> Path:
-    env_cfg = X2StabilityRefinementEnvCfg() if args.stability_refinement else X2RelaxedRecoveryEnvCfg()
+    env_cfg = (X2PostureRefinementEnvCfg() if args.posture_refinement else
+               X2StabilityRefinementEnvCfg() if args.stability_refinement else X2RelaxedRecoveryEnvCfg())
     env_cfg.scene.num_envs = args.num_envs
     env_cfg.sim.device = args.device
     env_cfg.seed = args.seed
@@ -146,6 +151,7 @@ def main() -> Path:
         runtime_settings = {
             "parent_checkpoint": args.checkpoint,
             "stability_refinement": args.stability_refinement,
+            "posture_refinement": args.posture_refinement,
             "reset_optimizer": args.reset_optimizer,
             "critic_initialization": "random_weights" if not args.checkpoint or
                 (args.reset_optimizer and args.stability_refinement) else "checkpoint",
