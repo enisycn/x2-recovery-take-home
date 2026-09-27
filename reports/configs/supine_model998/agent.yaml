@@ -1,7 +1,7 @@
-seed: 46
+seed: 47
 device: cuda:0
 num_steps_per_env: 32
-max_iterations: 151
+max_iterations: 500
 empirical_normalization: {}
 obs_groups: {}
 clip_actions: null
@@ -41,11 +41,11 @@ algorithm:
   class_name: PPO
   num_learning_epochs: 5
   num_mini_batches: 4
-  learning_rate: 0.0001
-  schedule: fixed
+  learning_rate: 0.0003
+  schedule: adaptive
   gamma: 0.99
   lam: 0.95
-  entropy_coef: 0.001
+  entropy_coef: 0.0
   desired_kl: 0.01
   max_grad_norm: 1.0
   optimizer: adam

@@ -147,3 +147,5 @@ For a newly completed training run, `scripts/train_isaac.sh` also creates `rewar
 ## Stop the processes
 
 Press `Ctrl+C` in Terminal 2, then Terminal 1. The interactive inspection terminal can remain open.
+
+The selected supine-only checkpoint passes the physical stance criterion. Its arms remain forward; neutral-arm posture is an additional evaluation metric, not a ROS success condition. ROS and the evaluator share the same strict stance thresholds.

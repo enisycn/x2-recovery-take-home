@@ -1,0 +1,14 @@
+{
+  "parent_checkpoint": "logs/rsl_rl/hrs_x2_relaxed_v4/2026-09-27_12-02-27_supine_dense_stance_scratch/model_499.pt",
+  "stability_refinement": true,
+  "reset_optimizer": false,
+  "critic_initialization": "checkpoint",
+  "action_std_override": null,
+  "learning_rate": 0.0003,
+  "learning_schedule": "adaptive",
+  "entropy_coef": 0.0,
+  "reset": "supine_only",
+  "external_assistance": false,
+  "source_commit": "cdc3821297c3e196b645eb17ea55fce4b5d97bdd",
+  "source_patch": "source_changes.patch"
+}

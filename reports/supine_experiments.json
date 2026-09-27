@@ -1,0 +1,98 @@
+[
+  {
+    "experiment": "Original supine-only scratch",
+    "run": "2026-09-27_10-42-26_supine_from_scratch",
+    "lineage_updates": 500,
+    "successes": 0,
+    "episodes": 5,
+    "standing_at_end": 0,
+    "neutral_arms_at_end": 0,
+    "final_strict_stance_s": [
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "seeds": [
+      101,
+      102,
+      103,
+      104,
+      105
+    ],
+    "reset": "supine_only"
+  },
+  {
+    "experiment": "Dense stance scratch",
+    "run": "2026-09-27_12-02-27_supine_dense_stance_scratch",
+    "lineage_updates": 500,
+    "successes": 0,
+    "episodes": 5,
+    "standing_at_end": 0,
+    "neutral_arms_at_end": 0,
+    "final_strict_stance_s": [
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "seeds": [
+      101,
+      102,
+      103,
+      104,
+      105
+    ],
+    "reset": "supine_only"
+  },
+  {
+    "experiment": "Dense stance continuation (selected)",
+    "run": "2026-09-27_12-23-27_supine_dense_stance_continue",
+    "lineage_updates": 1000,
+    "successes": 5,
+    "episodes": 5,
+    "standing_at_end": 5,
+    "neutral_arms_at_end": 0,
+    "final_strict_stance_s": [
+      9.02,
+      8.78,
+      9.02,
+      9.02,
+      9.02
+    ],
+    "seeds": [
+      101,
+      102,
+      103,
+      104,
+      105
+    ],
+    "reset": "supine_only"
+  },
+  {
+    "experiment": "Positive posture refinement (rejected)",
+    "run": "2026-09-27_12-59-16_supine_positive_posture",
+    "lineage_updates": 1200,
+    "successes": 3,
+    "episodes": 5,
+    "standing_at_end": 3,
+    "neutral_arms_at_end": 0,
+    "final_strict_stance_s": [
+      8.96,
+      0.0,
+      8.6,
+      0.0,
+      9.1
+    ],
+    "seeds": [
+      101,
+      102,
+      103,
+      104,
+      105
+    ],
+    "reset": "supine_only"
+  }
+]

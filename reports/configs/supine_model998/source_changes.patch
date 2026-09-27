@@ -1,0 +1,233 @@
+diff --git a/isaaclab_ext/test/test_reward_formulas.py b/isaaclab_ext/test/test_reward_formulas.py
+index 265a4f0..6030698 100644
+--- a/isaaclab_ext/test/test_reward_formulas.py
++++ b/isaaclab_ext/test/test_reward_formulas.py
+@@ -269,6 +269,18 @@ def test_strict_stance_proximity_is_bounded_and_orders_nearby_states() -> None:
+     assert result[2] < 0.30
+     assert result[0] > 0.80
+ 
++    # Broader training widths provide braking feedback without making the
++    # unchanged binary evaluation count a rotating robot as successful.
++    env.scene["robot"].data.root_ang_vel_w = TorchField(torch.zeros((count, 3)))
++    env.scene["robot"].data.root_ang_vel_w.torch[0, 0] = 3.0
++    broad = mdp.strict_stance_proximity(
++        env, feet_cfg=feet, all_bodies_cfg=all_bodies,
++        max_tilt=0.35, max_linear_speed=0.8, max_angular_speed=2.0,
++    )
++    strict = mdp.strict_success(env, feet_cfg=feet, all_bodies_cfg=all_bodies)
++    assert broad[0] > 0.7
++    assert not strict[0]
++
+ 
+ def test_strict_success_ignores_internal_self_collision_for_support() -> None:
+     """Only floor contact, not equal/opposite link contact, is body support."""
+@@ -323,6 +335,27 @@ def test_x2_knee_soft_margin_still_permits_near_extension() -> None:
+     assert 0.0 < soft_lower < 0.03
+ 
+ 
++def test_action_saturation_cost_preserves_knee_extension_and_penalizes_large_means():
++    from x2_recovery_isaac.synergy_action import effective_raw_interval
++    knee_soft_min = 0.5 * 2.407 * (1.0 - 0.98)
++    knee_command = math.atanh((knee_soft_min - 1.15) / 1.15)
++    action = torch.tensor([
++        [0.0, knee_command, 2.5], [3.0, -4.0, 0.0], [-3.0, 4.0, 0.0],
++    ])
++    bounds = torch.tensor([[[-2.5, 2.5]] * 3]).expand(3, -1, -1)
++    term = SimpleNamespace(effective_raw_limits=bounds)
++    env = SimpleNamespace(action_manager=SimpleNamespace(action=action, get_term=lambda _: term))
++    cost = mdp.saturated_action_cost(env)
++    assert cost[0] == 0.0
++    assert torch.allclose(cost[1:], torch.tensor([2.5, 2.5]))
++    assert math.tanh(2.5) > 0.986
++    knee_bounds = effective_raw_interval(torch.tensor([[[knee_soft_min, 2.407-knee_soft_min]]]), 1.15, 1.15)
++    assert math.isclose(float(knee_bounds[0, 0]), knee_command, abs_tol=1e-5)
++    ankle_bounds = effective_raw_interval(torch.tensor([[[-.79044, .44044]]]), -.15, .70)
++    assert 1.23 < float(ankle_bounds[0, 1]) < 1.24
++    assert -1.56 < float(ankle_bounds[0, 0]) < -1.55
++
++
+ def test_reset_workaround_invalidates_all_root_frame_buffers() -> None:
+     names = (
+         "_projected_gravity_b",
+diff --git a/isaaclab_ext/x2_recovery_isaac/mdp.py b/isaaclab_ext/x2_recovery_isaac/mdp.py
+index 9bf2d37..3a3c768 100644
+--- a/isaaclab_ext/x2_recovery_isaac/mdp.py
++++ b/isaaclab_ext/x2_recovery_isaac/mdp.py
+@@ -742,6 +742,20 @@ def near_stance_motion_cost(env: ManagerBasedRLEnv) -> torch.Tensor:
+     return height_gate * upright.square() * (linear + 0.1 * angular)
+ 
+ 
++def saturated_action_cost(env: ManagerBasedRLEnv) -> torch.Tensor:
++    """Discourage Gaussian outputs that lose control resolution after tanh.
++
++    At |a|=2.5, tanh already covers 98.66% of the configured half-range.
++    Imported soft limits can saturate the command sooner (notably ankles).
++    The action term derives the effective interval from those actual limits.
++    Every target in that interval, including knee extension, remains available.
++    """
++    bounds = env.action_manager.get_term("joint_position").effective_raw_limits
++    action = env.action_manager.action
++    return (torch.relu(bounds[..., 0] - action).square()
++            + torch.relu(action - bounds[..., 1]).square()).sum(dim=1)
++
++
+ def standing_still(
+     env: ManagerBasedRLEnv,
+     target_height: float,
+diff --git a/isaaclab_ext/x2_recovery_isaac/simple_cfg.py b/isaaclab_ext/x2_recovery_isaac/simple_cfg.py
+index f924dac..3d5787b 100644
+--- a/isaaclab_ext/x2_recovery_isaac/simple_cfg.py
++++ b/isaaclab_ext/x2_recovery_isaac/simple_cfg.py
+@@ -144,22 +144,36 @@ class X2RelaxedRecoveryEnvCfg(X2SymmetricRecoveryEnvCfg):
+ 
+ @configclass
+ class X2StabilityRefinementEnvCfg(X2RelaxedRecoveryEnvCfg):
+-    """Optional supine-only refinement of ballistic recovery into supported stance."""
++    """Supine-only recovery with dense stance shaping and action regularization."""
+ 
+     def __post_init__(self):
+         super().__post_init__()
+-        self.rewards.pelvis_height = RewTerm(
+-            func=mdp.supported_height_progress, weight=40.0,
+-            params={"feet_cfg": foot_contact_cfg(), "all_bodies_cfg": all_contact_cfg()},
+-        )
++        # Keep ascent shaping continuous through the hand-to-foot transition.
++        # Requiring foot support inside this term created a reward drop before
++        # stance; contact quality and motion are scored by separate terms.
++        self.rewards.feet.weight = 10.0
+         self.rewards.balance.weight = 20.0
+         self.rewards.stance_proximity = RewTerm(
+             func=mdp.strict_stance_proximity, weight=20.0,
+-            params={"feet_cfg": foot_contact_cfg(), "all_bodies_cfg": all_contact_cfg()},
++            params={
++                "feet_cfg": foot_contact_cfg(), "all_bodies_cfg": all_contact_cfg(),
++                "max_tilt": 0.35, "max_linear_speed": 0.8, "max_angular_speed": 2.0,
++            },
+         )
+         self.rewards.near_stance_motion = RewTerm(func=mdp.near_stance_motion_cost, weight=-2.0)
+         self.rewards.joint_speed = RewTerm(func=mdp.joint_vel_l2, weight=-0.0005)
+         self.rewards.action_rate.weight = -0.02
++        from isaaclab.managers import SceneEntityCfg
++        self.rewards.standing_leg_pose = RewTerm(
++            func=mdp.final_leg_pose_exp, weight=20.0,
++            params={
++                "gate_start_height": 0.40, "target_height": 0.68, "std": 0.7,
++                "asset_cfg": SceneEntityCfg("robot", joint_names=[
++                    ".*_hip_pitch_joint", ".*_knee_joint", ".*_ankle_pitch_joint",
++                ]),
++            },
++        )
++        self.rewards.action_saturation = RewTerm(func=mdp.saturated_action_cost, weight=-0.5)
+ 
+ 
+ @configclass
+diff --git a/isaaclab_ext/x2_recovery_isaac/synergy_action.py b/isaaclab_ext/x2_recovery_isaac/synergy_action.py
+index a5dd4d0..25ae035 100644
+--- a/isaaclab_ext/x2_recovery_isaac/synergy_action.py
++++ b/isaaclab_ext/x2_recovery_isaac/synergy_action.py
+@@ -4,9 +4,10 @@ FRASA motivates reducing the sagittal search space. X2 keeps two additional
+ lateral balance commands. Limits here restrict commanded motion inside, never
+ expand, the official URDF ranges. This is an X2 adaptation, not a FRASA replica.
+ """
++import math
+ import torch
+ from isaaclab.managers import ActionTerm, ActionTermCfg
+-from isaaclab.utils import configclass
++from isaaclab.utils.configclass import configclass
+ 
+ # group, centre, half-range (radians). Left/right axes have the same URDF sign.
+ GROUPS = (
+@@ -21,6 +22,14 @@ GROUPS = (
+ )
+ 
+ 
++def effective_raw_interval(limits, centre, span, threshold=2.5):
++    """Raw Gaussian interval before either tanh or imported-limit saturation."""
++    ratio = (limits - centre) / span
++    ratio = ratio.clamp(-math.tanh(threshold), math.tanh(threshold))
++    bounds = torch.atanh(ratio)
++    return torch.stack((bounds[..., 0].amax(dim=-1), bounds[..., 1].amin(dim=-1)), dim=-1)
++
++
+ class SymmetricRecoveryAction(ActionTerm):
+     def __init__(self, cfg, env):
+         super().__init__(cfg, env)
+@@ -29,12 +38,16 @@ class SymmetricRecoveryAction(ActionTerm):
+         self._joint_ids = list(range(self._asset.num_joints))
+         self._map = torch.zeros((len(GROUPS), self._asset.num_joints), device=env.device)
+         self._centre = self._targets[0].clone()
++        self._raw_limits = torch.empty((env.num_envs, len(GROUPS), 2), device=env.device)
+         for group, (names, centre, span) in enumerate(GROUPS):
+             ids, resolved = self._asset.find_joints(list(names), preserve_order=True)
+             if tuple(resolved) != names:
+                 raise RuntimeError(f'Unexpected joint mapping: {resolved}')
+             self._centre[ids] = centre
+             self._map[group, ids] = span
++            self._raw_limits[:, group] = effective_raw_interval(
++                self._asset.data.soft_joint_pos_limits.torch[:, ids], centre, span,
++            )
+ 
+     @property
+     def action_dim(self): return len(GROUPS)
+@@ -45,6 +58,9 @@ class SymmetricRecoveryAction(ActionTerm):
+     @property
+     def processed_actions(self): return self._targets
+ 
++    @property
++    def effective_raw_limits(self): return self._raw_limits
++
+     def process_actions(self, actions):
+         self._raw[:] = actions
+         targets = self._centre + torch.tanh(actions) @ self._map
+diff --git a/scripts/isaac_train_entry.py b/scripts/isaac_train_entry.py
+index 916dee0..315c313 100644
+--- a/scripts/isaac_train_entry.py
++++ b/scripts/isaac_train_entry.py
+@@ -9,6 +9,7 @@ from __future__ import annotations
+ import argparse
+ import importlib.metadata
+ import json
++import subprocess
+ import traceback
+ from datetime import datetime
+ from pathlib import Path
+@@ -25,7 +26,7 @@ parser.add_argument("--learning_schedule", choices=("fixed", "adaptive"), defaul
+ parser.add_argument("--entropy_coef", type=float, default=None)
+ parser.add_argument("--checkpoint", default=None, help="Optional RSL-RL checkpoint to resume from.")
+ parser.add_argument("--stability_refinement", action="store_true",
+-                    help="Use support-gated height and motion regularization; keep every reset supine.")
++                    help="Use dense stance shaping and action regularization; keep every reset supine.")
+ parser.add_argument(
+     "--action_std_override",
+     type=float,
+@@ -35,7 +36,7 @@ parser.add_argument(
+ parser.add_argument(
+     "--reset_optimizer",
+     action="store_true",
+-    help="Load actor/critic weights but initialize a fresh PPO optimizer.",
++    help="Initialize a fresh optimizer; stability refinement also resets the critic for the changed reward.",
+ )
+ parser.add_argument(
+     "--learning_rate_override",
+@@ -155,6 +156,21 @@ def main() -> Path:
+             "reset": "supine_only",
+             "external_assistance": False,
+         }
++        # Preserve the implementation used by this run even before a commit.
++        repository = Path(__file__).resolve().parents[1]
++        try:
++            runtime_settings["source_commit"] = subprocess.check_output(
++                ["git", "rev-parse", "HEAD"], cwd=repository, text=True,
++            ).strip()
++            patch = subprocess.check_output(
++                ["git", "diff", "HEAD", "--", "isaaclab_ext", "scripts"],
++                cwd=repository, text=True,
++            )
++            if patch:
++                (log_dir / "params" / "source_changes.patch").write_text(patch, encoding="utf-8")
++                runtime_settings["source_patch"] = "source_changes.patch"
++        except (OSError, subprocess.CalledProcessError) as error:
++            runtime_settings["source_capture_error"] = str(error)
+         (log_dir / "params" / "runtime_settings.json").write_text(
+             json.dumps(runtime_settings, indent=2) + "\n", encoding="utf-8"
+         )

@@ -39,7 +39,19 @@ This starts a new PPO experiment from random actor/critic weights. Every episode
 ```bash
 ./scripts/train_isaac.sh --phase relaxed_v4 --num_envs 3000 \
   --max_iterations 500 --seed 47 --device cuda:0 \
-  --run_name supine_from_scratch
+  --run_name supine_dense_stance_scratch \
+  --stability_refinement --action_std_override 0.8 --entropy_coef 0
+```
+
+After that run completes, continue for 500 further updates with the same reward and all-supine resets. Keep the learned standard deviations and optimizer state:
+
+```bash
+experiment=logs/rsl_rl/hrs_x2_relaxed_v4
+parent_dir="$experiment/$(cat "$experiment/LATEST_RUN.txt")"
+./scripts/train_isaac.sh --phase relaxed_v4 --num_envs 3000 \
+  --max_iterations 500 --seed 47 --device cuda:0 \
+  --run_name supine_dense_stance_continue --stability_refinement \
+  --checkpoint "$parent_dir/model_499.pt" --entropy_coef 0
 ```
 
 Training prints progress after each completed PPO iteration: iteration number, mean reward, mean episode length (policy steps), reward terms, elapsed time and ETA. Output is unbuffered. No completed episodes means the mean episode metrics are not available yet. The training console prints the temporary log path as `[HRS] Live console log:`. For a compact view refreshed every five seconds, run this in a second terminal while one training run is active:
@@ -53,7 +65,7 @@ The monitor shows only the latest complete iteration, including steps per second
 
 Every **completed** training run writes a checkpoint, `reward.png`, `reward.csv`, and `run_manifest.json` to its timestamped directory. The folder hierarchy is `logs/rsl_rl/hrs_x2_relaxed_v4/<timestamp>_<run_name>/`; the run is inside the experiment folder, not directly under `rsl_rl` and not under `/tmp`.
 
-New runs do not overwrite the submitted plot or checkpoint in `reports/`. Change `--run_name` to label another experiment. `--max_iterations 500` is a chosen experiment budget, not a guarantee of recovery. The fresh run uses learning rate 3e-4 (adaptive), initial action standard deviation 1.0 and entropy coefficient 0.005. Its result must be evaluated separately; the recorded 5/5 result belongs to the supplied checkpoint. The earlier continuation settings are documented in [development history](development_history.md).
+New runs do not overwrite the submitted plot or checkpoint in `reports/`. Change `--run_name` to label another experiment. `--max_iterations 500` is a chosen experiment budget, not a guarantee of recovery. The selected recipe uses learning rate 3e-4 (adaptive), initial action standard deviation 0.8 and entropy coefficient 0. The first 500-update run scored 0/5; the same-preset continuation reached 5/5 after 1,000 total updates. The final checkpoint index is 998 because RSL-RL repeats the parent index on resume. Its result must be evaluated separately; the recorded 5/5 result belongs to the supplied checkpoint. The historical mixed-start lineage is documented separately in [development history](development_history.md).
 
 Find the latest completed run:
 
@@ -86,19 +98,19 @@ Playback needs `--viz kit` to open the Isaac viewer in this version. Set `seed` 
 
 ```bash
 seed=101
-./scripts/play_isaac.sh reports/checkpoints/x2_relaxed_v4_model450.pt \
+./scripts/play_isaac.sh reports/checkpoints/x2_supine_model998.pt \
   --environment relaxed_v4 --device cuda:0 --viz kit --start-delay 2 \
   --seeds "$seed" --output "/tmp/x2_play_seed_${seed}.json"
 ```
 
 `--start-delay 2` shows the frozen supine reset pose for two wall-clock seconds before each episode. Only the viewer updates during this preview; physics, policy inference and the 10-second episode clock have not started. Set it to `0` to start immediately. Headless evaluation uses no preview.
 
-The viewer closes after evaluation finishes. A 10-second simulation episode can run faster than wall-clock time. The supplied path selects `model450` explicitly; it does not automatically choose the latest training checkpoint. Seeds change small initial supine root-pose perturbations; the model weights, neutral joint angles and zero initial velocities remain the same.
+The viewer closes after evaluation finishes. A 10-second simulation episode can run faster than wall-clock time. The supplied path selects `model998` explicitly; it does not automatically choose the latest training checkpoint. Seeds change small initial supine root-pose perturbations; the model weights, neutral joint angles and zero initial velocities remain the same.
 
 Play all five seeds sequentially in one viewer session:
 
 ```bash
-./scripts/play_isaac.sh reports/checkpoints/x2_relaxed_v4_model450.pt \
+./scripts/play_isaac.sh reports/checkpoints/x2_supine_model998.pt \
   --environment relaxed_v4 --device cuda:0 --viz kit --start-delay 2 \
   --seeds 101 102 103 104 105 --output /tmp/x2_play_all_seeds.json
 ```
@@ -106,7 +118,7 @@ Play all five seeds sequentially in one viewer session:
 Evaluation runs those five fixed seeds headlessly and writes a JSON result:
 
 ```bash
-./scripts/evaluate_isaac.sh reports/checkpoints/x2_relaxed_v4_model450.pt \
+./scripts/evaluate_isaac.sh reports/checkpoints/x2_supine_model998.pt \
   --environment relaxed_v4 --device cuda:0 \
   --output /tmp/x2_evaluation.json
 ```

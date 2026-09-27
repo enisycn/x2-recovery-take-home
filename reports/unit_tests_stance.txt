@@ -1,10 +1,16 @@
-Validation command
-PYTHONPATH=isaaclab_ext:src/x2_recovery_ros python -m pytest -q isaaclab_ext/test/test_reward_formulas.py src/x2_recovery_ros/test
+Command: PYTHONPATH=isaaclab_ext:src/x2_recovery_ros "$ISAAC_PYTHON" -m pytest -q isaaclab_ext/test/test_reward_formulas.py src/x2_recovery_ros/test
+Host paths abbreviated; results unchanged.
 
-Result
-32 passed, 37 warnings in 2.66s
+.................................                                        [100%]
+=============================== warnings summary ===============================
+<ISAACLAB>/source/isaaclab/isaaclab/utils/configclass.py:513
+<ISAACLAB>/source/isaaclab/isaaclab/utils/configclass.py:513
+  <ISAACLAB>/source/isaaclab/isaaclab/utils/configclass.py:513: DeprecationWarning: 'RigidBodyMaterialCfg' is deprecated and will be removed in 5.0. Use 'isaaclab_physx.sim.spawners.materials.PhysxRigidBodyMaterialCfg' for PhysX properties, or 'isaaclab.sim.spawners.materials.RigidBodyMaterialBaseCfg' for solver-common properties only.
+    f1(*args, **kwargs)
 
-Warnings
-2 Isaac Lab RigidBodyMaterialCfg deprecation warnings.
-35 PyTorch torch.jit.script deprecation warnings.
-No test failure or skip. This suite checks implementation contracts, not recovery success.
+<ISAAC_ENV>/lib/python3.12/site-packages/torch/jit/_script.py:1488: 35 warnings
+  <ISAAC_ENV>/lib/python3.12/site-packages/torch/jit/_script.py:1488: DeprecationWarning: `torch.jit.script` is deprecated. Please switch to `torch.compile` or `torch.export`.
+    warnings.warn(
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+33 passed, 37 warnings in 2.80s

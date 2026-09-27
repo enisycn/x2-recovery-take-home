@@ -1,0 +1,15 @@
+{
+  "parent_checkpoint": null,
+  "stability_refinement": true,
+  "reset_optimizer": false,
+  "critic_initialization": "random_weights",
+  "action_std_override": 0.8,
+  "learning_rate": 0.0003,
+  "learning_schedule": "adaptive",
+  "entropy_coef": 0.0,
+  "reset": "supine_only",
+  "external_assistance": false,
+  "source_commit": "cdc3821297c3e196b645eb17ea55fce4b5d97bdd",
+  "source_patch": "source_changes.patch",
+  "reward_preset_revision": "dense_stance_with_imported_action_bounds"
+}

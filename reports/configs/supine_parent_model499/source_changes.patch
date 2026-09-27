@@ -1,0 +1,152 @@
+diff --git a/isaaclab_ext/x2_recovery_isaac/mdp.py b/isaaclab_ext/x2_recovery_isaac/mdp.py
+index 9bf2d37..3a3c768 100644
+--- a/isaaclab_ext/x2_recovery_isaac/mdp.py
++++ b/isaaclab_ext/x2_recovery_isaac/mdp.py
+@@ -742,6 +742,20 @@ def near_stance_motion_cost(env: ManagerBasedRLEnv) -> torch.Tensor:
+     return height_gate * upright.square() * (linear + 0.1 * angular)
+ 
+ 
++def saturated_action_cost(env: ManagerBasedRLEnv) -> torch.Tensor:
++    """Discourage Gaussian outputs that lose control resolution after tanh.
++
++    At |a|=2.5, tanh already covers 98.66% of the configured half-range.
++    Imported soft limits can saturate the command sooner (notably ankles).
++    The action term derives the effective interval from those actual limits.
++    Every target in that interval, including knee extension, remains available.
++    """
++    bounds = env.action_manager.get_term("joint_position").effective_raw_limits
++    action = env.action_manager.action
++    return (torch.relu(bounds[..., 0] - action).square()
++            + torch.relu(action - bounds[..., 1]).square()).sum(dim=1)
++
++
+ def standing_still(
+     env: ManagerBasedRLEnv,
+     target_height: float,
+diff --git a/isaaclab_ext/x2_recovery_isaac/simple_cfg.py b/isaaclab_ext/x2_recovery_isaac/simple_cfg.py
+index f924dac..3d5787b 100644
+--- a/isaaclab_ext/x2_recovery_isaac/simple_cfg.py
++++ b/isaaclab_ext/x2_recovery_isaac/simple_cfg.py
+@@ -144,22 +144,36 @@ class X2RelaxedRecoveryEnvCfg(X2SymmetricRecoveryEnvCfg):
+ 
+ @configclass
+ class X2StabilityRefinementEnvCfg(X2RelaxedRecoveryEnvCfg):
+-    """Optional supine-only refinement of ballistic recovery into supported stance."""
++    """Supine-only recovery with dense stance shaping and action regularization."""
+ 
+     def __post_init__(self):
+         super().__post_init__()
+-        self.rewards.pelvis_height = RewTerm(
+-            func=mdp.supported_height_progress, weight=40.0,
+-            params={"feet_cfg": foot_contact_cfg(), "all_bodies_cfg": all_contact_cfg()},
+-        )
++        # Keep ascent shaping continuous through the hand-to-foot transition.
++        # Requiring foot support inside this term created a reward drop before
++        # stance; contact quality and motion are scored by separate terms.
++        self.rewards.feet.weight = 10.0
+         self.rewards.balance.weight = 20.0
+         self.rewards.stance_proximity = RewTerm(
+             func=mdp.strict_stance_proximity, weight=20.0,
+-            params={"feet_cfg": foot_contact_cfg(), "all_bodies_cfg": all_contact_cfg()},
++            params={
++                "feet_cfg": foot_contact_cfg(), "all_bodies_cfg": all_contact_cfg(),
++                "max_tilt": 0.35, "max_linear_speed": 0.8, "max_angular_speed": 2.0,
++            },
+         )
+         self.rewards.near_stance_motion = RewTerm(func=mdp.near_stance_motion_cost, weight=-2.0)
+         self.rewards.joint_speed = RewTerm(func=mdp.joint_vel_l2, weight=-0.0005)
+         self.rewards.action_rate.weight = -0.02
++        from isaaclab.managers import SceneEntityCfg
++        self.rewards.standing_leg_pose = RewTerm(
++            func=mdp.final_leg_pose_exp, weight=20.0,
++            params={
++                "gate_start_height": 0.40, "target_height": 0.68, "std": 0.7,
++                "asset_cfg": SceneEntityCfg("robot", joint_names=[
++                    ".*_hip_pitch_joint", ".*_knee_joint", ".*_ankle_pitch_joint",
++                ]),
++            },
++        )
++        self.rewards.action_saturation = RewTerm(func=mdp.saturated_action_cost, weight=-0.5)
+ 
+ 
+ @configclass
+diff --git a/isaaclab_ext/x2_recovery_isaac/synergy_action.py b/isaaclab_ext/x2_recovery_isaac/synergy_action.py
+index a5dd4d0..25ae035 100644
+--- a/isaaclab_ext/x2_recovery_isaac/synergy_action.py
++++ b/isaaclab_ext/x2_recovery_isaac/synergy_action.py
+@@ -4,9 +4,10 @@ FRASA motivates reducing the sagittal search space. X2 keeps two additional
+ lateral balance commands. Limits here restrict commanded motion inside, never
+ expand, the official URDF ranges. This is an X2 adaptation, not a FRASA replica.
+ """
++import math
+ import torch
+ from isaaclab.managers import ActionTerm, ActionTermCfg
+-from isaaclab.utils import configclass
++from isaaclab.utils.configclass import configclass
+ 
+ # group, centre, half-range (radians). Left/right axes have the same URDF sign.
+ GROUPS = (
+@@ -21,6 +22,14 @@ GROUPS = (
+ )
+ 
+ 
++def effective_raw_interval(limits, centre, span, threshold=2.5):
++    """Raw Gaussian interval before either tanh or imported-limit saturation."""
++    ratio = (limits - centre) / span
++    ratio = ratio.clamp(-math.tanh(threshold), math.tanh(threshold))
++    bounds = torch.atanh(ratio)
++    return torch.stack((bounds[..., 0].amax(dim=-1), bounds[..., 1].amin(dim=-1)), dim=-1)
++
++
+ class SymmetricRecoveryAction(ActionTerm):
+     def __init__(self, cfg, env):
+         super().__init__(cfg, env)
+@@ -29,12 +38,16 @@ class SymmetricRecoveryAction(ActionTerm):
+         self._joint_ids = list(range(self._asset.num_joints))
+         self._map = torch.zeros((len(GROUPS), self._asset.num_joints), device=env.device)
+         self._centre = self._targets[0].clone()
++        self._raw_limits = torch.empty((env.num_envs, len(GROUPS), 2), device=env.device)
+         for group, (names, centre, span) in enumerate(GROUPS):
+             ids, resolved = self._asset.find_joints(list(names), preserve_order=True)
+             if tuple(resolved) != names:
+                 raise RuntimeError(f'Unexpected joint mapping: {resolved}')
+             self._centre[ids] = centre
+             self._map[group, ids] = span
++            self._raw_limits[:, group] = effective_raw_interval(
++                self._asset.data.soft_joint_pos_limits.torch[:, ids], centre, span,
++            )
+ 
+     @property
+     def action_dim(self): return len(GROUPS)
+@@ -45,6 +58,9 @@ class SymmetricRecoveryAction(ActionTerm):
+     @property
+     def processed_actions(self): return self._targets
+ 
++    @property
++    def effective_raw_limits(self): return self._raw_limits
++
+     def process_actions(self, actions):
+         self._raw[:] = actions
+         targets = self._centre + torch.tanh(actions) @ self._map
+diff --git a/scripts/isaac_train_entry.py b/scripts/isaac_train_entry.py
+index 916dee0..6710a53 100644
+--- a/scripts/isaac_train_entry.py
++++ b/scripts/isaac_train_entry.py
+@@ -25,7 +25,7 @@ parser.add_argument("--learning_schedule", choices=("fixed", "adaptive"), defaul
+ parser.add_argument("--entropy_coef", type=float, default=None)
+ parser.add_argument("--checkpoint", default=None, help="Optional RSL-RL checkpoint to resume from.")
+ parser.add_argument("--stability_refinement", action="store_true",
+-                    help="Use support-gated height and motion regularization; keep every reset supine.")
++                    help="Use dense stance shaping and action regularization; keep every reset supine.")
+ parser.add_argument(
+     "--action_std_override",
+     type=float,
+@@ -35,7 +35,7 @@ parser.add_argument(
+ parser.add_argument(
+     "--reset_optimizer",
+     action="store_true",
+-    help="Load actor/critic weights but initialize a fresh PPO optimizer.",
++    help="Initialize a fresh optimizer; stability refinement also resets the critic for the changed reward.",
+ )
+ parser.add_argument(
+     "--learning_rate_override",

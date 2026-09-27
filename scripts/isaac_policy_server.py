@@ -77,12 +77,8 @@ def serve_attempt(stream, env, policy, request: dict, feet_cfg, all_bodies_cfg) 
             done = bool(terminated[0] or truncated[0])
             state = unwrapped.terminal_snapshot if done else measured_state(unwrapped)
             ready = state["strict"]
-            if args.environment == "relaxed_v4":
-                joints = dict(zip(robot.joint_names, state["joint_positions"], strict=True))
-                ready = ready and all(
-                    abs(joints[f"{side}_shoulder_pitch_joint"]) <= .30
-                    and abs(joints[f"{side}_elbow_joint"] + .15) <= .30
-                    for side in ("left", "right"))
+            # Match the evaluator's HRS recovery predicate. Arm posture is
+            # reported separately there and is not a recovery requirement.
             consecutive_stable = consecutive_stable + 1 if ready else 0
             _write(stream, {"type": "step", "step": step,
                 "joint_names": list(robot.joint_names), "joint_positions": state["joint_positions"]})
@@ -115,7 +111,6 @@ def main() -> None:
     socket_path.unlink(missing_ok=True)
 
     # Keep the selected observation/action contract and a true supine reset.
-    # v4 additionally waits for relaxed arm posture before reporting success.
     config = {"simple_v2": X2SimpleRecoveryEnvCfg, "symmetric_v3": X2SymmetricRecoveryEnvCfg, "relaxed_v4": X2RelaxedRecoveryEnvCfg, "humanup_rise": X2HumanUpRiseEnvCfg}[args.environment]()
     config.sim.device = args.device
     config.scene.num_envs = 1

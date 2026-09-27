@@ -47,11 +47,11 @@ To finish an older successful run that predates automatic finalization:
 | File or directory | Meaning |
 | --- | --- |
 | `docs/submission_report.pdf` | Four-page English summary of the method, reward curve, five-episode evaluation and ROS integration. |
-| `reports/relaxed_v4_training_reward.png` | Submitted final-stage reward curve. |
+| `reports/relaxed_v4_training_reward.png` | Complete selected lineage: 1,000 completed PPO updates. |
 | `reports/relaxed_v4_training_reward.csv` | Exact values behind that curve. |
-| `reports/relaxed_v4_pretraining_reward.png/.csv` | Earlier lineage, clearly separated from the final stage. |
-| `reports/checkpoints/x2_relaxed_v4_model450.pt` | Selected policy checkpoint. |
-| `reports/checkpoints/x2_relaxed_v4_parent_model400.pt` | Parent used to reproduce the final 51 updates. |
+| `reports/configs/supine_model998/lineage_audit.json` | Both training runs use the same rewards and exclusively supine resets. |
+| `reports/checkpoints/x2_supine_model998.pt` | Selected policy checkpoint. |
+| `reports/checkpoints/x2_supine_parent_model499.pt` | Supine-only 500-update parent used for the next 500 updates. |
 | `reports/relaxed_v4_evaluation.json` | Five seeded evaluation episodes and success checks. |
 | `reports/gifs_relaxed_v4/x2_final_policy_attempt.gif` | Visual rollout from the selected checkpoint. |
 | `reports/videos/x2_recovery_supine_to_standing.mp4` | Two-second supine preview followed by the recorded ten-second episode; English on-screen labels. |

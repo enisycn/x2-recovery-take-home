@@ -51,11 +51,11 @@ standing experience, not a controlled proof that curriculum is necessary.
 The original target mapping can saturate. Its derivative is
 `span * (1 - tanh(action)^2)`: at raw action 5 the dimensionless sensitivity is
 only 0.000182. In three saved snapshots per evaluation episode, 62/120 action
-values from the failed model exceeded magnitude 2.5, versus 9/120 for the selected
+values from the failed model exceeded magnitude 2.5, versus 9/120 for the historical
 model450. These counts describe selected snapshots, not entire trajectories.
 Reducing Gaussian std cannot by itself correct a saturated mean action.
 
-## Experimental dense-stance reward preset
+## Selected dense-stance reward preset
 
 `--stability_refinement` selects this optional preset for either a fresh run or a
 continuation. Robot physics, action mapping, supine resets and strict evaluation
@@ -93,4 +93,4 @@ hand-to-foot transfer completed. The current preset restores continuous height
 shaping and scores contact separately. A new 500-update random-weight run with
 the current preset also scored 0/5: seeds 103 and 105 briefly met all criteria
 for 0.04 s, below the required 0.5 s. This is partial progress, not recovery.
-The experiments remain separate from the historical model450 and its 5/5 record.
+Continuing the same reward preset for 500 more updates reached **5/5**, with 8.78–9.02 s strict stance at episode end. All training resets in this new lineage were supine. The additional neutral-arm criterion remains unmet. This combined reward/exploration change and larger training budget is not a single-factor ablation. The historical mixed-start model450 remains separate.

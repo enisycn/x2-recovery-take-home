@@ -1,0 +1,167 @@
+{
+  "same_reward_configuration": true,
+  "all_resets_supine": true,
+  "runs": [
+    {
+      "run": "2026-09-27_12-02-27_supine_dense_stance_scratch",
+      "runtime": {
+        "parent_checkpoint": null,
+        "stability_refinement": true,
+        "reset_optimizer": false,
+        "critic_initialization": "random_weights",
+        "action_std_override": 0.8,
+        "learning_rate": 0.0003,
+        "learning_schedule": "adaptive",
+        "entropy_coef": 0.0,
+        "reset": "supine_only",
+        "external_assistance": false,
+        "source_commit": "cdc3821297c3e196b645eb17ea55fce4b5d97bdd",
+        "source_patch": "source_changes.patch",
+        "reward_preset_revision": "dense_stance_with_imported_action_bounds"
+      },
+      "reset": {
+        "func": "x2_recovery_isaac.mdp:reset_supine",
+        "params": {
+          "supine_pose_range": {
+            "x": [
+              -0.04,
+              0.04
+            ],
+            "y": [
+              -0.04,
+              0.04
+            ],
+            "z": [
+              -0.001,
+              0.001
+            ],
+            "roll": [
+              -0.005,
+              0.005
+            ],
+            "pitch": [
+              -0.005,
+              0.005
+            ],
+            "yaw": [
+              -0.02,
+              0.02
+            ]
+          },
+          "velocity_range": {
+            "x": [
+              0.0,
+              0.0
+            ],
+            "y": [
+              0.0,
+              0.0
+            ],
+            "z": [
+              0.0,
+              0.0
+            ],
+            "roll": [
+              0.0,
+              0.0
+            ],
+            "pitch": [
+              0.0,
+              0.0
+            ],
+            "yaw": [
+              0.0,
+              0.0
+            ]
+          }
+        },
+        "mode": "reset",
+        "interval_range_s": null,
+        "is_global_time": false,
+        "min_step_count_between_reset": 0
+      },
+      "curriculum": null,
+      "lift_assist": null
+    },
+    {
+      "run": "2026-09-27_12-23-27_supine_dense_stance_continue",
+      "runtime": {
+        "parent_checkpoint": "logs/rsl_rl/hrs_x2_relaxed_v4/2026-09-27_12-02-27_supine_dense_stance_scratch/model_499.pt",
+        "stability_refinement": true,
+        "reset_optimizer": false,
+        "critic_initialization": "checkpoint",
+        "action_std_override": null,
+        "learning_rate": 0.0003,
+        "learning_schedule": "adaptive",
+        "entropy_coef": 0.0,
+        "reset": "supine_only",
+        "external_assistance": false,
+        "source_commit": "cdc3821297c3e196b645eb17ea55fce4b5d97bdd",
+        "source_patch": "source_changes.patch"
+      },
+      "reset": {
+        "func": "x2_recovery_isaac.mdp:reset_supine",
+        "params": {
+          "supine_pose_range": {
+            "x": [
+              -0.04,
+              0.04
+            ],
+            "y": [
+              -0.04,
+              0.04
+            ],
+            "z": [
+              -0.001,
+              0.001
+            ],
+            "roll": [
+              -0.005,
+              0.005
+            ],
+            "pitch": [
+              -0.005,
+              0.005
+            ],
+            "yaw": [
+              -0.02,
+              0.02
+            ]
+          },
+          "velocity_range": {
+            "x": [
+              0.0,
+              0.0
+            ],
+            "y": [
+              0.0,
+              0.0
+            ],
+            "z": [
+              0.0,
+              0.0
+            ],
+            "roll": [
+              0.0,
+              0.0
+            ],
+            "pitch": [
+              0.0,
+              0.0
+            ],
+            "yaw": [
+              0.0,
+              0.0
+            ]
+          }
+        },
+        "mode": "reset",
+        "interval_range_s": null,
+        "is_global_time": false,
+        "min_step_count_between_reset": 0
+      },
+      "curriculum": null,
+      "lift_assist": null
+    }
+  ]
+}

@@ -1,24 +1,350 @@
-Validation command
-./scripts/validate_ros_isaac_runtime.sh reports/exported_relaxed_v4/policy.pt --environment relaxed_v4 --device cuda:0
-
-Backend
-Isaac Lab / PhysX through local IPC
-
-CLI success trial
-service accepted: true
-statuses: RUNNING -> SUCCEEDED
-joint state samples: 100
-
-Timeout trial (timeout_sec=0.2)
-service accepted: true
-statuses: RUNNING -> FAILED
-joint state samples: 10
-
-Concurrent request trial
-first request accepted: true
-second request rejected as busy: true
-acceptance wall time: 0.000787 s
-joint state samples: 85
-
-Result
-ROS-Isaac runtime validation passed: CLI success, busy rejection, live telemetry, and Isaac timeout behavior all verified.
+{
+  "cli_success": {
+    "command": [
+      "ros2",
+      "service",
+      "call",
+      "/x2/start_recovery",
+      "std_srvs/srv/Trigger",
+      "{}"
+    ],
+    "cli_output": "waiting for service to become available...\nrequester: making request: std_srvs.srv.Trigger_Request()\n\nresponse:\nstd_srvs.srv.Trigger_Response(success=True, message='Recovery accepted')\n\n",
+    "statuses": [
+      "RUNNING",
+      "SUCCEEDED"
+    ],
+    "joint_samples": 82,
+    "last_joint_state": {
+      "names": [
+        "left_hip_pitch_joint",
+        "right_hip_pitch_joint",
+        "waist_yaw_joint",
+        "left_hip_roll_joint",
+        "right_hip_roll_joint",
+        "waist_pitch_joint",
+        "left_hip_yaw_joint",
+        "right_hip_yaw_joint",
+        "waist_roll_joint",
+        "left_knee_joint",
+        "right_knee_joint",
+        "left_shoulder_pitch_joint",
+        "right_shoulder_pitch_joint",
+        "head_yaw_joint",
+        "left_ankle_pitch_joint",
+        "right_ankle_pitch_joint",
+        "left_shoulder_roll_joint",
+        "right_shoulder_roll_joint",
+        "head_pitch_joint",
+        "left_ankle_roll_joint",
+        "right_ankle_roll_joint",
+        "left_shoulder_yaw_joint",
+        "right_shoulder_yaw_joint",
+        "left_elbow_joint",
+        "right_elbow_joint",
+        "left_wrist_yaw_joint",
+        "right_wrist_yaw_joint",
+        "left_wrist_pitch_joint",
+        "right_wrist_pitch_joint",
+        "left_wrist_roll_joint",
+        "right_wrist_roll_joint"
+      ],
+      "positions": [
+        -0.15086451172828674,
+        -0.16554126143455505,
+        -0.004417434334754944,
+        -0.12472640722990036,
+        -0.10551749914884567,
+        0.3140937089920044,
+        -0.006756697315722704,
+        -0.0021026923786848783,
+        0.00394991273060441,
+        0.02266736701130867,
+        0.0017584481975063682,
+        1.2883057594299316,
+        1.291959285736084,
+        -0.0004913603188470006,
+        0.019160374999046326,
+        0.054729804396629333,
+        -0.033835142850875854,
+        0.04174419492483139,
+        0.002900472143664956,
+        0.06217114254832268,
+        0.09775537252426147,
+        -0.0043714577332139015,
+        0.004771301057189703,
+        -0.1345849633216858,
+        -0.13336916267871857,
+        -0.0025454589631408453,
+        0.002467219950631261,
+        -0.015842437744140625,
+        -0.015401052311062813,
+        -0.0018091414822265506,
+        0.004205572418868542
+      ],
+      "stamp_sec": 1790511298,
+      "stamp_nanosec": 924038251
+    }
+  },
+  "timeout_parameter_command": [
+    "ros2",
+    "param",
+    "set",
+    "/x2_recovery",
+    "timeout_sec",
+    "0.2"
+  ],
+  "timeout_parameter_output": "Set parameter successful\n",
+  "cli_timeout": {
+    "command": [
+      "ros2",
+      "service",
+      "call",
+      "/x2/start_recovery",
+      "std_srvs/srv/Trigger",
+      "{}"
+    ],
+    "cli_output": "requester: making request: std_srvs.srv.Trigger_Request()\n\nresponse:\nstd_srvs.srv.Trigger_Response(success=True, message='Recovery accepted')\n\n",
+    "statuses": [
+      "RUNNING",
+      "FAILED"
+    ],
+    "joint_samples": 10,
+    "last_joint_state": {
+      "names": [
+        "left_hip_pitch_joint",
+        "right_hip_pitch_joint",
+        "waist_yaw_joint",
+        "left_hip_roll_joint",
+        "right_hip_roll_joint",
+        "waist_pitch_joint",
+        "left_hip_yaw_joint",
+        "right_hip_yaw_joint",
+        "waist_roll_joint",
+        "left_knee_joint",
+        "right_knee_joint",
+        "left_shoulder_pitch_joint",
+        "right_shoulder_pitch_joint",
+        "head_yaw_joint",
+        "left_ankle_pitch_joint",
+        "right_ankle_pitch_joint",
+        "left_shoulder_roll_joint",
+        "right_shoulder_roll_joint",
+        "head_pitch_joint",
+        "left_ankle_roll_joint",
+        "right_ankle_roll_joint",
+        "left_shoulder_yaw_joint",
+        "right_shoulder_yaw_joint",
+        "left_elbow_joint",
+        "right_elbow_joint",
+        "left_wrist_yaw_joint",
+        "right_wrist_yaw_joint",
+        "left_wrist_pitch_joint",
+        "right_wrist_pitch_joint",
+        "left_wrist_roll_joint",
+        "right_wrist_roll_joint"
+      ],
+      "positions": [
+        -0.7105188369750977,
+        -0.7171890735626221,
+        -0.04246513545513153,
+        0.14154459536075592,
+        0.1265483945608139,
+        -0.3150196075439453,
+        0.01283596083521843,
+        -0.013426050543785095,
+        -0.002284748014062643,
+        0.2125711739063263,
+        0.1773621290922165,
+        0.7696210741996765,
+        0.7214197516441345,
+        0.001652058563195169,
+        -0.7409855127334595,
+        -0.7420778870582581,
+        0.025968946516513824,
+        0.05628466606140137,
+        -0.01566772535443306,
+        -0.08950641006231308,
+        -0.08600002527236938,
+        0.025871023535728455,
+        0.02598096989095211,
+        -0.8970661759376526,
+        -0.9036093950271606,
+        0.01791265979409218,
+        -0.002653341041877866,
+        -0.17439326643943787,
+        -0.14605538547039032,
+        0.014633797109127045,
+        0.0020061214454472065
+      ],
+      "stamp_sec": 1790511301,
+      "stamp_nanosec": 150837939
+    }
+  },
+  "concurrent_trial": {
+    "statuses": [
+      "IDLE",
+      "RUNNING",
+      "SUCCEEDED"
+    ],
+    "joint_samples": 93,
+    "last_joint_state": {
+      "names": [
+        "left_hip_pitch_joint",
+        "right_hip_pitch_joint",
+        "waist_yaw_joint",
+        "left_hip_roll_joint",
+        "right_hip_roll_joint",
+        "waist_pitch_joint",
+        "left_hip_yaw_joint",
+        "right_hip_yaw_joint",
+        "waist_roll_joint",
+        "left_knee_joint",
+        "right_knee_joint",
+        "left_shoulder_pitch_joint",
+        "right_shoulder_pitch_joint",
+        "head_yaw_joint",
+        "left_ankle_pitch_joint",
+        "right_ankle_pitch_joint",
+        "left_shoulder_roll_joint",
+        "right_shoulder_roll_joint",
+        "head_pitch_joint",
+        "left_ankle_roll_joint",
+        "right_ankle_roll_joint",
+        "left_shoulder_yaw_joint",
+        "right_shoulder_yaw_joint",
+        "left_elbow_joint",
+        "right_elbow_joint",
+        "left_wrist_yaw_joint",
+        "right_wrist_yaw_joint",
+        "left_wrist_pitch_joint",
+        "right_wrist_pitch_joint",
+        "left_wrist_roll_joint",
+        "right_wrist_roll_joint"
+      ],
+      "positions": [
+        -0.03989763930439949,
+        -0.06574557721614838,
+        0.005795933306217194,
+        -0.12258463352918625,
+        -0.11187101155519485,
+        0.31405210494995117,
+        -0.007306247483938932,
+        -0.01223855558782816,
+        -0.013494851067662239,
+        -0.00021711945009883493,
+        -0.0001755824632709846,
+        1.2994489669799805,
+        1.301813006401062,
+        -0.00015203295333776623,
+        -0.058897439390420914,
+        -0.032055292278528214,
+        -0.03836607187986374,
+        0.03694354370236397,
+        0.0030547480564564466,
+        0.11335054039955139,
+        0.11580843478441238,
+        -0.004145896062254906,
+        0.004054693970829248,
+        -0.11272239685058594,
+        -0.11191236227750778,
+        -0.0024612117558717728,
+        0.002459843410179019,
+        -0.015226341784000397,
+        -0.015250727534294128,
+        -0.0031624487601220608,
+        0.0025907037779688835
+      ],
+      "stamp_sec": 1790511296,
+      "stamp_nanosec": 327411095
+    }
+  },
+  "backend": "Isaac Lab / PhysX",
+  "accepted": true,
+  "acceptance_wall_s": 0.0006781030006095534,
+  "busy_rejected": true,
+  "statuses": [
+    "RUNNING",
+    "FAILED"
+  ],
+  "joint_samples": 10,
+  "last_joint_state": {
+    "names": [
+      "left_hip_pitch_joint",
+      "right_hip_pitch_joint",
+      "waist_yaw_joint",
+      "left_hip_roll_joint",
+      "right_hip_roll_joint",
+      "waist_pitch_joint",
+      "left_hip_yaw_joint",
+      "right_hip_yaw_joint",
+      "waist_roll_joint",
+      "left_knee_joint",
+      "right_knee_joint",
+      "left_shoulder_pitch_joint",
+      "right_shoulder_pitch_joint",
+      "head_yaw_joint",
+      "left_ankle_pitch_joint",
+      "right_ankle_pitch_joint",
+      "left_shoulder_roll_joint",
+      "right_shoulder_roll_joint",
+      "head_pitch_joint",
+      "left_ankle_roll_joint",
+      "right_ankle_roll_joint",
+      "left_shoulder_yaw_joint",
+      "right_shoulder_yaw_joint",
+      "left_elbow_joint",
+      "right_elbow_joint",
+      "left_wrist_yaw_joint",
+      "right_wrist_yaw_joint",
+      "left_wrist_pitch_joint",
+      "right_wrist_pitch_joint",
+      "left_wrist_roll_joint",
+      "right_wrist_roll_joint"
+    ],
+    "positions": [
+      -0.7105188369750977,
+      -0.7171890735626221,
+      -0.04246513545513153,
+      0.14154459536075592,
+      0.1265483945608139,
+      -0.3150196075439453,
+      0.01283596083521843,
+      -0.013426050543785095,
+      -0.002284748014062643,
+      0.2125711739063263,
+      0.1773621290922165,
+      0.7696210741996765,
+      0.7214197516441345,
+      0.001652058563195169,
+      -0.7409855127334595,
+      -0.7420778870582581,
+      0.025968946516513824,
+      0.05628466606140137,
+      -0.01566772535443306,
+      -0.08950641006231308,
+      -0.08600002527236938,
+      0.025871023535728455,
+      0.02598096989095211,
+      -0.8970661759376526,
+      -0.9036093950271606,
+      0.01791265979409218,
+      -0.002653341041877866,
+      -0.17439326643943787,
+      -0.14605538547039032,
+      0.014633797109127045,
+      0.0020061214454472065
+    ],
+    "stamp_sec": 1790511301,
+    "stamp_nanosec": 150837939
+  },
+  "success": true
+}
+[x2_telemetry_node-2] [INFO] [1790511294.479209702] [x2_telemetry]: status=RUNNING left_knee_joint=0.0247 rad
+[x2_telemetry_node-2] [INFO] [1790511295.479221983] [x2_telemetry]: status=RUNNING left_knee_joint=0.0514 rad
+[x2_telemetry_node-2] [INFO] [1790511296.479364791] [x2_telemetry]: status=SUCCEEDED left_knee_joint=-0.0002 rad
+[x2_telemetry_node-2] [INFO] [1790511297.479691567] [x2_telemetry]: status=RUNNING left_knee_joint=0.2597 rad
+[x2_telemetry_node-2] [INFO] [1790511298.479236301] [x2_telemetry]: status=RUNNING left_knee_joint=0.0597 rad
+[x2_telemetry_node-2] [INFO] [1790511299.479339808] [x2_telemetry]: status=SUCCEEDED left_knee_joint=0.0227 rad
+[x2_telemetry_node-2] [INFO] [1790511300.479275383] [x2_telemetry]: status=SUCCEEDED left_knee_joint=0.0227 rad
+[x2_recovery_node-1] [WARN] [1790511301.151620702] [x2_recovery]: Recovery failed in 10 steps: timeout before 0.5 s strict stable stance
+ROS-Isaac runtime validation passed (CLI success, busy rejection, live telemetry, Isaac timeout)
