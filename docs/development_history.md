@@ -44,3 +44,8 @@ The supplied model450 was obtained by continuing the mixed-start pretraining lin
 ```
 
 The current supine reset has a dedicated function with no reference-pose parameters. Fresh runs also begin with an episode clock of zero. Historical curriculum functions remain for earlier variants and development evidence; they are not the reset used by relaxed_v4.
+
+
+## Supine-only scratch run and stabilization
+
+A separate 500-update scratch run used supine-only resets throughout and scored 0/5 at the final model499 checkpoint. Height and upright shaping could reward airborne high states while strict supported stance remained absent. Mean action std grew from 1.0 to 2.08045. The optional stability refinement targets the observed ballistic behavior with supported-height shaping, near-stance motion regularization and reduced exploration. It reuses only this supine-trained actor; it does not load the mixed-start model450. After 100 additional updates, model598 also scored 0/5, so this experiment is not a demonstrated fix. This combined intervention does not isolate the effect of any individual change. See [design and evidence](design_and_evidence.md) for formulas, measured results and provenance.

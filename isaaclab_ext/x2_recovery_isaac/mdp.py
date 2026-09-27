@@ -713,6 +713,35 @@ def unsupported_contacts_when_high(
     return contacts * gate
 
 
+def supported_height_progress(
+    env: ManagerBasedRLEnv,
+    feet_cfg: SceneEntityCfg,
+    all_bodies_cfg: SceneEntityCfg,
+    target_height: float = 0.68,
+) -> torch.Tensor:
+    """Keep floor-level rise shaping, but require foot-only support near stance."""
+    robot = env.scene["robot"]
+    height = robot.data.root_pos_w.torch[:, 2]
+    upright = ((1.0 - robot.data.projected_gravity_b.torch[:, 2]) * 0.5).clamp(0.0, 1.0)
+    near_stance = ((height - 0.45) / 0.13).clamp(0.0, 1.0)
+    feet = _contact_mask(env, feet_cfg, 15.0).all(dim=1)
+    other = unsupported_contacts(env, feet_cfg=feet_cfg, all_bodies_cfg=all_bodies_cfg, threshold=15.0)
+    supported = feet & (other == 0)
+    return (height / target_height).clamp(0.0, 1.0) * upright * (
+        1.0 - near_stance + near_stance * supported.to(torch.float32)
+    )
+
+
+def near_stance_motion_cost(env: ManagerBasedRLEnv) -> torch.Tensor:
+    """Penalize ballistic motion near standing without braking floor-level recovery."""
+    robot = env.scene["robot"]
+    height_gate = ((robot.data.root_pos_w.torch[:, 2] - 0.45) / 0.13).clamp(0.0, 1.0)
+    upright = ((1.0 - robot.data.projected_gravity_b.torch[:, 2]) * 0.5).clamp(0.0, 1.0)
+    linear = robot.data.root_lin_vel_w.torch.square().sum(dim=1)
+    angular = robot.data.root_ang_vel_w.torch.square().sum(dim=1)
+    return height_gate * upright.square() * (linear + 0.1 * angular)
+
+
 def standing_still(
     env: ManagerBasedRLEnv,
     target_height: float,

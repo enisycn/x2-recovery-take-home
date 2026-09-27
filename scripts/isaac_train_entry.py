@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import argparse
 import importlib.metadata
+import json
 import traceback
 from datetime import datetime
 from pathlib import Path
@@ -23,6 +24,8 @@ parser.add_argument("--run_name", default="")
 parser.add_argument("--learning_schedule", choices=("fixed", "adaptive"), default=None)
 parser.add_argument("--entropy_coef", type=float, default=None)
 parser.add_argument("--checkpoint", default=None, help="Optional RSL-RL checkpoint to resume from.")
+parser.add_argument("--stability_refinement", action="store_true",
+                    help="Use support-gated height and motion regularization; keep every reset supine.")
 parser.add_argument(
     "--action_std_override",
     type=float,
@@ -58,11 +61,13 @@ from isaaclab_rl.rsl_rl import RslRlVecEnvWrapper, handle_deprecated_rsl_rl_cfg 
 
 import x2_recovery_isaac  # noqa: E402,F401
 from x2_recovery_isaac.env_cfg import ALL_CONTACT_BODIES, CONTACT_SENSOR_NAME  # noqa: E402
-from x2_recovery_isaac.simple_cfg import X2RelaxedRecoveryEnvCfg, X2RelaxedPPORunnerCfg  # noqa: E402
+from x2_recovery_isaac.simple_cfg import (  # noqa: E402
+    X2RelaxedRecoveryEnvCfg, X2RelaxedPPORunnerCfg, X2StabilityRefinementEnvCfg,
+)
 
 
 def main() -> Path:
-    env_cfg = X2RelaxedRecoveryEnvCfg()
+    env_cfg = X2StabilityRefinementEnvCfg() if args.stability_refinement else X2RelaxedRecoveryEnvCfg()
     env_cfg.scene.num_envs = args.num_envs
     env_cfg.sim.device = args.device
     env_cfg.seed = args.seed
@@ -98,6 +103,7 @@ def main() -> Path:
     print(f"[HRS] phase={args.phase} device={args.device} envs={args.num_envs} "
           f"iterations={args.max_iterations} seed={args.seed}", flush=True)
     print("[HRS] reset=supine_only assistance=off", flush=True)
+    print(f"[HRS] stability_refinement={args.stability_refinement}", flush=True)
     print(f"[HRS] initialization={'checkpoint' if args.checkpoint else 'random_weights'}", flush=True)
     env = gym.make("HRS-X2-Recovery-v0", cfg=env_cfg)
     resolved_contact_bodies = tuple(env.unwrapped.scene.sensors[CONTACT_SENSOR_NAME].body_names)
@@ -117,9 +123,12 @@ def main() -> Path:
             checkpoint = Path(args.checkpoint).expanduser().resolve(strict=True)
             load_cfg = None
             if args.reset_optimizer:
-                load_cfg = {"actor": True, "critic": True, "optimizer": False, "iteration": True, "rnd": True}
+                load_cfg = {"actor": True, "critic": not args.stability_refinement,
+                            "optimizer": False, "iteration": True, "rnd": True}
             runner.load(str(checkpoint), load_cfg=load_cfg)
             print(f"[HRS] Resumed from {checkpoint}", flush=True)
+            if args.reset_optimizer and args.stability_refinement:
+                print("[HRS] critic_initialization=random_weights (reward changed)", flush=True)
         if args.learning_rate_override is not None:
             runner.alg.learning_rate = args.learning_rate_override
             for group in runner.alg.optimizer.param_groups:
@@ -133,6 +142,22 @@ def main() -> Path:
 
         dump_yaml(str(log_dir / "params" / "env.yaml"), env_cfg)
         dump_yaml(str(log_dir / "params" / "agent.yaml"), agent_cfg)
+        runtime_settings = {
+            "parent_checkpoint": args.checkpoint,
+            "stability_refinement": args.stability_refinement,
+            "reset_optimizer": args.reset_optimizer,
+            "critic_initialization": "random_weights" if not args.checkpoint or
+                (args.reset_optimizer and args.stability_refinement) else "checkpoint",
+            "action_std_override": args.action_std_override,
+            "learning_rate": runner.alg.learning_rate,
+            "learning_schedule": agent_cfg.algorithm.schedule,
+            "entropy_coef": agent_cfg.algorithm.entropy_coef,
+            "reset": "supine_only",
+            "external_assistance": False,
+        }
+        (log_dir / "params" / "runtime_settings.json").write_text(
+            json.dumps(runtime_settings, indent=2) + "\n", encoding="utf-8"
+        )
         runner.learn(num_learning_iterations=agent_cfg.max_iterations,
                      init_at_random_ep_len=bool(args.checkpoint))
     finally:

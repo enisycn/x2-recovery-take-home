@@ -217,6 +217,31 @@ def test_strict_success_rejects_inversion_missing_foot_and_other_support() -> No
     assert result.tolist() == [True, False, False, False]
 
 
+def test_refinement_height_rejects_ballistic_and_supported_bridge_states() -> None:
+    heights = torch.tensor([0.19, 0.78, 0.68, 0.68, 0.68])
+    gravity = torch.tensor([[-1.0, 0.0, 0.0], [0.0, 0.0, -1.0],
+                            [0.0, 0.0, -1.0], [0.0, 0.0, 1.0], [0.0, 0.0, -1.0]])
+    forces = torch.zeros((5, 3, 1, 3))
+    forces[2:, :2, 0, 2] = 20.0
+    forces[4, 2, 0, 2] = 20.0
+    sensor = SimpleNamespace(data=SimpleNamespace(force_matrix_w=TorchField(forces)))
+    env = SimpleNamespace(scene=FakeScene(fake_robot(heights, gravity), sensor))
+    feet = SimpleNamespace(name="contact_forces", body_ids=[0, 1])
+    bodies = SimpleNamespace(name="contact_forces", body_ids=[0, 1, 2])
+    reward = mdp.supported_height_progress(env, feet_cfg=feet, all_bodies_cfg=bodies)
+    assert torch.allclose(reward, torch.tensor([0.19 / 0.68 * 0.5, 0.0, 1.0, 0.0, 0.0]))
+
+
+def test_refinement_motion_cost_brakes_near_stance_without_penalizing_floor_rise() -> None:
+    heights = torch.tensor([0.19, 0.78, 0.68])
+    gravity = torch.tensor([[-1.0, 0.0, 0.0], [0.0, 0.0, -1.0], [0.0, 0.0, -1.0]])
+    linear = torch.tensor([[0.0, 0.0, 1.0], [0.25, 0.0, 0.0], [0.0, 0.0, 0.0]])
+    angular = torch.tensor([[0.0, 9.16, 0.0], [0.0, 9.16, 0.0], [0.0, 0.0, 0.0]])
+    env = SimpleNamespace(scene=FakeScene(fake_robot(heights, gravity, linear, angular)))
+    cost = mdp.near_stance_motion_cost(env)
+    assert torch.allclose(cost, torch.tensor([0.0, 0.25**2 + 0.1 * 9.16**2, 0.0]))
+
+
 def test_strict_stance_proximity_is_bounded_and_orders_nearby_states() -> None:
     count, history, bodies = 3, 2, 3
     heights = torch.tensor([0.68, 0.68, 0.44])

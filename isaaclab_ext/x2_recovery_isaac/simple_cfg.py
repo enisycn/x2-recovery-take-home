@@ -143,6 +143,26 @@ class X2RelaxedRecoveryEnvCfg(X2SymmetricRecoveryEnvCfg):
 
 
 @configclass
+class X2StabilityRefinementEnvCfg(X2RelaxedRecoveryEnvCfg):
+    """Optional supine-only refinement of ballistic recovery into supported stance."""
+
+    def __post_init__(self):
+        super().__post_init__()
+        self.rewards.pelvis_height = RewTerm(
+            func=mdp.supported_height_progress, weight=40.0,
+            params={"feet_cfg": foot_contact_cfg(), "all_bodies_cfg": all_contact_cfg()},
+        )
+        self.rewards.balance.weight = 20.0
+        self.rewards.stance_proximity = RewTerm(
+            func=mdp.strict_stance_proximity, weight=20.0,
+            params={"feet_cfg": foot_contact_cfg(), "all_bodies_cfg": all_contact_cfg()},
+        )
+        self.rewards.near_stance_motion = RewTerm(func=mdp.near_stance_motion_cost, weight=-2.0)
+        self.rewards.joint_speed = RewTerm(func=mdp.joint_vel_l2, weight=-0.0005)
+        self.rewards.action_rate.weight = -0.02
+
+
+@configclass
 class X2RelaxedPPORunnerCfg(X2SymmetricPPORunnerCfg):
     experiment_name = "hrs_x2_relaxed_v4"
     save_interval = 50
