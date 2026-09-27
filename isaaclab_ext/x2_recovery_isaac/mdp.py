@@ -743,6 +743,49 @@ def near_stance_motion_cost(env: ManagerBasedRLEnv) -> torch.Tensor:
     return height_gate * upright.square() * (linear + 0.1 * angular)
 
 
+def controlled_rise_height(env, all_bodies_cfg, target_height: float = 0.68):
+    """Retain ascent feedback while reducing ballistic height credit.
+
+    Any ground contact, including a hand during push-off, supplies support.
+    The 25% airborne floor avoids a discontinuous loss of the entire ascent
+    reward. The speed tolerance and all scales are local X2 design choices.
+    """
+    robot = env.scene["robot"]
+    height = (robot.data.root_pos_w.torch[:, 2] / target_height).clamp(0.0, 1.0)
+    orientation = ((1.0 - robot.data.projected_gravity_b.torch[:, 2]) * 0.5).clamp(0.0, 1.0)
+    supported = _contact_mask(env, all_bodies_cfg, 15.0).any(dim=1).to(torch.float32)
+    excess_vertical_speed = torch.relu(robot.data.root_lin_vel_w.torch[:, 2].abs() - 0.3)
+    speed_score = torch.exp(-torch.square(excess_vertical_speed / 0.7))
+    return height * orientation * (0.25 + 0.75 * supported) * speed_score
+
+
+def recovery_motion_cost(env):
+    """Start braking during the rise, below the old 0.45 m cutoff."""
+    robot = env.scene["robot"]
+    height_gate = ((robot.data.root_pos_w.torch[:, 2] - 0.20) / 0.38).clamp(0.0, 1.0)
+    orientation = ((1.0 - robot.data.projected_gravity_b.torch[:, 2]) * 0.5).clamp(0.0, 1.0)
+    linear = robot.data.root_lin_vel_w.torch.square().sum(dim=1)
+    angular = robot.data.root_ang_vel_w.torch.square().sum(dim=1)
+    return height_gate * orientation.square() * (linear + 0.05 * angular)
+
+
+def settling_stance(env, feet_cfg, all_bodies_cfg):
+    """Broad, bounded feedback for slowing down before strict stance.
+
+    HoST Table VI motivates velocity exponentials during and after rising.
+    These continuous height/support gates and widths are X2 adaptations.
+    This is training shaping; the strict validation predicate is unchanged.
+    """
+    robot = env.scene["robot"]
+    height_gate = ((robot.data.root_pos_w.torch[:, 2] - 0.25) / 0.40).clamp(0.0, 1.0)
+    upright = (-robot.data.projected_gravity_b.torch[:, 2]).clamp(0.0, 1.0).square()
+    feet = _contact_mask(env, feet_cfg, 15.0).all(dim=1).to(torch.float32)
+    other = unsupported_contacts(env, feet_cfg=feet_cfg, all_bodies_cfg=all_bodies_cfg, threshold=15.0)
+    speed_error = (0.5 * robot.data.root_lin_vel_w.torch.square().sum(dim=1) / 0.8**2
+                   + 0.5 * robot.data.root_ang_vel_w.torch.square().sum(dim=1) / 2.0**2)
+    return height_gate * upright * (0.25 + 0.75 * feet) * torch.exp(-speed_error - 0.5 * other)
+
+
 def saturated_action_cost(env: ManagerBasedRLEnv) -> torch.Tensor:
     """Discourage Gaussian outputs that lose control resolution after tanh.
 

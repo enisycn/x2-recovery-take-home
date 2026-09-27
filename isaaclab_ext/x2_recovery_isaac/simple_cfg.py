@@ -189,6 +189,27 @@ class X2PostureRefinementEnvCfg(X2StabilityRefinementEnvCfg):
 
 
 @configclass
+class X2ControlledRiseEnvCfg(X2PostureRefinementEnvCfg):
+    """Fixed-reward scratch experiment addressing the rise/collapse cycle."""
+
+    def __post_init__(self):
+        super().__post_init__()
+        self.rewards.pelvis_height = RewTerm(
+            func=mdp.controlled_rise_height, weight=40.0,
+            params={"all_bodies_cfg": all_contact_cfg()},
+        )
+        self.rewards.head_height.weight = 2.0
+        self.rewards.standing_leg_pose.weight = 10.0
+        self.rewards.balance = RewTerm(
+            func=mdp.settling_stance, weight=40.0,
+            params={"feet_cfg": foot_contact_cfg(), "all_bodies_cfg": all_contact_cfg()},
+        )
+        self.rewards.near_stance_motion = RewTerm(func=mdp.recovery_motion_cost, weight=-4.0)
+        self.rewards.action_rate.weight = -0.2
+        self.rewards.posture_command.params["variance"] = 1.0
+
+
+@configclass
 class X2RelaxedPPORunnerCfg(X2SymmetricPPORunnerCfg):
     experiment_name = "hrs_x2_relaxed_v4"
     save_interval = 50

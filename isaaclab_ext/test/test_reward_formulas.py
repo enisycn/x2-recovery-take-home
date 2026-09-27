@@ -456,3 +456,45 @@ def test_relaxed_arms_reward_requires_support_and_allows_posture_transition():
     assert 0. < result[1] < result[0]
     assert result[2:4].tolist() == [0., 0.]
     assert result[4] == result[0]  # motion may earn posture reward before strict success
+
+
+def test_controlled_rise_prefers_supported_ascent_to_flight_and_rejects_inversion():
+    heights = torch.tensor([.50, .50, .50, .50, .19])
+    gravity = torch.tensor([[0., 0., -1.]] * 3 + [[0., 0., 1.], [1., 0., 0.]])
+    velocity = torch.tensor([[0., 0., .3], [0., 0., .3], [0., 0., 2.],
+                             [0., 0., 0.], [0., 0., .3]])
+    forces = torch.zeros((5, 3, 1, 3))
+    forces[[0, 3, 4], 2, 0, 2] = 100.  # Hand/back support counts during ascent.
+    sensor = SimpleNamespace(data=SimpleNamespace(force_matrix_w=TorchField(forces)))
+    env = SimpleNamespace(scene=FakeScene(fake_robot(heights, gravity, velocity), sensor))
+    bodies = SimpleNamespace(name="contact_forces", body_ids=[0, 1, 2])
+    reward = mdp.controlled_rise_height(env, bodies)
+    assert reward[0] > reward[1] > reward[2] > 0
+    assert reward[2] < .01 * reward[0]
+    assert reward[3] == 0 and reward[4] > 0
+
+
+def test_controlled_rise_brakes_a_moving_crouch_without_a_floor_motion_penalty():
+    heights = torch.tensor([.19, .35, .58, .58])
+    gravity = torch.tensor([[0., 0., -1.]] * 4)
+    velocity = torch.tensor([[0., 0., 1.]] * 3 + [[0., 0., 0.]])
+    env = SimpleNamespace(scene=FakeScene(fake_robot(heights, gravity, velocity)))
+    cost = mdp.recovery_motion_cost(env)
+    assert cost[0] == 0 and 0 < cost[1] < cost[2] and cost[3] == 0
+    assert mdp.near_stance_motion_cost(env)[1] == 0  # The previous dead zone.
+
+
+def test_settling_feedback_orders_motion_before_strict_standing_is_reached():
+    heights = torch.tensor([.50, .50, .68, .19])
+    gravity = torch.tensor([[0., 0., -1.]] * 3 + [[1., 0., 0.]])
+    velocity = torch.tensor([[0., 0., 1.], [0., 0., .4], [0., 0., 0.], [0., 0., 0.]])
+    forces = torch.zeros((4, 3, 1, 3))
+    forces[:, :2, 0, 2] = 100.
+    sensor = SimpleNamespace(data=SimpleNamespace(force_matrix_w=TorchField(forces)))
+    env = SimpleNamespace(scene=FakeScene(fake_robot(heights, gravity, velocity), sensor))
+    feet = SimpleNamespace(name="contact_forces", body_ids=[0, 1])
+    bodies = SimpleNamespace(name="contact_forces", body_ids=[0, 1, 2])
+    reward = mdp.settling_stance(env, feet, bodies)
+    assert 0 < reward[0] < reward[1] < reward[2] <= 1
+    assert reward[3] == 0
+    assert mdp.strict_success(env, feet_cfg=feet, all_bodies_cfg=bodies).tolist() == [False, False, True, False]

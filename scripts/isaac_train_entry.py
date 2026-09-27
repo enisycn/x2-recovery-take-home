@@ -30,6 +30,8 @@ parser.add_argument("--stability_refinement", action="store_true",
                     help="Use dense stance shaping and action regularization; keep every reset supine.")
 parser.add_argument("--posture_refinement", action="store_true",
                     help="Add positive supported neutral-command shaping to the stability preset.")
+parser.add_argument("--controlled_rise", action="store_true",
+                    help="Fixed reward preset for a scratch rise-and-settle experiment; supine resets only.")
 parser.add_argument("--shoulder_command_variance", type=float, default=None,
                     help="Optional positive width for the supported shoulder-command reward.")
 parser.add_argument(
@@ -55,6 +57,10 @@ parser.add_argument(
 )
 AppLauncher.add_app_launcher_args(parser)
 args = parser.parse_args()
+if args.controlled_rise and (args.stability_refinement or args.posture_refinement or args.shoulder_command_variance is not None):
+    parser.error("--controlled_rise is a complete preset; omit the refinement flags and shoulder override")
+if args.controlled_rise and args.checkpoint:
+    parser.error("--controlled_rise is a scratch experiment; omit --checkpoint")
 if args.posture_refinement and not args.stability_refinement:
     parser.error("--posture_refinement requires --stability_refinement")
 if args.shoulder_command_variance is not None:
@@ -74,11 +80,13 @@ import x2_recovery_isaac  # noqa: E402,F401
 from x2_recovery_isaac.env_cfg import ALL_CONTACT_BODIES, CONTACT_SENSOR_NAME  # noqa: E402
 from x2_recovery_isaac.simple_cfg import (  # noqa: E402
     X2RelaxedRecoveryEnvCfg, X2RelaxedPPORunnerCfg, X2StabilityRefinementEnvCfg, X2PostureRefinementEnvCfg,
+    X2ControlledRiseEnvCfg,
 )
 
 
 def main() -> Path:
-    env_cfg = (X2PostureRefinementEnvCfg() if args.posture_refinement else
+    env_cfg = (X2ControlledRiseEnvCfg() if args.controlled_rise else
+               X2PostureRefinementEnvCfg() if args.posture_refinement else
                X2StabilityRefinementEnvCfg() if args.stability_refinement else X2RelaxedRecoveryEnvCfg())
     env_cfg.scene.num_envs = args.num_envs
     env_cfg.sim.device = args.device
@@ -118,6 +126,7 @@ def main() -> Path:
           f"iterations={args.max_iterations} seed={args.seed}", flush=True)
     print("[HRS] reset=supine_only assistance=off", flush=True)
     print(f"[HRS] stability_refinement={args.stability_refinement}", flush=True)
+    print(f"[HRS] controlled_rise={args.controlled_rise}", flush=True)
     print(f"[HRS] initialization={'checkpoint' if args.checkpoint else 'random_weights'}", flush=True)
     env = gym.make("HRS-X2-Recovery-v0", cfg=env_cfg)
     resolved_contact_bodies = tuple(env.unwrapped.scene.sensors[CONTACT_SENSOR_NAME].body_names)
@@ -160,6 +169,7 @@ def main() -> Path:
             "parent_checkpoint": args.checkpoint,
             "stability_refinement": args.stability_refinement,
             "posture_refinement": args.posture_refinement,
+            "controlled_rise": args.controlled_rise,
             "shoulder_command_variance": args.shoulder_command_variance,
             "reset_optimizer": args.reset_optimizer,
             "critic_initialization": "random_weights" if not args.checkpoint or
