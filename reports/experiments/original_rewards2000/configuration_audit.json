@@ -1,0 +1,37 @@
+{
+  "matches_original_supine_environment": {
+    "scene": true,
+    "sim": true,
+    "actions": true,
+    "observations": true,
+    "terminations": true,
+    "rewards": true,
+    "events": true,
+    "curriculum": true,
+    "decimation": true,
+    "episode_length_s": true
+  },
+  "agent_config_differences": {
+    "max_iterations": [
+      "500",
+      "2000"
+    ]
+  },
+  "runtime": {
+    "parent_checkpoint": null,
+    "stability_refinement": false,
+    "posture_refinement": false,
+    "controlled_rise": false,
+    "load_transfer": false,
+    "shoulder_command_variance": null,
+    "reset_optimizer": false,
+    "critic_initialization": "random_weights",
+    "action_std_override": 1.0,
+    "learning_rate": 0.0003,
+    "learning_schedule": "adaptive",
+    "entropy_coef": 0.005,
+    "reset": "supine_only",
+    "external_assistance": false,
+    "source_commit": "3ba78deb112596c9ab001b90e900153a70c2efa9"
+  }
+}

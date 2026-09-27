@@ -1,0 +1,67 @@
+{
+  "method": "Deterministic seed-101 rollouts; both policies measured under the original 12-term reward configuration. No training or intervention. Contact means at least one body-ground force magnitude >=15 N. A low-force interval is not an exact geometric flight detector.",
+  "policy_dt_s": 0.02,
+  "episodes": [
+    {
+      "model": "original_rewards2000",
+      "checkpoint_sha256": "aa3ff017be9e3ada360caa748bc9b6088042aa805579f408d4f99ee2dc0d5f5e",
+      "seed": 101,
+      "steps": 500,
+      "original_reward_return": 443.6670156442001,
+      "strict_stance_total_s": 0.0,
+      "all_body_forces_below_15N_s": 5.18,
+      "min_vertical_speed_m_s": -2.209913730621338,
+      "max_vertical_speed_m_s": 2.2331910133361816,
+      "max_abs_raw_action": 36.5361328125,
+      "reward_terms": {
+        "pelvis_height": 238.88117029190064,
+        "head_height": 76.09816617250443,
+        "upright": 127.73083140373231,
+        "feet": 3.0546531001478434,
+        "other_support": 0.0,
+        "balance": 0.001721133575140171,
+        "strict_stance": 0.0,
+        "action_rate": -8.939228732753545,
+        "torque": -0.26888418215792625,
+        "joint_limits": -0.17451751870044974,
+        "failure": 0.0,
+        "relaxed_arms": 7.283103975951672
+      },
+      "knee_target_range_rad": [
+        0.024073004722595215,
+        2.299999952316284
+      ]
+    },
+    {
+      "model": "selected2248",
+      "checkpoint_sha256": "92a0f1587207233e7c6a5f17444b636ec841aa611f4f7d9ec58cf1f6e9b5ec9e",
+      "seed": 101,
+      "steps": 500,
+      "original_reward_return": 1299.7477672114208,
+      "strict_stance_total_s": 9.120000000000001,
+      "all_body_forces_below_15N_s": 0.14,
+      "min_vertical_speed_m_s": -2.3539912700653076,
+      "max_vertical_speed_m_s": 2.2836666107177734,
+      "max_abs_raw_action": 8.125152587890625,
+      "reward_terms": {
+        "pelvis_height": 375.50576801776884,
+        "head_height": 111.20941992282869,
+        "upright": 133.8621722316742,
+        "feet": 44.94560958942399,
+        "other_support": 0.0,
+        "balance": 89.56240334354901,
+        "strict_stance": 182.39998260498047,
+        "action_rate": -0.022529943706080354,
+        "torque": -0.018439544437569566,
+        "joint_limits": -0.4319869000650942,
+        "failure": 0.0,
+        "relaxed_arms": 362.7353678894043
+      },
+      "knee_target_range_rad": [
+        0.024073004722595215,
+        2.161895275115967
+      ]
+    }
+  ],
+  "trace_csv": "rollout_trace.csv"
+}

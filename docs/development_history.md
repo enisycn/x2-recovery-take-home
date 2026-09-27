@@ -150,5 +150,15 @@ hand-supported pose below the required height. Full commands, formulas and
 limitations are in [the experiment note](controlled_rise_experiment.md), with
 the [five-episode report](../reports/experiments/controlled_rise500/evaluation.json)
 and [training curve](../reports/experiments/controlled_rise500/reward.png).
-The proposed load-transfer follow-up was implemented but not run; the next
-requested comparison instead uses the [original 12 rewards for 2,000 updates](original_rewards_experiment.md).
+The proposed load-transfer follow-up was implemented but not run.
+
+## Original rewards for 2,000 updates
+
+A fresh 3,000-environment, supine-only run retained the original 12 reward terms
+and original PPO settings for all 2,000 updates. It scored **0/5**: pelvis height
+reached 0.847–0.868 m, but no strict stance occurred. The mean reward plateaued
+near 400; the robot continued rising and falling without settling. This budget
+extension did not solve the original experiment. It is not an isolated reward
+ablation against the selected model, which also used different exploration
+settings. See [the comparison and reproduction commands](original_rewards_experiment.md).
+The selected model2248, exported ROS policy and validated results remain unchanged.

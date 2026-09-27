@@ -982,5 +982,253 @@
       }
     ],
     "selected_for_submission": false
+  },
+  {
+    "experiment": "Original rewards from scratch, 2000 updates",
+    "checkpoint": "logs/rsl_rl/hrs_x2_relaxed_v4/2026-09-27_16-03-09_original_rewards_supine2000/model_1999.pt",
+    "checkpoint_sha256": "aa3ff017be9e3ada360caa748bc9b6088042aa805579f408d4f99ee2dc0d5f5e",
+    "source_commit": "3ba78deb112596c9ab001b90e900153a70c2efa9",
+    "evaluation_report": "reports/experiments/original_rewards2000/evaluation.json",
+    "parent_checkpoint": null,
+    "initialization": "random actor and critic",
+    "lineage_updates": 2000,
+    "environment_transitions": 192000000,
+    "num_envs": 3000,
+    "training_seed": 47,
+    "initial_action_std": 1.0,
+    "final_action_std": [
+      3.4393770694732666,
+      3.0965185165405273,
+      4.736804485321045,
+      3.4748568534851074,
+      4.202604293823242,
+      4.871822357177734,
+      5.524447441101074,
+      5.114230632781982
+    ],
+    "initial_learning_rate": 0.0003,
+    "learning_schedule": "adaptive",
+    "entropy_coef": 0.005,
+    "reward_configuration": "X2RelaxedRecoveryEnvCfg; original 12 terms, fixed throughout training",
+    "reset": "supine_only",
+    "successes": 0,
+    "episodes": 5,
+    "standing_at_end": 0,
+    "neutral_arms_final_two_seconds": 0,
+    "seeds": [
+      101,
+      102,
+      103,
+      104,
+      105
+    ],
+    "results": [
+      {
+        "seed": 101,
+        "success": false,
+        "steps": 500,
+        "ended_by_safety_termination": false,
+        "maximum_pelvis_height_m": 0.8664,
+        "maximum_strict_stable_s": 0.0,
+        "final_strict_stable_s": 0.0,
+        "standing_at_episode_end": false,
+        "criterion_fraction": {
+          "height": 0.34,
+          "upright": 0.482,
+          "linear_speed": 0.01,
+          "angular_speed": 0.004,
+          "both_feet": 0.234,
+          "no_other_support": 0.732
+        },
+        "failure_reason": "strict height/orientation/speed/contact criteria never overlapped",
+        "last_two_seconds_arm_posture": {
+          "sample_count": 100,
+          "max_abs_shoulder_pitch_rad": 2.0316097736358643,
+          "max_elbow_target_error_rad": 1.6271422863006593,
+          "strict_and_relaxed_fraction": 0.0,
+          "joint_names": [
+            "left_shoulder_pitch_joint",
+            "left_elbow_joint",
+            "right_shoulder_pitch_joint",
+            "right_elbow_joint"
+          ],
+          "joint_position_peak_to_peak_rad": [
+            2.974754810333252,
+            1.7770518291545159,
+            3.039612293243408,
+            1.7771758705275715
+          ],
+          "joint_velocity_rms_rad_s": [
+            7.767344027881576,
+            7.92026403804901,
+            7.784019949314566,
+            7.828571459708065
+          ]
+        }
+      },
+      {
+        "seed": 102,
+        "success": false,
+        "steps": 500,
+        "ended_by_safety_termination": false,
+        "maximum_pelvis_height_m": 0.8624,
+        "maximum_strict_stable_s": 0.0,
+        "final_strict_stable_s": 0.0,
+        "standing_at_episode_end": false,
+        "criterion_fraction": {
+          "height": 0.266,
+          "upright": 0.438,
+          "linear_speed": 0.016,
+          "angular_speed": 0.008,
+          "both_feet": 0.234,
+          "no_other_support": 0.636
+        },
+        "failure_reason": "strict height/orientation/speed/contact criteria never overlapped",
+        "last_two_seconds_arm_posture": {
+          "sample_count": 100,
+          "max_abs_shoulder_pitch_rad": 1.9869303703308105,
+          "max_elbow_target_error_rad": 1.641862726211548,
+          "strict_and_relaxed_fraction": 0.0,
+          "joint_names": [
+            "left_shoulder_pitch_joint",
+            "left_elbow_joint",
+            "right_shoulder_pitch_joint",
+            "right_elbow_joint"
+          ],
+          "joint_position_peak_to_peak_rad": [
+            3.0739325284957886,
+            1.7919174944327096,
+            2.941337823867798,
+            1.7836735596429207
+          ],
+          "joint_velocity_rms_rad_s": [
+            7.911694896139416,
+            7.249714824162751,
+            7.840617076459254,
+            7.124039833601809
+          ]
+        }
+      },
+      {
+        "seed": 103,
+        "success": false,
+        "steps": 500,
+        "ended_by_safety_termination": false,
+        "maximum_pelvis_height_m": 0.8642,
+        "maximum_strict_stable_s": 0.0,
+        "final_strict_stable_s": 0.0,
+        "standing_at_episode_end": false,
+        "criterion_fraction": {
+          "height": 0.35,
+          "upright": 0.528,
+          "linear_speed": 0.01,
+          "angular_speed": 0.01,
+          "both_feet": 0.212,
+          "no_other_support": 0.718
+        },
+        "failure_reason": "strict height/orientation/speed/contact criteria never overlapped",
+        "last_two_seconds_arm_posture": {
+          "sample_count": 100,
+          "max_abs_shoulder_pitch_rad": 2.005815029144287,
+          "max_elbow_target_error_rad": 1.6333726406097413,
+          "strict_and_relaxed_fraction": 0.0,
+          "joint_names": [
+            "left_shoulder_pitch_joint",
+            "left_elbow_joint",
+            "right_shoulder_pitch_joint",
+            "right_elbow_joint"
+          ],
+          "joint_position_peak_to_peak_rad": [
+            3.390137195587158,
+            1.7834342799033038,
+            3.454859972000122,
+            1.7771145472215721
+          ],
+          "joint_velocity_rms_rad_s": [
+            7.6426799326409265,
+            7.29307061565848,
+            7.667244878656495,
+            7.247928171877543
+          ]
+        }
+      },
+      {
+        "seed": 104,
+        "success": false,
+        "steps": 170,
+        "ended_by_safety_termination": true,
+        "maximum_pelvis_height_m": 0.8469,
+        "maximum_strict_stable_s": 0.0,
+        "final_strict_stable_s": 0.0,
+        "standing_at_episode_end": false,
+        "criterion_fraction": {
+          "height": 0.3176,
+          "upright": 0.4059,
+          "linear_speed": 0.0118,
+          "angular_speed": 0.0059,
+          "both_feet": 0.1882,
+          "no_other_support": 0.7412
+        },
+        "failure_reason": "safety termination before a strict stable stance",
+        "last_two_seconds_arm_posture": {
+          "sample_count": 0,
+          "max_abs_shoulder_pitch_rad": null,
+          "max_elbow_target_error_rad": null,
+          "strict_and_relaxed_fraction": 0.0,
+          "joint_names": [
+            "left_shoulder_pitch_joint",
+            "left_elbow_joint",
+            "right_shoulder_pitch_joint",
+            "right_elbow_joint"
+          ],
+          "joint_position_peak_to_peak_rad": null,
+          "joint_velocity_rms_rad_s": null
+        }
+      },
+      {
+        "seed": 105,
+        "success": false,
+        "steps": 500,
+        "ended_by_safety_termination": false,
+        "maximum_pelvis_height_m": 0.8679,
+        "maximum_strict_stable_s": 0.0,
+        "final_strict_stable_s": 0.0,
+        "standing_at_episode_end": false,
+        "criterion_fraction": {
+          "height": 0.34,
+          "upright": 0.478,
+          "linear_speed": 0.016,
+          "angular_speed": 0.004,
+          "both_feet": 0.242,
+          "no_other_support": 0.716
+        },
+        "failure_reason": "strict height/orientation/speed/contact criteria never overlapped",
+        "last_two_seconds_arm_posture": {
+          "sample_count": 100,
+          "max_abs_shoulder_pitch_rad": 1.9932160377502441,
+          "max_elbow_target_error_rad": 1.6529882907867433,
+          "strict_and_relaxed_fraction": 0.0,
+          "joint_names": [
+            "left_shoulder_pitch_joint",
+            "left_elbow_joint",
+            "right_shoulder_pitch_joint",
+            "right_elbow_joint"
+          ],
+          "joint_position_peak_to_peak_rad": [
+            2.9627187252044678,
+            1.8031096508639166,
+            3.0956616401672363,
+            1.7913677145625115
+          ],
+          "joint_velocity_rms_rad_s": [
+            8.13990211510704,
+            7.911947268398712,
+            7.8892195332792125,
+            7.449738187997975
+          ]
+        }
+      }
+    ],
+    "selected_for_submission": false
   }
 ]
