@@ -86,6 +86,9 @@ unsuccessful and does not replace the selected model2248.
 
 ## Follow-up: load transfer, same 500-update budget per run
 
+**Implemented but not run.** The next requested experiment instead tests the
+[original reward set for 2,000 updates](original_rewards_experiment.md).
+
 The binary existence of foot contact did not mean the feet carried the
 robot. `--load_transfer` replaces the height term's support factor with:
 

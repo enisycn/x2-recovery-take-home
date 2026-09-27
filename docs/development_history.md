@@ -141,3 +141,14 @@ A separate 3,000-environment run starts actor and critic from random weights and
 Seeds 101-105 scored **0/5**. All five ran the full 500 evaluation steps without a safety termination, reaching 0.718-0.762 m pelvis height but zero time satisfying all strict stance conditions together. Orientation and base speed remained unstable. The final training mean return was 398.02, demonstrating that rising reward alone does not establish recovery. Per-seed criteria, checkpoint hash and source revision are recorded in `reports/supine_experiments.json`; the complete local run preserves the reward plot, checkpoint, configuration, evaluation and seed-101 video.
 
 This single run shows that 500 updates were insufficient for this fixed configuration and seed. It does not establish a universal minimum budget or prove that another reward/exploration setup cannot succeed faster. The selected model2248 and its verified 5/5 result remain unchanged.
+
+## Controlled-rise reward experiment
+
+A separate fixed 500-update scratch run reduced ballistic height credit and
+made slowing-down feedback denser. It scored 0/5: the policy settled into a
+hand-supported pose below the required height. Full commands, formulas and
+limitations are in [the experiment note](controlled_rise_experiment.md), with
+the [five-episode report](../reports/experiments/controlled_rise500/evaluation.json)
+and [training curve](../reports/experiments/controlled_rise500/reward.png).
+The proposed load-transfer follow-up was implemented but not run; the next
+requested comparison instead uses the [original 12 rewards for 2,000 updates](original_rewards_experiment.md).
