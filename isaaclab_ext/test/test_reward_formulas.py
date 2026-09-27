@@ -498,3 +498,25 @@ def test_settling_feedback_orders_motion_before_strict_standing_is_reached():
     assert 0 < reward[0] < reward[1] < reward[2] <= 1
     assert reward[3] == 0
     assert mdp.strict_success(env, feet_cfg=feet, all_bodies_cfg=bodies).tolist() == [False, False, True, False]
+
+
+def test_load_transfer_distinguishes_foot_touch_from_weight_bearing():
+    heights = torch.tensor([.68, .68, .68, .19, .19, .68])
+    gravity = torch.tensor([[0., 0., -1.]] * 3 + [[1., 0., 0.]] * 2 + [[0., 0., 1.]])
+    forces = torch.zeros((6, 3, 1, 3))
+    forces[0, :2, 0, 2] = 200.
+    forces[1, :2, 0, 2] = 20.  # Both feet touch, but the hands carry 90%.
+    forces[1, 2, 0, 2] = 360.
+    forces[3, 2, 0, 2] = 400.
+    forces[5, :2, 0, 2] = 200.
+    sensor = SimpleNamespace(data=SimpleNamespace(force_matrix_w=TorchField(forces)))
+    env = SimpleNamespace(scene=FakeScene(fake_robot(heights, gravity), sensor))
+    feet = SimpleNamespace(name="contact_forces", body_ids=[0, 1])
+    bodies = SimpleNamespace(name="contact_forces", body_ids=[0, 1, 2])
+    reward = mdp.load_transfer_height(env, feet, bodies)
+    assert torch.allclose(reward[:3], torch.tensor([1., .1, 0.]))
+    assert reward[3] == reward[4] > 0  # Floor-level push-off remains unrestricted.
+    assert reward[5] == 0  # Loaded feet do not make an inverted pose upright.
+    forces[1, :2, 0, 2] = 100.
+    forces[1, 2, 0, 2] = 200.
+    assert mdp.load_transfer_height(env, feet, bodies)[1] > reward[1]

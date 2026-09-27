@@ -68,3 +68,49 @@ Numerical tests check support versus flight, inversion rejection, braking
 below the old height cutoff and denser settling feedback while strict success
 continues to reject moving/crouched states. Physical validation is required
 before selecting this experiment for submission.
+
+## First result: 0/5 after 500 updates
+
+The controlled-rise run completed 500 updates in 15 min 27 s (excluding
+startup), then scored 0/5 on seeds 101-105. Maximum pelvis height was
+0.387-0.426 m, below the unchanged 0.58 m requirement. Both feet touched the
+floor for 89.0-94.8% of the episode, but another body part provided support
+for over 99% of each episode. Final non-foot force was 160-170 N at the most
+loaded non-foot body. The recorded policy settles into a bent, hand-supported
+pose. Less motion did not establish recovery.
+
+The learned action standard deviations averaged 0.066 (hip/knee about 0.02),
+down from initial 0.8. This combination made exploration narrow. These data
+do not isolate a single coefficient as the cause. The trial is retained as
+unsuccessful and does not replace the selected model2248.
+
+## Follow-up: load transfer, same 500-update budget per run
+
+The binary existence of foot contact did not mean the feet carried the
+robot. `--load_transfer` replaces the height term's support factor with:
+
+```text
+foot_share = sum(upward floor force on feet) / max(sum(upward floor force on all bodies), 1 N)
+transfer = clip((pelvis_height - 0.20) / 0.38, 0, 1)
+support_factor = 1 - transfer + transfer * foot_share
+```
+
+The remaining height/orientation/vertical-speed factors are unchanged. This
+allows floor-level push-off and progressively favors foot load as height
+increases. It is a fixed function of robot state, not a training curriculum.
+Non-foot support cost now starts at 0.25 m, reaching its full weight -3 at
+0.58 m. Action-change weight returns to -0.02 and PPO entropy coefficient is
+0.01 to reduce the pressure toward early loss of exploration. These are X2
+engineering choices, not paper constants. The follow-up changes several
+related terms and is not a single-variable ablation.
+
+```bash
+./scripts/train_isaac.sh --phase relaxed_v4 --load_transfer \
+  --num_envs 3000 --max_iterations 500 --seed 47 --device cuda:0 \
+  --run_name load_transfer_scratch500 \
+  --action_std_override 0.8 --entropy_coef 0.01 \
+  --learning_rate_override 0.0003 --learning_schedule adaptive
+```
+
+Use the evaluation command above after this run completes. This starts new
+random weights; it does not resume the failed controlled-rise checkpoint.

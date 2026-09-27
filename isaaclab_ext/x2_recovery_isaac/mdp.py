@@ -769,6 +769,26 @@ def recovery_motion_cost(env):
     return height_gate * orientation.square() * (linear + 0.05 * angular)
 
 
+def load_transfer_height(env, feet_cfg, all_bodies_cfg):
+    """Progressively require the feet to carry the load as the pelvis rises.
+
+    Binary foot contact alone can reward a pose still supported by the hands.
+    The fraction uses only upward floor forces, excluding self-contact. At
+    floor height any push-off is allowed; near stance height credit requires
+    foot load. This state-dependent shaping is fixed throughout training.
+    """
+    robot = env.scene["robot"]
+    z = robot.data.root_pos_w.torch[:, 2]
+    height = (z / 0.68).clamp(0.0, 1.0)
+    orientation = ((1.0 - robot.data.projected_gravity_b.torch[:, 2]) * 0.5).clamp(0.0, 1.0)
+    sensor = env.scene.sensors[all_bodies_cfg.name]
+    normal_forces = _ground_forces(sensor)[:, :, 2].clamp(min=0.0)
+    share = normal_forces[:, feet_cfg.body_ids].sum(dim=1) / normal_forces.sum(dim=1).clamp(min=1.0)
+    transfer = ((z - 0.20) / 0.38).clamp(0.0, 1.0)
+    excess_speed = torch.relu(robot.data.root_lin_vel_w.torch[:, 2].abs() - 0.3)
+    return height * orientation * (1.0 - transfer + transfer * share) * torch.exp(-torch.square(excess_speed / 0.7))
+
+
 def settling_stance(env, feet_cfg, all_bodies_cfg):
     """Broad, bounded feedback for slowing down before strict stance.
 

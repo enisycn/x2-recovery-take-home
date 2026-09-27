@@ -210,6 +210,21 @@ class X2ControlledRiseEnvCfg(X2PostureRefinementEnvCfg):
 
 
 @configclass
+class X2LoadTransferEnvCfg(X2ControlledRiseEnvCfg):
+    """Fixed scratch preset discouraging persistent hand-supported poses."""
+
+    def __post_init__(self):
+        super().__post_init__()
+        self.rewards.pelvis_height = RewTerm(
+            func=mdp.load_transfer_height, weight=40.0,
+            params={"feet_cfg": foot_contact_cfg(), "all_bodies_cfg": all_contact_cfg()},
+        )
+        self.rewards.other_support.weight = -3.0
+        self.rewards.other_support.params.update(gate_start_height=0.25, target_height=0.58)
+        self.rewards.action_rate.weight = -0.02
+
+
+@configclass
 class X2RelaxedPPORunnerCfg(X2SymmetricPPORunnerCfg):
     experiment_name = "hrs_x2_relaxed_v4"
     save_interval = 50
