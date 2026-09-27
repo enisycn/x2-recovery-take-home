@@ -45,11 +45,11 @@ This starts a new PPO experiment from random actor/critic weights. Every episode
 Training prints progress after each completed PPO iteration: iteration number, mean reward, mean episode length (policy steps), reward terms, elapsed time and ETA. Output is unbuffered. No completed episodes means the mean episode metrics are not available yet. The training console prints the temporary log path as `[HRS] Live console log:`. For a compact view refreshed every five seconds, run this in a second terminal while one training run is active:
 
 ```bash
-train_log=$(ls -t "${TMPDIR:-/tmp}"/hrs_x2_train.*.log | head -n 1)
-watch -n 5 -x bash -c 'tail -n 80 "$1" | grep -E "Learning iteration|Mean reward:|Mean episode length:|Iteration time:|Time elapsed:|ETA:"' _ "$train_log"
+cd /path/to/hrs_x2_take_home
+python3 scripts/watch_training.py
 ```
 
-`Ctrl+C` in the monitoring terminal stops only the monitor. This selects the newest temporary training log; if multiple runs are active, set `train_log` to the exact printed path. The temporary log is removed when its training launcher exits; saved TensorBoard metrics and checkpoints remain in the run directory.
+The monitor shows only the latest complete iteration, including steps per second, mean episode metrics and supported-stance reward terms; it strips terminal formatting codes. `Ctrl+C` in this second terminal stops only the monitor. The newest temporary training log is selected once at startup; to choose a specific run, append its printed console log path to the command. The temporary log is removed when its training launcher exits, and the monitor then stops without inferring success. Saved TensorBoard metrics and checkpoints remain in the run directory.
 
 Every **completed** training run writes a checkpoint, `reward.png`, `reward.csv`, and `run_manifest.json` to its timestamped directory.
 
