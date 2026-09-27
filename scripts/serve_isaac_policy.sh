@@ -15,4 +15,4 @@ shift
 cd "${project_dir}"
 export PYTHONPATH="${project_dir}/isaaclab_ext${PYTHONPATH:+:${PYTHONPATH}}"
 run_isaac_offline "${ISAAC_PYTHON}" scripts/isaac_policy_server.py \
-  --policy "${policy_path}" --headless --kit_args "${HRS_KIT_OFFLINE_ARGS}" "$@"
+  --policy "${policy_path}" --viz none --kit_args "${HRS_KIT_OFFLINE_ARGS}" "$@"

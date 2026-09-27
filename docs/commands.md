@@ -23,7 +23,7 @@ export ISAAC_PYTHON="$(command -v python)"
 ./scripts/import_x2_isaac.sh
 ```
 
-`ISAAC_PYTHON` must point to the Isaac environment in each new terminal that runs Isaac. The fetcher checks the official source and exact recorded Git revision. The imported USD remains local under `assets/isaac/`.
+`ISAAC_PYTHON` must point to the Isaac environment in each new terminal that runs Isaac. Training, evaluation, policy-server and import launchers select `--viz none` for headless execution; graphical playback uses `--viz kit`. The deprecated `--headless` CLI flag is not passed by these launchers. The fetcher checks the official source and exact recorded Git revision. The imported USD remains local under `assets/isaac/`.
 
 Install the ROS package dependencies in a ROS terminal:
 
@@ -49,9 +49,9 @@ cd /path/to/hrs_x2_take_home
 python3 scripts/watch_training.py
 ```
 
-The monitor shows only the latest complete iteration, including steps per second, mean episode metrics and supported-stance reward terms; it strips terminal formatting codes. `Ctrl+C` in this second terminal stops only the monitor. The newest temporary training log is selected once at startup; to choose a specific run, append its printed console log path to the command. The temporary log is removed when its training launcher exits, and the monitor then stops without inferring success. Saved TensorBoard metrics and checkpoints remain in the run directory.
+The monitor shows only the latest complete iteration, including steps per second, mean episode metrics and supported-stance reward terms; it strips terminal formatting codes. `Ctrl+C` in this second terminal stops only the monitor. The newest temporary training log is selected once at startup; to choose a specific run, append its printed console log path to the command. When the launcher finishes, it saves the console output as `training.log` inside the run directory, removes the temporary copy, and the monitor stops without inferring success. TensorBoard metrics and checkpoints also remain in the run directory.
 
-Every **completed** training run writes a checkpoint, `reward.png`, `reward.csv`, and `run_manifest.json` to its timestamped directory.
+Every **completed** training run writes a checkpoint, `reward.png`, `reward.csv`, and `run_manifest.json` to its timestamped directory. The folder hierarchy is `logs/rsl_rl/hrs_x2_relaxed_v4/<timestamp>_<run_name>/`; the run is inside the experiment folder, not directly under `rsl_rl` and not under `/tmp`.
 
 New runs do not overwrite the submitted plot or checkpoint in `reports/`. Change `--run_name` to label another experiment. `--max_iterations 500` is a chosen experiment budget, not a guarantee of recovery. The fresh run uses learning rate 3e-4 (adaptive), initial action standard deviation 1.0 and entropy coefficient 0.005. Its result must be evaluated separately; the recorded 5/5 result belongs to the supplied checkpoint. The earlier continuation settings are documented in [development history](development_history.md).
 
@@ -66,6 +66,17 @@ ls -lh "$run_dir"/model_*.pt
 ```
 
 The directory name is `timestamp_run_name`, using the label supplied with `--run_name`. `LATEST_RUN.txt` stores the name of the last run whose finalization completed, regardless of its label. Another completed run changes that pointer; keep the full directory path to revisit a particular experiment.
+
+Evaluate the new checkpoint and keep its report and exported ROS policy in that same run directory:
+
+```bash
+new_checkpoint="$("$ISAAC_PYTHON" -c 'import json,sys; print(json.load(open(sys.argv[1]))["latest_checkpoint"])' "$run_dir/run_manifest.json")"
+./scripts/evaluate_isaac.sh "$run_dir/$new_checkpoint" \
+  --environment relaxed_v4 --device cuda:0 \
+  --output "$run_dir/evaluation.json"
+```
+
+The exported policy is `$run_dir/exported_relaxed_v4/policy.pt`. Check `export.succeeded` and the recovery result in `evaluation.json`; export alone does not prove recovery success. To serve this new policy, use its absolute path with `serve_isaac_policy.sh`. Evaluation remains an explicit step after training.
 
 The submitted reward plot is [here](../reports/relaxed_v4_training_reward.png). See [output locations](artifact_locations.md) for the full layout.
 

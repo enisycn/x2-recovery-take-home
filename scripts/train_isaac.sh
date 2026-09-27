@@ -18,16 +18,21 @@ printf "[HRS] Live console log: %s\n" "${capture_file}"
 
 set +e
 run_isaac_offline "${ISAAC_PYTHON}" -u scripts/isaac_train_entry.py \
-  --headless --kit_args "${HRS_KIT_OFFLINE_ARGS}" "$@" 2>&1 | tee "${capture_file}"
+  --viz none --kit_args "${HRS_KIT_OFFLINE_ARGS}" "$@" 2>&1 | tee "${capture_file}"
 train_status=${PIPESTATUS[0]}
 set -e
+
+run_dir="$(sed -n 's/^\[HRS\] Offline training log: //p' "${capture_file}" | tail -n 1)"
+if [[ -n "${run_dir}" && -d "${run_dir}" ]]; then
+  cp "${capture_file}" "${run_dir}/training.log"
+  printf "[HRS] Saved console log: %s/training.log\n" "${run_dir}"
+fi
 
 if (( train_status != 0 )); then
   echo "[HRS] Training failed; preserving the run directory without final artifacts." >&2
   exit "${train_status}"
 fi
 
-run_dir="$(sed -n 's/^\[HRS\] Offline training log: //p' "${capture_file}" | tail -n 1)"
 if [[ -z "${run_dir}" || ! -d "${run_dir}" ]]; then
   echo "[HRS] Training finished but its run directory could not be resolved." >&2
   exit 1

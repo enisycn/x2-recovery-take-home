@@ -15,4 +15,4 @@ shift
 cd "${project_dir}"
 export PYTHONPATH="${project_dir}/isaaclab_ext${PYTHONPATH:+:${PYTHONPATH}}"
 run_isaac_offline "${ISAAC_PYTHON}" scripts/evaluate_isaac.py \
-  --checkpoint "${checkpoint}" --headless --kit_args "${HRS_KIT_OFFLINE_ARGS}" "$@"
+  --checkpoint "${checkpoint}" --viz none --kit_args "${HRS_KIT_OFFLINE_ARGS}" "$@"

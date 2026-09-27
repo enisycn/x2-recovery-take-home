@@ -17,7 +17,10 @@ logs/rsl_rl/hrs_x2_relaxed_v4/
     │   └── env.yaml                simulator and task configuration
     ├── reward.png                  automatic mean-reward graph
     ├── reward.csv                  values used by the graph
-    └── run_manifest.json           index and latest checkpoint name
+    ├── run_manifest.json           index and latest checkpoint name
+    ├── training.log                saved console output (new runs)
+    ├── evaluation.json             explicit evaluation step
+    └── exported_relaxed_v4/policy.pt  exported policy from that evaluation
 ```
 
 `LATEST_RUN.txt` contains the most recently completed directory name. These run directories are local and gitignored because TensorBoard files and model checkpoints are large and machine-generated. The compact, reviewed submission artifacts are under `reports/`.
@@ -55,7 +58,7 @@ To finish an older successful run that predates automatic finalization:
 | `reports/exported_relaxed_v4/policy.pt` | TorchScript policy served to ROS. |
 | `reports/*validation.txt` | Recorded test, build and ROS-Isaac outcomes. |
 
-Evaluation and GIF rendering are explicit steps because they launch additional simulator episodes. They do not run after every training job:
+Evaluation and GIF rendering are explicit steps because they launch additional simulator episodes. They do not run after every training job. The command guide stores a new run's evaluation and export under its run directory; an explicit `--output` can choose another permanent directory. They need not be stored in `/tmp`:
 
 ```bash
 ./scripts/evaluate_isaac.sh CHECKPOINT \
@@ -64,7 +67,7 @@ Evaluation and GIF rendering are explicit steps because they launch additional s
 
 ./scripts/render_isaac_gifs.sh \
   --checkpoint CHECKPOINT --environment relaxed_v4 \
-  --headless --device cuda:0 --output_dir reports/my_gifs
+  --viz none --device cuda:0 --output_dir reports/my_gifs
 ```
 
 ## ROS runtime output

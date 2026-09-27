@@ -47,4 +47,4 @@ fi
 cd "${project_dir}"
 PYTHONPATH="${project_dir}/isaaclab_ext${PYTHONPATH:+:${PYTHONPATH}}" \
   "${ISAAC_PYTHON}" scripts/import_x2_urdf.py \
-  --input "${urdf_path}" --output "${output_dir}" --headless --device cpu
+  --input "${urdf_path}" --output "${output_dir}" --viz none --device cpu

@@ -25,7 +25,7 @@ AppLauncher.add_app_launcher_args(parser)
 args = parser.parse_args()
 if not math.isfinite(args.start_delay) or args.start_delay < 0:
     parser.error("--start-delay must be a finite, non-negative number")
-if args.start_delay and args.headless:
+if args.start_delay and (args.headless or "kit" not in (args.visualizer or [])):
     parser.error("--start-delay requires graphical playback; use play_isaac.sh with --viz kit")
 app_launcher = AppLauncher(args)
 simulation_app = app_launcher.app
