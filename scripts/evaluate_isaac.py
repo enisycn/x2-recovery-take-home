@@ -119,6 +119,7 @@ def snapshot(env) -> dict:
         "strict": all(criteria.values()),
         "criteria": criteria,
         "joint_position_rad": dict(zip(robot.joint_names, robot.data.joint_pos.torch[0].tolist())),
+        "joint_velocity_rad_s": dict(zip(robot.joint_names, robot.data.joint_vel.torch[0].tolist())),
         "raw_policy_action": env.action_manager.action[0].tolist(),
         "joint_target_rad": dict(zip(robot.joint_names, env.action_manager.get_term("joint_position").processed_actions[0].tolist())),
     }
@@ -239,6 +240,9 @@ def main() -> None:
             consecutive_two_feet = maximum_consecutive_two_feet = 0
             consecutive_relaxed = 0
             last_two_seconds = []
+            arm_positions, arm_velocities = [], []
+            arm_names = [f"{side}_{joint}_joint" for side in ("left", "right")
+                         for joint in ("shoulder_pitch", "elbow")]
             criterion_counts = {name: 0 for name in initial_snapshot["criteria"]}
             success = ended_early = False
             steps = 0
@@ -262,6 +266,9 @@ def main() -> None:
                 consecutive_relaxed = consecutive_relaxed + 1 if relaxed else 0
                 if steps > max_steps - round(2.0 / task.step_dt):
                     last_two_seconds.append((shoulder_error, elbow_error, relaxed))
+                    arm_positions.append([joints[name] for name in arm_names])
+                    arm_velocities.append([terminal_snapshot["joint_velocity_rad_s"][name]
+                                           for name in arm_names])
                 consecutive_strict = consecutive_strict + 1 if strict else 0
                 maximum_consecutive_strict = max(maximum_consecutive_strict, consecutive_strict)
                 two_feet = bool(terminal_snapshot["criteria"]["both_feet"])
@@ -300,6 +307,13 @@ def main() -> None:
                     "max_abs_shoulder_pitch_rad": max((row[0] for row in last_two_seconds), default=None),
                     "max_elbow_target_error_rad": max((row[1] for row in last_two_seconds), default=None),
                     "strict_and_relaxed_fraction": sum(row[2] for row in last_two_seconds) / len(last_two_seconds) if last_two_seconds else 0.0,
+                    "joint_names": arm_names,
+                    "joint_position_peak_to_peak_rad": [
+                        max(row[j] for row in arm_positions) - min(row[j] for row in arm_positions)
+                        for j in range(4)] if arm_positions else None,
+                    "joint_velocity_rms_rad_s": [
+                        math.sqrt(sum(row[j] ** 2 for row in arm_velocities) / len(arm_velocities))
+                        for j in range(4)] if arm_velocities else None,
                 },
                 "maximum_pelvis_height_m": round(maximum_height, 4),
                 "maximum_upright_score": round(maximum_upright, 4),

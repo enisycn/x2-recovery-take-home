@@ -94,3 +94,29 @@ shaping and scores contact separately. A new 500-update random-weight run with
 the current preset also scored 0/5: seeds 103 and 105 briefly met all criteria
 for 0.04 s, below the required 0.5 s. This is partial progress, not recovery.
 Continuing the same reward preset for 500 more updates reached **5/5**, with 8.78–9.02 s strict stance at episode end. All training resets in this new lineage were supine. The additional neutral-arm criterion remains unmet. This combined reward/exploration change and larger training budget is not a single-factor ablation. The historical mixed-start model450 remains separate.
+
+## Shoulder refinement
+
+The optional posture preset adds
+`80 * gate * exp(-(a_shoulder - atanh(0.25))^2 / 9)` while retaining the physical
+arm-pose reward. The inverse target follows from `0 = -0.5 + 2*tanh(a_shoulder)`.
+The gate multiplies `clip((z-.50)/.15,0,1)`,
+`clip((-g_z-.95)/.04,0,1)`, two-foot contact and absence of other-body support.
+It therefore leaves the initial ground push unconstrained by this term.
+
+This raw-command objective gives different scores to shoulder actions even
+where their tanh-mapped targets are nearly identical. It does not override the
+policy at playback, use demonstration trajectories, or couple the shoulder
+score to the waist command. The target, width, weight and gate are local choices.
+[HoST, Sections IV-C and V-A](https://arxiv.org/html/2502.08378) motivates separate
+post-task objectives and motion-quality measurements; its full multi-critic,
+L2C2 and curriculum method is not implemented here.
+
+The refinement retains the supine-only actor, critic, optimizer and learned
+per-channel exploration standard deviations. Earlier uniform std overrides
+also increased noise in already-stable leg channels, so they are not repeated.
+Every reset remains supine. This is an explicit reward change during continued
+PPO training, not a claim of unchanged rewards throughout the whole lineage.
+The evaluator reports final-two-second arm position ranges and joint-velocity
+RMS alongside actual pose errors. These quantities are measured at 50 Hz and
+are separate from the unchanged recovery predicate.

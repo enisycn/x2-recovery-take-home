@@ -178,12 +178,12 @@ class X2StabilityRefinementEnvCfg(X2RelaxedRecoveryEnvCfg):
 
 @configclass
 class X2PostureRefinementEnvCfg(X2StabilityRefinementEnvCfg):
-    """Same supine task, with a positive supported neutral-command objective."""
+    """Same supine task, with a focused supported shoulder-command objective."""
 
     def __post_init__(self):
         super().__post_init__()
         self.rewards.posture_command = RewTerm(
-            func=mdp.supported_posture_command_proximity, weight=20.0,
+            func=mdp.supported_shoulder_command_proximity, weight=80.0,
             params={"feet_cfg": foot_contact_cfg(), "all_bodies_cfg": all_contact_cfg()},
         )
 

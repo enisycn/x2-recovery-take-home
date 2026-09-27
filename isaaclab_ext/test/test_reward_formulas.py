@@ -303,9 +303,15 @@ def test_posture_command_cost_requires_unsupported_upright_stance():
     proximity = mdp.supported_posture_command_proximity(env, feet, bodies)
     assert proximity[0] == 1 and 0 < proximity[1] < 0.1
     assert torch.equal(proximity[2:], torch.zeros(3))
+    shoulder = mdp.supported_shoulder_command_proximity(env, feet, bodies)
+    assert shoulder[0] == 1 and shoulder[1] > proximity[1]
+    assert torch.equal(shoulder[2:], torch.zeros(3))
+    action[0, 5] = 6.0
+    assert mdp.supported_shoulder_command_proximity(env, feet, bodies)[0] == 1
     forces[1, 1, 0, 2] = 0.
     assert mdp.supported_posture_command_cost(env, feet, bodies)[1] == 0
     assert mdp.supported_posture_command_proximity(env, feet, bodies)[1] == 0
+    assert mdp.supported_shoulder_command_proximity(env, feet, bodies)[1] == 0
 
 
 def test_strict_success_ignores_internal_self_collision_for_support() -> None:

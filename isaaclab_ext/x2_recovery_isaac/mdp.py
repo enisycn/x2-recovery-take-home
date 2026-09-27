@@ -1224,6 +1224,19 @@ def supported_posture_command_proximity(env, feet_cfg, all_bodies_cfg):
     return gate * torch.exp(-error / 8.0)
 
 
+def supported_shoulder_command_proximity(env, feet_cfg, all_bodies_cfg):
+    """Guide saturated shoulder outputs without coupling in the waist target.
+
+    The physical arm-pose reward remains active. This additional raw-command
+    objective stays informative when tanh is saturated; it neither changes
+    targets at deployment nor requires a reference trajectory. Width and
+    support gate are local X2 choices, not published constants.
+    """
+    gate, _ = _supported_posture_command_error(env, feet_cfg, all_bodies_cfg)
+    error = env.action_manager.action[:, 3] - math.atanh(.25)
+    return gate * torch.exp(-error.square() / 9.0)
+
+
 def relaxed_arms_when_stable(
     env: ManagerBasedRLEnv,
     shoulder_cfg: SceneEntityCfg,
