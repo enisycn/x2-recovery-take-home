@@ -12,7 +12,7 @@ The first two seconds show the initial supine pose; the following ten seconds sh
 
 - [Five-episode evaluation](reports/relaxed_v4_evaluation.json)
 - [Checkpoint](reports/checkpoints/x2_supine_model3847.pt)
-- [Final refinement reward curve](reports/forward_arm_refinement_reward.png)
+- [Complete selected training reward curve](reports/selected_supine_training_reward.png)
 - [Submission report (PDF)](docs/submission_report.pdf)
 - [Setup, training and ROS commands](docs/commands.md)
 - [Validation and ROS outcomes](docs/validation.md)
@@ -90,7 +90,7 @@ PPO uses clip 0.2, gamma 0.99, GAE lambda 0.95, five learning epochs, four minib
 
 For graphical checkpoint playback, use `--viz kit --start-delay 2`; the two-second preview does not advance simulation time. [Commands](docs/commands.md) includes single-seed and five-seed playback.
 
-The [initial lineage reward curve](reports/relaxed_v4_training_reward.png) covers the first 2,404 selected updates, including the first 500 (0/5). The [final refinement curve](reports/forward_arm_refinement_reward.png) shows the last 250 updates. The solid lines are trailing 20-update means. Reward coefficients changed between stages, so the five-episode evaluation establishes recovery performance.
+The [complete selected reward curve](reports/selected_supine_training_reward.png) and [CSV](reports/selected_supine_training_reward.csv) cover all 3,860 inherited updates, including the first 500 (0/5) and the final arm refinements. Vertical lines mark resumes; the logger and some reward coefficients change at these boundaries. The [last 250 updates](reports/forward_arm_refinement_reward.png) are also shown separately. Mean training reward cannot establish recovery; the five-episode physical evaluation does that.
 
 Each training run writes its own `reward.png`, `reward.csv`, `run_manifest.json` and checkpoints. See [artifact locations](docs/artifact_locations.md).
 

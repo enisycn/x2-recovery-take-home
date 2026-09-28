@@ -177,7 +177,7 @@ new_checkpoint="$("$ISAAC_PYTHON" -c 'import json,sys; print(json.load(open(sys.
 
 The exported policy is `$run_dir/exported_relaxed_v4/policy.pt`. Check `export.succeeded` and the recovery result in `evaluation.json`; export alone does not prove recovery success. To serve this new policy, use its absolute path with `serve_isaac_policy.sh`. Evaluation remains an explicit step after training.
 
-The final refinement reward plot is [here](../reports/forward_arm_refinement_reward.png); the initial 2,404-update graph is [here](../reports/relaxed_v4_training_reward.png). See [output locations](artifact_locations.md) for the full layout.
+The [complete selected training curve](../reports/selected_supine_training_reward.png) covers all 3,860 inherited updates. The [final 250-update graph](../reports/forward_arm_refinement_reward.png) isolates the last refinement. Replot the complete committed CSV with `"$ISAAC_PYTHON" scripts/plot_selected_lineage.py`; see [output locations](artifact_locations.md) for the full layout.
 
 ## 3. Play and evaluate the supplied checkpoint
 

@@ -13,7 +13,7 @@ Every required item is implemented and linked below. The selected result is a tr
 | Observation and action spaces | Complete | 122 observations; eight bilateral absolute actions mapped to 31 joint targets. README and `synergy_action.py`. |
 | Reward and episode termination | Complete | Term-by-term formulas, weights and intent are in README and `mdp.py`. Timeout and safety terminations are documented separately from success. |
 | PPO training experiment | Complete | RSL-RL PPO, 3000 environments, 32 steps/environment, seed 47; 3,860 selected PPO updates, exclusively supine resets. Exact hyperparameters and final resolved configuration are in README and config snapshots. |
-| Checkpoint and reward plot | Complete | `x2_supine_model3847.pt`, `forward_arm_refinement_reward.png` and CSV under `reports/`; the initial 2,404-update curve is retained separately. Every successful supported training run also writes its own graph, CSV and manifest; see `docs/artifact_locations.md`. |
+| Checkpoint and reward plot | Complete | `x2_supine_model3847.pt`, the complete 3,860-update `selected_supine_training_reward.png` and CSV under `reports/`; the final 250-update curve is retained separately. Every successful supported training run also writes its own graph, CSV and manifest; see `docs/artifact_locations.md`. |
 
 ## ROS 2 integration and interfaces
 

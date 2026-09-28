@@ -47,6 +47,7 @@ To finish an older successful run that predates automatic finalization:
 | File or directory | Meaning |
 | --- | --- |
 | `docs/submission_report.pdf` | Four-page English summary of the method, reward curve, five-episode evaluation and ROS integration. |
+| `reports/selected_supine_training_reward.png` and `.csv` | Complete selected all-supine lineage: 3,860 PPO updates across continuation stages. |
 | `reports/relaxed_v4_training_reward.png` | Initial 2,404 selected PPO updates, through the intermediate supported-stance checkpoint. |
 | `reports/relaxed_v4_training_reward.csv` | Values behind that initial curve. |
 | `reports/forward_arm_refinement_reward.png` and `.csv` | Final 250-update reward curve and values. |

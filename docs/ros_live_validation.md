@@ -135,7 +135,8 @@ ros2 param set /x2_recovery timeout_sec 10.0
 
 ## Graphs and result files to open
 
-- `reports/relaxed_v4_training_reward.png`: initial 2,404-update all-supine lineage.
+- `reports/selected_supine_training_reward.png`: complete 3,860-update selected all-supine lineage.
+- `reports/relaxed_v4_training_reward.png`: initial 2,404-update lineage.
 - `reports/forward_arm_refinement_reward.png`: final 250-update selected refinement.
 - `reports/relaxed_v4_evaluation.json`: seeds 101-105 and 5/5 result.
 - `reports/gifs_relaxed_v4/x2_final_policy_attempt.gif`: final visual result.
