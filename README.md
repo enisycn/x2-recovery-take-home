@@ -2,31 +2,28 @@
 
 Isaac Lab / PhysX PPO recovery for the official AgiBot X2 Ultra v1.3.0 model, plus a ROS 2 Humble interface that starts a real simulator episode and publishes measured joint state.
 
-**Selected result: 5/5 recoveries, with neutral arms throughout the final two seconds.** The PPO lineage starts from random weights and every training reset is supine. It uses 2,404 selected updates without mixed-start pretraining, imitation or lift assistance. Seeds 101–105 all recover and remain standing at episode end for 8.94–9.12 s. The separate final-two-second neutral-arm check also passes in all five; worst shoulder error is 0.116 rad (previous checkpoint: 0.233 rad), and worst elbow error is 0.104 rad. Largest final-window arm-joint range is 0.0011 rad and velocity RMS is 0.020 rad/s at 50 Hz.
+**Selected result: 5/5 recoveries.** In five 10 s supine-start episodes, the robot rises and remains in strict two-foot stance through the end (8.94–9.12 s continuously). A separate neutral-arm check passes throughout the final two seconds. The selected PPO lineage starts from random weights and uses only supine resets.
 
 ## Recovery video
 
 ![Supine recovery](reports/gifs_relaxed_v4/x2_final_policy_attempt.gif)
 
-The first two seconds hold the initial supine frame for inspection; the following ten seconds show the recorded recovery episode. On-screen labels are in English. [Download the MP4](reports/videos/x2_recovery_supine_to_standing.mp4).
+The first two seconds show the initial supine pose; the following ten seconds show the recorded episode. [Download the MP4](reports/videos/x2_recovery_supine_to_standing.mp4).
 
-- [Final GIF](reports/gifs_relaxed_v4/x2_final_policy_attempt.gif)
 - [Five-episode evaluation](reports/relaxed_v4_evaluation.json)
 - [Checkpoint](reports/checkpoints/x2_supine_model2397.pt)
 - [Reward curve](reports/relaxed_v4_training_reward.png)
-- [Standing and arm metrics](reports/arm_validation.png)
 - [Submission report (PDF)](docs/submission_report.pdf)
-- [Requirement map](docs/task_requirements.md)
-- [Validation commands and outcomes](docs/validation.md)
 - [Setup, training and ROS commands](docs/commands.md)
+- [Validation and ROS outcomes](docs/validation.md)
 
 ## Setup and dependencies
 
-Tested on Ubuntu 22.04.5 with one NVIDIA RTX 5080 Laptop GPU (16 GB), Isaac Sim 6.0.1, Isaac Lab 3.0.0-beta2.patch1, RSL-RL 5.0.1, and ROS 2 Humble. Isaac runs in Python 3.12 and ROS in system Python 3.10 as separate processes. The final training stage used 3,000 parallel environments; checkpoint playback needs far less GPU memory.
+Tested on Ubuntu 22.04.5 with an NVIDIA RTX 5080 Laptop GPU (16 GB), Isaac Sim 6.0.1, Isaac Lab 3.0.0-beta2.patch1, RSL-RL 5.0.1, and ROS 2 Humble. Isaac uses Python 3.12 and ROS uses system Python 3.10 in separate processes. Training used 3,000 parallel environments.
 
-For a fresh machine, clone this repository, install [Isaac Sim 6.0.1](https://docs.isaacsim.omniverse.nvidia.com/6.0.1/installation/install_python.html), [Isaac Lab 3.0.0-beta2.patch1](https://github.com/isaac-sim/IsaacLab/releases/tag/v3.0.0-beta2.patch1), [RSL-RL 5.0.1](https://github.com/leggedrobotics/rsl_rl/releases/tag/v5.0.1) and [ROS 2 Humble](https://docs.ros.org/en/humble/Installation/Ubuntu-Install-Debs.html), then follow [the commands in order](docs/commands.md). Set `ISAAC_PYTHON` to the Python executable in the Isaac environment. The guide covers the clone, dependency check, official model fetch/import, training, checkpoint playback, evaluation, ROS build and live request. No user-specific path is required.
+For a fresh machine, clone this repository, install [Isaac Sim](https://docs.isaacsim.omniverse.nvidia.com/6.0.1/installation/install_python.html), [Isaac Lab](https://github.com/isaac-sim/IsaacLab/releases/tag/v3.0.0-beta2.patch1), [RSL-RL](https://github.com/leggedrobotics/rsl_rl/releases/tag/v5.0.1) and [ROS 2 Humble](https://docs.ros.org/en/humble/Installation/Ubuntu-Install-Debs.html), then follow [the setup and run commands](docs/commands.md). Set `ISAAC_PYTHON` to the Isaac environment's Python executable; the guide uses repository-relative paths.
 
-The model fetcher takes only official AgiBot source at pinned commit `60c5de582c523cd188f563819e62d34cfdc3d2d0`, without hooks or submodules. Imported assets are local and ignored by Git.
+The official AgiBot model is pinned to commit `60c5de582c523cd188f563819e62d34cfdc3d2d0`. The imported USD is generated locally and ignored by Git.
 
 The imported robot is a 41.966521 kg floating articulation with 31 joints, 32 recursively monitored rigid bodies, self-collision, official actuator limits and one 98% soft joint-limit margin. Fixed links are merged during URDF-to-USD conversion. Geometry, mass, inertia, joint axes and actuator limits are not edited. The scene uses a repository-local 200 m x 200 m collision floor.
 
@@ -57,7 +54,7 @@ At each 0.02 s policy step, Isaac RewardManager adds `weight × term value × 0.
 | Balance | 20 | Low root speed near upright standing |
 | Strict stance | 20 | Complete recovery predicate below |
 | Relaxed arms | 40 | Supported-upright gate and arm-pose Gaussian; shoulder 0, elbow -0.15 rad |
-| Shoulder command | 80 | Supported-upright gate × `exp(-(a_shoulder-atanh(r))^2/v)`; `r=.25` after 1,000 updates, `v=9` then `v=1`, and `r=.15` for the final 150-update posture adjustment |
+| Shoulder command | 80 | Supported-upright gate × `exp(-(a_shoulder-atanh(0.15))^2)`; guides the final shoulder action |
 | Action change | -0.02 | Squared successive action difference |
 | Stance proximity | 20 | Smooth distance to upright, supported low-speed stance; training widths 0.35 tilt, 0.8 m/s and 2 rad/s |
 | Leg pose | 20 | Neutral hip pitch, knee and ankle pitch above 0.40 m; orientation gated |
@@ -88,19 +85,17 @@ The extra final-pose check requires shoulder-pitch and elbow errors <=0.30 rad w
 
 PPO uses clip 0.2, gamma 0.99, GAE lambda 0.95, five learning epochs, four minibatches, value-loss coefficient 1, clipped value loss, desired KL 0.01 and gradient clipping 1. All stages use 3,000 environments, 32 steps/environment, seed 47 and entropy coefficient 0. Initial action std is 0.8. The first 1,000 updates use adaptive learning rate starting at 3e-4; shoulder refinement starts at 1e-4, first fixed and finally adaptive.
 
-[Commands](docs/commands.md) records the selected continuation chain. Actor, critic, optimizer and learned per-channel std are retained. Every reset remains supine. Dense stance shaping is active from the beginning; the shoulder-command reward is added after 1,000 updates, narrowed after 2,054, then its target ratio shifts from 0.25 to 0.15 for the final 150 updates. This last change moves measured shoulders closer to neutral without adding a reward term or changing success thresholds. There is no reset curriculum. A rejected fixed-rate branch is excluded. RSL-RL repeats loaded indices, so model2397 represents 2,404 selected updates. A separate 500-update random-weight trial with all final reward terms scored 0/5; see [development history](docs/development_history.md).
+[Commands](docs/commands.md) gives the selected continuation chain. It retains actor, critic, optimizer and learned action std across 2,404 updates; every reset remains supine. The shoulder objective is introduced after 1,000 updates and refined later. Model2397 is the final checkpoint; its index differs from the update count because RSL-RL repeats the loaded index on continuation. The separate 500-update scratch result (0/5) and earlier mixed-start model are explained in [development history](docs/development_history.md).
 
-For graphical checkpoint playback, pass `--viz kit --start-delay 2` to view the supine reset pose for two wall-clock seconds before recovery. The preview does not advance physics or the episode clock. Without a preview, use `--start-delay 0`. Pass `--viz kit` to open the viewer; without a selected visualizer this Isaac Lab version runs headlessly. The guide includes an adjustable seed and a five-seed playback command.
+For graphical checkpoint playback, use `--viz kit --start-delay 2`; the two-second preview does not advance simulation time. [Commands](docs/commands.md) includes single-seed and five-seed playback.
 
-The reward curve covers **all 2,404 updates in the selected ancestry**, including the initial 500-update 0/5 stage. Faint: logged mean return; solid: trailing 20-update mean. Markers identify continuations and shoulder-reward changes at 1,000, 2,054 and 2,254 updates. Reward scales differ across these changes, so physical evaluation establishes recovery independently of return. The rejected fixed-rate tail is a separate, uninherited branch.
+The [reward curve](reports/relaxed_v4_training_reward.png) covers every inherited update, including the first 500 (0/5). The solid line is a trailing 20-update mean. Changes in reward scale make the separate five-episode evaluation the measure of recovery.
 
-Every successful `train_isaac.sh` run automatically adds `reward.png`, `reward.csv` and `run_manifest.json` beside its TensorBoard events, parameter snapshots and checkpoints. The experiment-level `LATEST_RUN.txt` points to that directory. See [training outputs and file locations](docs/artifact_locations.md) for the exact tree and commands. Evaluation JSON and GIF rendering remain explicit simulator steps.
-
-Historical model450 used mixed-start pretraining and is superseded by this new lineage. Its files and the earlier failures remain in Git history; see [development history](docs/development_history.md).
+Each training run writes its own `reward.png`, `reward.csv`, `run_manifest.json` and checkpoints. See [artifact locations](docs/artifact_locations.md).
 
 ## ROS 2
 
-Build and start the Isaac policy server, then launch the recovery and telemetry ROS nodes together. [Commands](docs/commands.md) separates the three terminals; [live validation](docs/ros_live_validation.md) adds the busy rejection and timeout checks.
+Build and start the Isaac policy server, then launch both ROS nodes together. [Commands](docs/commands.md) shows the five terminal roles; [live validation](docs/ros_live_validation.md) covers busy rejection and timeout.
 
 The launch default is the real `isaac_ipc` backend. A mode-0600 local Unix socket separates the Isaac and ROS Python runtimes. The recovery node returns acceptance before timer-dispatched execution, rejects a second request while running and publishes `IDLE`, `RUNNING`, `SUCCEEDED` or `FAILED` plus 31 simulator joint positions and timestamps. Timeout is configurable. The telemetry node logs status and one joint at 1 Hz.
 
@@ -116,8 +111,6 @@ PYTHONPATH=isaaclab_ext:src/x2_recovery_ros "$ISAAC_PYTHON" -m pytest -q \
 
 See [validation](docs/validation.md) for the fresh build, busy rejection, live telemetry and timeout evidence.
 
-## Results and limits
+## Limitations
 
-Seeds 101–105 all end standing for 8.94–9.12 s of continuous strict stance. Every sample of the final two seconds meets the separate neutral-arm check: maximum shoulder error 0.116 rad, elbow error 0.104 rad, joint range 0.0011 rad and velocity RMS 0.020 rad/s. There are no failures in these five nominal tests. Earlier failures are documented in [development history](docs/development_history.md).
-
-These are nominal simulation results, not hardware or general robustness claims. Observation noise, dynamics randomization, terrain variation, actuator latency and hardware safety validation remain future work. The original 500-update parent and the 1,000-update stance checkpoint remain available for lineage inspection. Configuration snapshots, runtime overrides, source patches and the complete reward curve document the selected lineage. The recipe is reproducible as an experiment, not a guarantee of bit-for-bit PhysX retraining.
+The five nominal episodes had no failures; [validation](docs/validation.md) reports arm measurements and ROS outcomes, while [development history](docs/development_history.md) explains earlier failures. These simulation results do not establish hardware performance or robustness to untested dynamics, terrain and latency.
