@@ -165,6 +165,14 @@ def main() -> Path:
             print(f"[HRS] Resumed from {checkpoint}", flush=True)
             if args.reset_optimizer and args.stability_refinement:
                 print("[HRS] critic_initialization=random_weights (reward changed)", flush=True)
+            if not args.reset_optimizer and args.learning_rate_override is None:
+                # RSL-RL restores the optimizer rate but not PPO.learning_rate.
+                # Adaptive KL updates write the latter back into the optimizer.
+                loaded_rates = {float(group["lr"]) for group in runner.alg.optimizer.param_groups}
+                if len(loaded_rates) != 1 or not all(math.isfinite(rate) and rate > 0 for rate in loaded_rates):
+                    raise ValueError(f"Cannot resume a single PPO learning rate: {loaded_rates}")
+                runner.alg.learning_rate = loaded_rates.pop()
+                print(f"[HRS] Preserved checkpoint learning rate {runner.alg.learning_rate:.8g}", flush=True)
         if args.learning_rate_override is not None:
             runner.alg.learning_rate = args.learning_rate_override
             for group in runner.alg.optimizer.param_groups:

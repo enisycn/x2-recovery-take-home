@@ -1,0 +1,19 @@
+{
+  "parent_checkpoint": "logs/rsl_rl/hrs_x2_relaxed_v4/2026-09-28_12-45-35_all_final_rewards_scratch1000/model_999.pt",
+  "stability_refinement": true,
+  "posture_refinement": true,
+  "controlled_rise": false,
+  "load_transfer": false,
+  "shoulder_command_variance": 1.0,
+  "shoulder_target_ratio": 0.15,
+  "reset_optimizer": false,
+  "critic_initialization": "checkpoint",
+  "action_std_override": null,
+  "learning_rate": 3.375000000000001e-05,
+  "learning_schedule": "adaptive",
+  "entropy_coef": 0.0,
+  "reset": "supine_only",
+  "external_assistance": false,
+  "source_commit": "b313011aefd330eced3a1f5ef5cb9ee5dd4fc899",
+  "source_patch": "source_changes.patch"
+}
