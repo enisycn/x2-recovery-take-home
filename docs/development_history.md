@@ -4,12 +4,12 @@ This page separates the earlier mixed-start policy from the submitted policy. An
 
 | Experiment | Training starts | Updates | Evaluation from a real supine reset | What it showed |
 | --- | --- | ---: | --- | --- |
-| Historical model450 | Mixed supine and near-upright/sitting starts; final 51 updates supine | About 450 | 5/5 | It could recover from supine, but its weights had learned from other start poses. We did not use these weights in the submitted policy. |
-| Original rewards, from scratch | Only supine | 500 | 0/5 | Height improved, but the robot jumped or bridged instead of settling on both feet. |
-| Same original rewards, longer independent run | Only supine | 2,000 | 0/5 | More updates alone did not fix that reward setup. This run is not an ancestor of the final policy. |
-| Revised stance rewards, from scratch | Only supine | 500 | 0/5 | It briefly approached a valid stance but did not hold all checks for 0.5 s. **This starts the selected policy's lineage.** |
-| Continue that same policy and reward setup | Only supine | 1,000 total | 5/5 | It recovered and ended standing in all five episodes; the arms were still forward. |
-| Refine the standing arm pose | Only supine | 2,404 total | 5/5 | It retained recovery and passed the separate neutral-arm check throughout the final two seconds. This is submitted model2397. |
+| Historical model450 | Mixed supine and near-upright/sitting starts; final 51 updates supine | About 450 | 5/5 | Passed from supine, but training used other poses. Not used in the final model. |
+| Original rewards, from scratch | Only supine | 500 | 0/5 | Rose or bridged, but did not settle on both feet. |
+| Same original rewards, separate longer run | Only supine | 2,000 | 0/5 | More updates alone did not help. Not part of the final model. |
+| Revised stance rewards, from scratch | Only supine | 500 | 0/5 | Brief near-stance, no 0.5 s hold. **Final lineage starts here.** |
+| Continue the same policy and rewards | Only supine | 1,000 total | 5/5 | Recovered and ended standing; arms still forward. |
+| Refine the standing arm pose | Only supine | 2,404 total | 5/5 | Standing and neutral-arm check pass. Submitted model2397. |
 
 The revised setup added smoother feedback for stance, two-foot support, slowing down, leg pose and saturated actions. These changes and the longer training budget were combined, so the experiments do not identify one reward as the sole cause of improvement. After recovery worked at 1,000 updates, a supported-standing arm objective improved the final pose. The physical success thresholds stayed the same.
 
