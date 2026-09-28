@@ -115,12 +115,12 @@ score later distinguished small pose errors weakly; narrowing its denominator
 increased that distinction while retaining the same target and maximum reward.
 The physical success and 0.30-rad arm tolerances were not relaxed.
 
-In [RSL-RL 5.0.1](https://github.com/leggedrobotics/rsl_rl/blob/v5.0.1/rsl_rl/algorithms/ppo.py),
-KL adjusts the learning rate only with the adaptive schedule. The fixed-rate tail
-regressed; resuming the earlier checkpoint with adaptation preserved stance in
-all six development screens. This is evidence from these runs, not an ablation
-proving KL alone caused the regression. PPO clipping is not a strict trust-region
-guarantee; see [OpenAI's PPO explanation](https://spinningup.openai.com/en/latest/algorithms/ppo.html).
+We selected model1750 rather than the later model1896 because the fixed-rate
+continuation fell from 3/3 to 1/3 standing development episodes. Resuming
+model1750 with RSL-RL's adaptive learning-rate schedule, which adjusts the rate
+from measured policy change (KL), produced model2049 at 3/3. This small comparison
+explains the checkpoint choice; it does not prove that the schedule alone caused
+the difference.
 
 Final model2397 measurements: maximum final-window shoulder error 0.116 rad, elbow error
 0.104 rad, arm-joint position range 0.00111 rad and velocity RMS 0.0196 rad/s. The preceding model2248 had 0.233 rad worst shoulder error; the change is measured, not inferred from appearance.
