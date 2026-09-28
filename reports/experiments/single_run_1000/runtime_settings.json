@@ -1,0 +1,18 @@
+{
+  "parent_checkpoint": null,
+  "stability_refinement": true,
+  "posture_refinement": true,
+  "controlled_rise": false,
+  "load_transfer": false,
+  "shoulder_command_variance": 1.0,
+  "shoulder_target_ratio": 0.15,
+  "reset_optimizer": false,
+  "critic_initialization": "random_weights",
+  "action_std_override": 0.8,
+  "learning_rate": 0.0003,
+  "learning_schedule": "adaptive",
+  "entropy_coef": 0.0,
+  "reset": "supine_only",
+  "external_assistance": false,
+  "source_commit": "a980c534e7e2f4f1e7df35dd093ced06a8eb983d"
+}
