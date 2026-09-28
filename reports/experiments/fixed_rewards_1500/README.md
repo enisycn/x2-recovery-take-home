@@ -7,9 +7,10 @@ This separate PPO experiment started from random weights with the final stance a
 | 500 updates | 0/5 | Not tested | — |
 | 1,000 updates | 4/5 | Not tested | Did not meet target |
 | 1,500 updates | **5/5**, all standing at the end | **5/5**, all standing at the end | **0/10**; elbow error about 1.01 rad |
-| Submitted staged policy | **5/5** | **5/5** | **10/10**; elbow error about 0.10 rad |
+| Intermediate model2397 | **5/5** | **5/5** | **10/10**; elbow error about 0.10 rad |
+| Submitted model3847 | **5/5** | **5/5** | Forward-arm objective; old neutral-arm check is inapplicable |
 
-Recovery success is the [documented unsupported two-foot stance check](../../../docs/validation.md); the neutral-arm check is an additional posture preference. These ten small supine reset variations show that fixed rewards can solve the required recovery task. They do not measure broad robustness, and the comparison is not a multi-training-seed ablation. We retained the submitted staged policy because it also recovers and has a more natural final arm pose.
+Recovery success is the [documented unsupported two-foot stance check](../../../docs/validation.md); the neutral-arm check was an additional posture preference, not an HRS condition. These ten small supine reset variations show that fixed rewards can solve the required recovery task. They do not measure broad robustness, and the comparison is not a multi-training-seed ablation. The 1,500-update policy has forward-bent arms. The submitted model retains a more supported rise and now also targets forward-bent arms: in seed 101, the 1,500-update policy peaked at 0.7778 m with both feet airborne, while model3847 peaked at 0.6866 m with both feet in contact.
 
 The [reward plot](reward.png) combines the two consecutive training logs, with the 20-update mean calculated within each segment. The episode-reward logger resets at the 1,000-update resume, causing the apparent drop at the boundary; the trained policy does not reset. The [CSV](reward.csv), [five required episodes](evaluation_101_105.json), [five additional episodes](evaluation_106_110.json), [submitted policy on the additional episodes](submitted_evaluation_106_110.json), and [runtime settings](resume_settings.json) are included. The 500- and 1,000-update evaluations are in [the earlier experiment record](../single_run_1000/).
 

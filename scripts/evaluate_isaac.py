@@ -238,6 +238,8 @@ def main() -> None:
 
             consecutive_strict = maximum_consecutive_strict = 0
             consecutive_two_feet = maximum_consecutive_two_feet = 0
+            consecutive_upright_airborne = maximum_consecutive_upright_airborne = 0
+            total_upright_airborne = 0
             consecutive_relaxed = 0
             last_two_seconds = []
             arm_positions, arm_velocities = [], []
@@ -278,6 +280,14 @@ def main() -> None:
                     criterion_counts[name] += int(passed)
                 height = float(terminal_snapshot["pelvis_height_m"])
                 upright = -float(terminal_snapshot["projected_gravity_z"])
+                upright_airborne = (height >= .58 and upright >= .9
+                                    and terminal_snapshot["left_foot_force_n"] < 15.
+                                    and terminal_snapshot["right_foot_force_n"] < 15.)
+                consecutive_upright_airborne = (consecutive_upright_airborne + 1
+                                                if upright_airborne else 0)
+                maximum_consecutive_upright_airborne = max(
+                    maximum_consecutive_upright_airborne, consecutive_upright_airborne)
+                total_upright_airborne += int(upright_airborne)
                 if height > maximum_height:
                     maximum_height, best_height_snapshot = height, dict(terminal_snapshot)
                 if upright > maximum_upright:
@@ -318,6 +328,9 @@ def main() -> None:
                 "maximum_pelvis_height_m": round(maximum_height, 4),
                 "maximum_upright_score": round(maximum_upright, 4),
                 "maximum_two_foot_contact_s": round(maximum_consecutive_two_feet * task.step_dt, 3),
+                "maximum_upright_airborne_s": round(
+                    maximum_consecutive_upright_airborne * task.step_dt, 3),
+                "total_upright_airborne_s": round(total_upright_airborne * task.step_dt, 3),
                 "criterion_fraction": {
                     name: round(count / steps, 4) for name, count in criterion_counts.items()
                 },

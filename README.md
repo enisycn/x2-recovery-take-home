@@ -2,7 +2,7 @@
 
 Isaac Lab / PhysX PPO recovery for the official AgiBot X2 Ultra v1.3.0 model, plus a ROS 2 Humble interface that starts a real simulator episode and publishes measured joint state.
 
-**Selected result: 5/5 recoveries.** In five 10 s supine-start episodes, the robot rises and remains in strict two-foot stance through the end (8.94–9.12 s continuously). A separate neutral-arm check passes throughout the final two seconds. The selected PPO lineage starts from random weights and uses only supine resets.
+**Selected result: 5/5 recoveries.** In five 10 s supine-start episodes, the robot rises and remains in strict two-foot stance through the end (8.88–9.00 s continuously). Five additional seeded episodes also succeed. The selected PPO lineage starts from random weights and uses only supine resets. The final arm pose is a local preference, separate from the required recovery check.
 
 ## Recovery video
 
@@ -11,8 +11,8 @@ Isaac Lab / PhysX PPO recovery for the official AgiBot X2 Ultra v1.3.0 model, pl
 The first two seconds show the initial supine pose; the following ten seconds show the recorded episode. [Download the MP4](reports/videos/x2_recovery_supine_to_standing.mp4).
 
 - [Five-episode evaluation](reports/relaxed_v4_evaluation.json)
-- [Checkpoint](reports/checkpoints/x2_supine_model2397.pt)
-- [Reward curve](reports/relaxed_v4_training_reward.png)
+- [Checkpoint](reports/checkpoints/x2_supine_model3847.pt)
+- [Final refinement reward curve](reports/forward_arm_refinement_reward.png)
 - [Submission report (PDF)](docs/submission_report.pdf)
 - [Setup, training and ROS commands](docs/commands.md)
 - [Validation and ROS outcomes](docs/validation.md)
@@ -42,7 +42,7 @@ q_target = clamp(q_target, imported soft joint limits)
 
 ### Rewards
 
-At each 0.02 s policy step, Isaac RewardManager adds `weight × term value × 0.02` across the active terms. Positive weights encourage a behavior; negative weights penalize it. These are reward coefficients, not neural-network weights. Reward formulas are in [mdp.py](isaaclab_ext/x2_recovery_isaac/mdp.py); the final weights and enabled terms are in [simple_cfg.py](isaaclab_ext/x2_recovery_isaac/simple_cfg.py). The exact resolved settings saved with the checkpoint are in [env.yaml](reports/configs/supine_model2397/env.yaml).
+At each 0.02 s policy step, Isaac RewardManager adds `weight × term value × 0.02` across the active terms. Positive weights encourage a behavior; negative weights penalize it. These are reward coefficients, not neural-network weights. Reward formulas are in [mdp.py](isaaclab_ext/x2_recovery_isaac/mdp.py); the final weights and enabled terms are in [simple_cfg.py](isaaclab_ext/x2_recovery_isaac/simple_cfg.py). The resolved settings saved with the checkpoint are in [env.yaml](reports/configs/supine_model3847/env.yaml).
 
 | Term | Weight | Definition and purpose |
 | --- | ---: | --- |
@@ -53,8 +53,9 @@ At each 0.02 s policy step, Isaac RewardManager adds `weight × term value × 0.
 | Other support | -1 | Non-foot ground contacts near standing height |
 | Balance | 20 | Low root speed near upright standing |
 | Strict stance | 20 | Complete recovery predicate below |
-| Relaxed arms | 40 | Supported-upright gate and arm-pose Gaussian; shoulder 0, elbow -0.15 rad |
-| Shoulder command | 80 | Supported-upright gate × `exp(-(a_shoulder-atanh(0.15))^2)`; guides the final shoulder action |
+| Forward arm pose | 40 | Supported-upright gate and arm-pose Gaussian; shoulder -0.22, elbow -1.17 rad, variance 0.5 |
+| Shoulder command | 200 | Supported-upright gate × `exp(-(a_shoulder-atanh(0.14))²/0.2)` |
+| Forward arm command | 200 | Supported-upright gate × `exp(-((a_shoulder-atanh(0.14))²+(a_elbow-atanh(-0.4625))²)/2)` |
 | Action change | -0.02 | Squared successive action difference |
 | Stance proximity | 20 | Smooth distance to upright, supported low-speed stance; training widths 0.35 tilt, 0.8 m/s and 2 rad/s |
 | Leg pose | 20 | Neutral hip pitch, knee and ankle pitch above 0.40 m; orientation gated |
@@ -79,17 +80,17 @@ A recovery requires, continuously for at least 0.5 s:
 - each foot ground force >= 15 N;
 - every other body ground force < 15 N.
 
-The extra final-pose check requires shoulder-pitch and elbow errors <=0.30 rad while strict stance holds. All five episodes satisfy it throughout the final two seconds. It is reported separately from HRS recovery. Evaluation observes all 500 steps and records the terminal state before automatic reset.
+The evaluator also reports an older optional neutral-arm diagnostic (shoulder 0, elbow -0.15 rad). It is not the selected forward-arm target or an HRS recovery criterion. Evaluation observes all 500 steps and records the terminal state before automatic reset.
 
 ## Train, evaluate and render
 
 PPO uses clip 0.2, gamma 0.99, GAE lambda 0.95, five learning epochs, four minibatches, value-loss coefficient 1, clipped value loss, desired KL 0.01 and gradient clipping 1. All stages use 3,000 environments, 32 steps/environment, seed 47 and entropy coefficient 0. Initial action std is 0.8. The first 1,000 updates use adaptive learning rate starting at 3e-4; shoulder refinement starts at 1e-4, first fixed and finally adaptive.
 
-[Commands](docs/commands.md) gives the selected continuation chain. It retains actor, critic, optimizer and learned action std across 2,404 updates; every reset remains supine. The shoulder objective is introduced after 1,000 updates and refined later. Model2397 is the final checkpoint; its index differs from the update count because RSL-RL repeats the loaded index on continuation. [Development history](docs/development_history.md) covers earlier trials and a separate fixed-reward 1,500-update experiment (5/5 recovery, less natural arms), which was not selected.
+[Commands](docs/commands.md) gives the continuation sequence. It retains actor, critic and optimizer across 3,860 selected updates; every reset remains supine. The first 1,000 updates learn recovery, later stages refine the supported rise and arm pose. The file index `model3847` differs from the update count because RSL-RL reuses the loaded index on continuation. [Development history](docs/development_history.md) records the comparison with a fixed-reward 1,500-update experiment (5/5 recovery but an airborne height peak).
 
 For graphical checkpoint playback, use `--viz kit --start-delay 2`; the two-second preview does not advance simulation time. [Commands](docs/commands.md) includes single-seed and five-seed playback.
 
-The [reward curve](reports/relaxed_v4_training_reward.png) covers every inherited update, including the first 500 (0/5). The solid line is a trailing 20-update mean. Changes in reward scale make the separate five-episode evaluation the measure of recovery.
+The [initial lineage reward curve](reports/relaxed_v4_training_reward.png) covers the first 2,404 selected updates, including the first 500 (0/5). The [final refinement curve](reports/forward_arm_refinement_reward.png) shows the last 250 updates. The solid lines are trailing 20-update means. Reward coefficients changed between stages, so the five-episode evaluation establishes recovery performance.
 
 Each training run writes its own `reward.png`, `reward.csv`, `run_manifest.json` and checkpoints. See [artifact locations](docs/artifact_locations.md).
 

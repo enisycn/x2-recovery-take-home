@@ -1,0 +1,27 @@
+{
+  "parent_checkpoint": "model3598.pt (regenerate from the selected all-supine lineage in docs/commands.md)",
+  "stability_refinement": true,
+  "posture_refinement": true,
+  "forward_arm_refinement": true,
+  "arm_action_std_override": [
+    0.2,
+    0.8
+  ],
+  "controlled_rise": false,
+  "load_transfer": false,
+  "shoulder_command_variance": 0.2,
+  "shoulder_target_ratio": 0.14,
+  "reset_optimizer": false,
+  "critic_initialization": "checkpoint",
+  "action_std_override": null,
+  "learning_rate": 5e-05,
+  "learning_schedule": "adaptive",
+  "entropy_coef": 0.0,
+  "reset": "supine_only",
+  "external_assistance": false,
+  "final_checkpoint": "reports/checkpoints/x2_supine_model3847.pt",
+  "forward_command_weight": 200.0,
+  "forward_command_variance": 2.0,
+  "posture_command_weight": 200.0,
+  "training_base_commit": "8a31c741d9265a6fbf40314ef99312bf7c55cca0"
+}

@@ -1,0 +1,41 @@
+{
+  "checkpoint": "reports/checkpoints/x2_supine_model3847.pt",
+  "sha256": "9956b462535ee79fd8f1e664c31087b2c678c99a7c9264eb7779932277652de5",
+  "export": "reports/exported_relaxed_v4/policy.pt",
+  "export_sha256": "9b6bbb8b34e1231283a5ef8a9cb2e84c74ae35c3b728e671a84afcedfcf47236",
+  "final_index": 3847,
+  "selected_ppo_updates": 3860,
+  "parent_stance_checkpoint": "reports/checkpoints/x2_supine_model2397.pt",
+  "initial_weights": "random",
+  "all_training_resets": "supine_only",
+  "mixed_start_pretraining": false,
+  "reset_curriculum": false,
+  "imitation": false,
+  "external_force": false,
+  "selected_arm_continuation_updates": [
+    200,
+    300,
+    156,
+    300,
+    250,
+    250
+  ],
+  "selected_arm_reward_changes": [
+    "supported physical arm target + raw arm command reward",
+    "forward command weight 80 to 200",
+    "unchanged reward; checkpoint at 156 of interrupted run",
+    "unchanged reward",
+    "shoulder command weight 80 to 200 and variance 1 to 0.2",
+    "forward command variance 16 to 2"
+  ],
+  "retained_on_resume": [
+    "actor",
+    "critic",
+    "optimizer",
+    "learned action std (with recorded shoulder/elbow std override at start of each run)"
+  ],
+  "observation_width": 122,
+  "action_width": 8,
+  "successful_recoveries_101_105": 5,
+  "successful_recoveries_106_110": 5
+}

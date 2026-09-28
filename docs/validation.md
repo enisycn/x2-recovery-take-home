@@ -2,15 +2,15 @@
 
 ## Policy
 
-`reports/relaxed_v4_evaluation.json` records `x2_supine_model2397` in five deterministic 10 s episodes, seeds 101–105. All complete 500 steps without safety termination.
+`reports/relaxed_v4_evaluation.json` records `x2_supine_model3847` in five deterministic 10 s episodes, seeds 101–105. `reports/relaxed_v4_extra_evaluation.json` adds seeds 106–110. All ten complete 500 steps without safety termination.
 
-Seeds 101–105 all recover and remain standing at episode end for 8.94–9.12 s. Every sample of the final two seconds also meets the separate neutral-arm check: maximum shoulder error 0.116 rad and elbow error 0.104 rad, below the 0.30 rad limits. The largest arm-joint position range is 0.0011 rad and velocity RMS 0.020 rad/s in that window (50 Hz measurements).
+Seeds 101–105 all recover and remain standing at episode end for 8.88–9.00 s. Seeds 106–110 also score 5/5 with 8.88–8.90 s final strict stance. In the required five, height peaks at 0.671–0.687 m with both feet touching the floor at each peak; this contrasts with the fixed-reward 1,500-update alternative's airborne seed-101 height peak. Terminal shoulder pitch is about -0.39 to -0.44 rad and elbow about -0.85 to -0.87 rad. Those arm measurements are descriptive, not HRS success criteria.
 
-The selected lineage began with random weights and has 2,404 PPO updates with exclusively supine resets. The first 1,000 learn stance with dense feedback; a supported shoulder-command reward is then added. Later stages narrow its denominator and move its target ratio from 0.25 to 0.15. The final target adjustment alone preserves 5/5 recovery and reduces worst final-window shoulder error from 0.233 to 0.116 rad. No mixed-start pretraining, imitation, lift assistance or physical success-threshold change enters this lineage.
+The selected lineage began with random weights and has 3,860 selected PPO updates with exclusively supine resets. The first 1,000 learn stance with dense feedback. The intermediate 2,404-update checkpoint adds a neutral-arm preference. Final continuations replace that local preference with a forward-arm target while retaining the supported stance. No mixed-start pretraining, imitation, lift assistance or physical success-threshold change enters this lineage. The evaluator JSON still reports a historical optional neutral-arm diagnostic; failure of that diagnostic does not affect the 5/5 recovery count.
 
 ## ROS 2
 
-`reports/ros_fresh_build_v4.txt` records a clean one-package `colcon build`.
+`reports/ros_isaac_relaxed_v4_validation.txt` records a fresh one-package `colcon build` and the selected model3847 runtime check.
 
 `reports/ros_isaac_relaxed_v4_validation.txt` records the actual Isaac IPC path:
 
@@ -20,11 +20,11 @@ The selected lineage began with random weights and has 2,404 PPO updates with ex
 - literal successful CLI episode;
 - timeout changed to 0.2 s, producing `FAILED` after the real simulator timed out.
 
-The recovery states are `IDLE`, `RUNNING`, `SUCCEEDED` and `FAILED`. The recorded CLI recovery published 72 joint samples; acceptance took 0.68 ms, and the 0.2 s timeout trial published 10 samples before `FAILED`. ROS ends after the physical 0.5 s success hold. Final arm posture is established by the separate full 10 s evaluation, not this shorter service episode.
+The recovery states are `IDLE`, `RUNNING`, `SUCCEEDED` and `FAILED`. The selected model's successful CLI episode completed after 81 simulation steps; the 0.2 s timeout trial failed after 10 steps. ROS ends after the physical 0.5 s success hold. Final stance and arm posture are established by the separate full 10 s evaluation, not this shorter service episode.
 
 ## Tests
 
-`reports/unit_tests_v4.txt` records 29 passing tests across reward formulas, reset geometry, action mapping, success criteria and ROS session behavior. These are fast regression checks: 21 Isaac task/formula tests, four reduced-order harness tests and four ROS session/IPC tests. Tests support implementation correctness; the five real Isaac episodes establish physical behavior. The current expanded suite has 37 passing checks, recorded in `reports/unit_tests_stance.txt`. See `docs/test_matrix.md` for the distinction and coverage map.
+`reports/unit_tests_v4.txt` records 29 passing tests across reward formulas, reset geometry, action mapping, success criteria and ROS session behavior. These are fast regression checks: 21 Isaac task/formula tests, four reduced-order harness tests and four ROS session/IPC tests. Tests support implementation correctness; the five real Isaac episodes establish physical behavior. The current expanded suite has 39 passing checks, recorded in `reports/unit_tests_stance.txt`. See `docs/test_matrix.md` for the distinction and coverage map.
 
 ## Supine-only scratch setup check (27 September 2026)
 

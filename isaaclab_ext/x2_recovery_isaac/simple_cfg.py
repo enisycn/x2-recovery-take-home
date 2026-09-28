@@ -189,6 +189,24 @@ class X2PostureRefinementEnvCfg(X2StabilityRefinementEnvCfg):
 
 
 @configclass
+class X2ForwardArmRefinementEnvCfg(X2PostureRefinementEnvCfg):
+    """Forward-arm refinement after a supported rise."""
+
+    def __post_init__(self):
+        super().__post_init__()
+        self.rewards.relaxed_arms.params.update(
+            variance=0.5, shoulder_target_rad=-0.22, elbow_target_rad=-1.17,
+        )
+        self.rewards.posture_command.params["target_ratio"] = 0.14
+        self.rewards.posture_command.weight = 200.0
+        self.rewards.forward_arm_command = RewTerm(
+            func=mdp.supported_forward_arm_command_proximity, weight=200.0,
+            params={"feet_cfg": foot_contact_cfg(), "all_bodies_cfg": all_contact_cfg(),
+                    "variance": 2.0},
+        )
+
+
+@configclass
 class X2ControlledRiseEnvCfg(X2PostureRefinementEnvCfg):
     """Fixed-reward scratch experiment addressing the rise/collapse cycle."""
 

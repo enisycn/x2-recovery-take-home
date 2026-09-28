@@ -1,16 +1,16 @@
 # Test matrix
 
-`37 passed` refers to the repository's fast pytest regression suite. It is supporting evidence for formulas, state handling and ROS control flow; it is not the five-episode Isaac performance result required by the assignment.
+`39 passed` refers to the repository's fast pytest regression suite. It is supporting evidence for formulas, state handling and ROS control flow; it is not the five-episode Isaac performance result required by the assignment.
 
-## What the 37 tests cover
+## What the 39 tests cover
 
 | Group | Count | What is checked | Test file |
 | --- | ---: | --- | --- |
 | Frame and geometry | 3 | XYZW supine quaternion, collision-derived reset/standing clearances, and floor coverage for the parallel environment grid. | `isaaclab_ext/test/test_reward_formulas.py` |
-| Reward, contact, control and safety | 26 | Height/upright formulas, inverted-pose rejection, strict two-foot success, other-body support rejection, self-collision filtering, current versus stale contact, arm reward gating, action/joint clipping, imported-limit saturation, dense stance shaping, near-stance motion cost, soft limits, cache invalidation, unsafe termination and assistance schedules. | `isaaclab_ext/test/test_reward_formulas.py` |
+| Reward, contact, control and safety | 28 | Height/upright formulas, inverted-pose rejection, strict two-foot success, other-body support rejection, self-collision filtering, current versus stale contact, arm reward gating, action/joint clipping, imported-limit saturation, dense stance shaping, near-stance motion cost, soft limits, cache invalidation, unsafe termination and assistance schedules. | `isaaclab_ext/test/test_reward_formulas.py` |
 | Reduced-order ROS harness | 4 | Supine reset, action/joint limits, scripted success predicate and zero-action timeout without false success. | `src/x2_recovery_ros/test/test_reduced_env.py` |
 | Session and IPC behavior | 4 | Atomic busy gate, state publication with success, timeout to `FAILED`, and forwarding of joint state/result over the local Unix socket protocol. | `src/x2_recovery_ros/test/test_session.py` |
-| **Total** | **37** | | |
+| **Total** | **39** | | |
 
 Run them with:
 
@@ -22,9 +22,9 @@ export PYTHONPATH="$PWD/isaaclab_ext:$PWD/src/x2_recovery_ros"
   src/x2_recovery_ros/test
 ```
 
-The recorded result is `37 passed, 37 warnings`. The warnings are two Isaac Lab API deprecations and 35 PyTorch TorchScript deprecations; there is no failed or skipped test in the recorded run. See `reports/unit_tests_stance.txt`.
+The recorded result is `39 passed, 37 warnings`. The warnings are two Isaac Lab API deprecations and 35 PyTorch TorchScript deprecations; there is no failed or skipped test in the recorded run. See `reports/unit_tests_stance.txt`.
 
-The earlier 29-test record for the historical model450 remains in `reports/unit_tests_v4.txt`. Eight reward/control checks were added through the final supine-only diagnosis and shoulder-target refinement.
+The earlier 29-test record for the historical model450 remains in `reports/unit_tests_v4.txt`. Ten reward/control checks were added through the final supine-only diagnosis and shoulder-target refinement.
 
 ## Assignment validation is separate
 
@@ -34,9 +34,9 @@ The HRS task asks for system-level evidence that cannot be established by these 
 | --- | --- |
 | Five simulator recovery episodes | `reports/relaxed_v4_evaluation.json`: seeds 101-105, 5/5 in real Isaac/PhysX. |
 | Upright, both feet, no other support | The evaluator measures height, projected gravity, base velocities and ground-filtered contact for all 32 bodies over every episode. |
-| Fresh ROS 2 build | `reports/ros_fresh_build_v4.txt`. |
+| Fresh ROS 2 build | `reports/ros_isaac_relaxed_v4_validation.txt`. |
 | One launch, CLI Trigger request and live JointState | `reports/ros_isaac_relaxed_v4_validation.txt`. |
 | Busy rejection | The same real ROS-Isaac validation records one concurrent request accepted and the other rejected. |
 | Timeout reaches `FAILED` | The real runtime is tested with `timeout_sec=0.2`. |
 
-**The 37 tests protect implementation contracts; the 5/5 Isaac evaluation establishes recovery behavior; the live ROS-Isaac validation establishes end-to-end communication and error handling.**
+**The 39 tests protect implementation contracts; the 5/5 Isaac evaluation establishes recovery behavior; the live ROS-Isaac validation establishes end-to-end communication and error handling.**

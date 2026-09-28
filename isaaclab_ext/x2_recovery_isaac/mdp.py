@@ -1306,6 +1306,21 @@ def supported_shoulder_command_proximity(
     return gate * torch.exp(-error.square() / variance)
 
 
+def supported_forward_arm_command_proximity(
+    env, feet_cfg, all_bodies_cfg, variance: float = 16.0,
+):
+    """Guide raw arm commands while keeping supported stance rewarding."""
+    if not math.isfinite(variance) or variance <= 0.0:
+        raise ValueError("Arm command variance must be finite and positive")
+    gate, _ = _supported_posture_command_error(env, feet_cfg, all_bodies_cfg)
+    action = env.action_manager.action
+    shoulder_target = math.atanh((-0.22 + 0.5) / 2.0)
+    elbow_target = math.atanh((-1.17 + 0.8) / 0.8)
+    error = ((action[:, 3] - shoulder_target).square()
+             + (action[:, 4] - elbow_target).square())
+    return gate * torch.exp(-error / variance)
+
+
 def relaxed_arms_when_stable(
     env: ManagerBasedRLEnv,
     shoulder_cfg: SceneEntityCfg,
@@ -1313,18 +1328,21 @@ def relaxed_arms_when_stable(
     feet_cfg: SceneEntityCfg,
     all_bodies_cfg: SceneEntityCfg,
     variance: float = 2.0,
+    shoulder_target_rad: float = 0.0,
+    elbow_target_rad: float = -0.15,
 ) -> torch.Tensor:
     """X2 post-task pose reward; enabled only in supported upright stance.
 
     HoST motivates separate post-task behavior objectives. The arm targets,
     Gaussian width and weight are our X2 adaptation, not paper constants.
-    Zero shoulder pitch hangs the upper arms; elbows retain a 0.15-rad bend.
+    The default target hangs the upper arms with a slight elbow bend;
+    experiments may supply a different post-standing arm pose.
     """
     robot = env.scene[shoulder_cfg.name]
     shoulders = robot.data.joint_pos.torch[:, shoulder_cfg.joint_ids]
     elbows = robot.data.joint_pos.torch[:, elbow_cfg.joint_ids]
-    mse = 0.5 * (shoulders.square().mean(dim=1)
-                 + (elbows + 0.15).square().mean(dim=1))
+    mse = 0.5 * ((shoulders - shoulder_target_rad).square().mean(dim=1)
+                 + (elbows - elbow_target_rad).square().mean(dim=1))
     height_gate = ((robot.data.root_pos_w.torch[:, 2] - .50) / .15).clamp(0., 1.)
     upright_gate = ((-robot.data.projected_gravity_b.torch[:, 2] - .95) / .04).clamp(0., 1.)
     feet = _contact_mask(env, feet_cfg, 15.).all(dim=1)

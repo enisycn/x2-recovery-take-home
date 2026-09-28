@@ -30,6 +30,14 @@ parser.add_argument("--stability_refinement", action="store_true",
                     help="Use dense stance shaping and action regularization; keep every reset supine.")
 parser.add_argument("--posture_refinement", action="store_true",
                     help="Add positive supported neutral-command shaping to the stability preset.")
+parser.add_argument("--forward_arm_refinement", action="store_true",
+                    help="Experiment with forward arm targets after supported recovery.")
+parser.add_argument("--arm_action_std_override", type=float, nargs=2, default=None,
+                    metavar=("SHOULDER", "ELBOW"),
+                    help="On checkpoint load, reset only shoulder and elbow exploration std.")
+parser.add_argument("--forward_command_weight", type=float, default=None)
+parser.add_argument("--forward_command_variance", type=float, default=None)
+parser.add_argument("--posture_command_weight", type=float, default=None)
 parser.add_argument("--controlled_rise", action="store_true",
                     help="Fixed reward preset for a scratch rise-and-settle experiment; supine resets only.")
 parser.add_argument("--load_transfer", action="store_true",
@@ -69,6 +77,18 @@ if (args.controlled_rise or args.load_transfer) and args.checkpoint:
     parser.error("Scratch reward presets require random initialization; omit --checkpoint")
 if args.posture_refinement and not args.stability_refinement:
     parser.error("--posture_refinement requires --stability_refinement")
+if args.forward_arm_refinement and (not args.posture_refinement or not args.checkpoint):
+    parser.error("--forward_arm_refinement requires --posture_refinement and --checkpoint")
+if args.arm_action_std_override is not None and (
+    not args.forward_arm_refinement or not all(math.isfinite(x) and x > 0 for x in args.arm_action_std_override)
+):
+    parser.error("--arm_action_std_override requires forward arm refinement and two positive finite values")
+for name in ("forward_command_weight", "forward_command_variance", "posture_command_weight"):
+    value = getattr(args, name)
+    if value is not None and (
+        not args.forward_arm_refinement or not math.isfinite(value) or value <= 0
+    ):
+        parser.error(f"--{name} requires forward arm refinement and a finite positive value")
 if args.shoulder_command_variance is not None:
     if not args.posture_refinement or not math.isfinite(args.shoulder_command_variance) or args.shoulder_command_variance <= 0:
         parser.error("--shoulder_command_variance requires --posture_refinement and a finite positive value")
@@ -89,12 +109,14 @@ import x2_recovery_isaac  # noqa: E402,F401
 from x2_recovery_isaac.env_cfg import ALL_CONTACT_BODIES, CONTACT_SENSOR_NAME  # noqa: E402
 from x2_recovery_isaac.simple_cfg import (  # noqa: E402
     X2RelaxedRecoveryEnvCfg, X2RelaxedPPORunnerCfg, X2StabilityRefinementEnvCfg, X2PostureRefinementEnvCfg,
+    X2ForwardArmRefinementEnvCfg,
     X2ControlledRiseEnvCfg, X2LoadTransferEnvCfg,
 )
 
 
 def main() -> Path:
-    env_cfg = (X2LoadTransferEnvCfg() if args.load_transfer else
+    env_cfg = (X2ForwardArmRefinementEnvCfg() if args.forward_arm_refinement else
+               X2LoadTransferEnvCfg() if args.load_transfer else
                X2ControlledRiseEnvCfg() if args.controlled_rise else
                X2PostureRefinementEnvCfg() if args.posture_refinement else
                X2StabilityRefinementEnvCfg() if args.stability_refinement else X2RelaxedRecoveryEnvCfg())
@@ -105,6 +127,12 @@ def main() -> Path:
         env_cfg.rewards.posture_command.params["variance"] = args.shoulder_command_variance
     if args.shoulder_target_ratio is not None:
         env_cfg.rewards.posture_command.params["target_ratio"] = args.shoulder_target_ratio
+    if args.forward_command_weight is not None:
+        env_cfg.rewards.forward_arm_command.weight = args.forward_command_weight
+    if args.forward_command_variance is not None:
+        env_cfg.rewards.forward_arm_command.params["variance"] = args.forward_command_variance
+    if args.posture_command_weight is not None:
+        env_cfg.rewards.posture_command.weight = args.posture_command_weight
 
     agent_cfg = X2RelaxedPPORunnerCfg()
     if args.learning_schedule is not None:
@@ -183,6 +211,12 @@ def main() -> Path:
             distribution = runner.alg.get_policy().distribution
             distribution.std_param.data.fill_(args.action_std_override)
             print(f"[HRS] Reset action standard deviation to {args.action_std_override:.4f}", flush=True)
+        if args.arm_action_std_override is not None:
+            shoulder_std, elbow_std = args.arm_action_std_override
+            distribution = runner.alg.get_policy().distribution
+            distribution.std_param.data[3] = shoulder_std
+            distribution.std_param.data[4] = elbow_std
+            print(f"[HRS] Arm action std shoulder={shoulder_std:.4f} elbow={elbow_std:.4f}", flush=True)
 
         dump_yaml(str(log_dir / "params" / "env.yaml"), env_cfg)
         dump_yaml(str(log_dir / "params" / "agent.yaml"), agent_cfg)
@@ -190,10 +224,15 @@ def main() -> Path:
             "parent_checkpoint": args.checkpoint,
             "stability_refinement": args.stability_refinement,
             "posture_refinement": args.posture_refinement,
+            "forward_arm_refinement": args.forward_arm_refinement,
+            "arm_action_std_override": args.arm_action_std_override,
             "controlled_rise": args.controlled_rise,
             "load_transfer": args.load_transfer,
             "shoulder_command_variance": args.shoulder_command_variance,
             "shoulder_target_ratio": args.shoulder_target_ratio,
+            "forward_command_weight": args.forward_command_weight,
+            "forward_command_variance": args.forward_command_variance,
+            "posture_command_weight": args.posture_command_weight,
             "reset_optimizer": args.reset_optimizer,
             "critic_initialization": "random_weights" if not args.checkpoint or
                 (args.reset_optimizer and args.stability_refinement) else "checkpoint",

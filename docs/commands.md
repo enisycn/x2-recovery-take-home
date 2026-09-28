@@ -112,6 +112,33 @@ parent_dir="$experiment/$(cat "$experiment/LATEST_RUN.txt")"
   --learning_rate_override 0.0001 --learning_schedule adaptive --entropy_coef 0
 ```
 
+The selected forward-arm continuation starts from the supplied intermediate `reports/checkpoints/x2_supine_model2397.pt`. All six stages retain exclusively supine resets, 3,000 environments, seed 47, actor/critic weights and optimizer. Each stage uses `--stability_refinement --posture_refinement --forward_arm_refinement --shoulder_target_ratio 0.14 --arm_action_std_override 0.2 0.8 --learning_rate_override 0.00005 --learning_schedule adaptive --entropy_coef 0`; set the listed lengths with `--max_iterations` and use the preceding stage's checkpoint as `--checkpoint`.
+
+| Selected stage | Added updates | Parent index → selected index | Forward command weight / variance | Shoulder command weight / variance |
+| --- | ---: | --- | --- | --- |
+| Forward pose | 200 | 2397 → 2596 | 80 / 16 | 80 / 1 |
+| Stronger forward command | 300 | 2596 → 2895 | 200 / 16 | 80 / 1 |
+| Retained interrupted checkpoint | 156 | 2895 → 3050 | 200 / 16 | 80 / 1 |
+| Continue same reward | 300 | 3050 → 3349 | 200 / 16 | 80 / 1 |
+| Stronger shoulder command | 250 | 3349 → 3598 | 200 / 16 | 200 / 0.2 |
+| Narrow forward command | 250 | 3598 → 3847 | 200 / 2 | 200 / 0.2 |
+
+Use `--forward_command_weight`, `--forward_command_variance`, `--posture_command_weight` and `--shoulder_command_variance` to set each row. The 156-update checkpoint was chosen from an interrupted longer run; later unselected updates are excluded. [Final resolved settings](../reports/configs/supine_model3847/env.yaml) and [lineage provenance](../reports/configs/supine_model3847/provenance.json) are supplied. Reward changes mean an uninterrupted run is a new experiment, not a bitwise reproduction. The final 250-update settings can be used for a fresh continuation:
+
+```bash
+./scripts/train_isaac.sh --phase relaxed_v4 --num_envs 3000 \
+  --max_iterations 250 --seed 47 --device cuda:0 \
+  --run_name forward_arm_continuation \
+  --checkpoint reports/checkpoints/x2_supine_model3847.pt \
+  --stability_refinement --posture_refinement --forward_arm_refinement \
+  --shoulder_target_ratio 0.14 --shoulder_command_variance 0.2 \
+  --forward_command_weight 200 --forward_command_variance 2 \
+  --posture_command_weight 200 --arm_action_std_override 0.2 0.8 \
+  --learning_rate_override 0.00005 --learning_schedule adaptive --entropy_coef 0
+```
+
+A continuation produces a new run and requires its own five-episode evaluation. The supplied checkpoint remains the validated result.
+
 The original fixed-rate trial continued beyond model1750 and regressed. Those rejected updates are not inherited by this recipe. Validate each retraining result separately.
 
 Training prints progress after each completed PPO iteration: iteration number, mean reward, mean episode length (policy steps), reward terms, elapsed time and ETA. Output is unbuffered. No completed episodes means the mean episode metrics are not available yet. The training console prints the temporary log path as `[HRS] Live console log:`. For a compact view refreshed every five seconds, run this in a second terminal while one training run is active:
@@ -125,7 +152,7 @@ The monitor shows only the latest complete iteration, including steps per second
 
 Every **completed** training run writes a checkpoint, `reward.png`, `reward.csv`, and `run_manifest.json` to its timestamped directory. The folder hierarchy is `logs/rsl_rl/hrs_x2_relaxed_v4/<timestamp>_<run_name>/`; the run is inside the experiment folder, not directly under `rsl_rl` and not under `/tmp`.
 
-New runs do not overwrite submitted artifacts in `reports/`. Change `--run_name` to label another experiment. The selected ancestry contains 2,404 updates. Budgets and checkpoint indices in this recipe record the experiment; they do not guarantee recovery on a retrain. Check the actual five-episode result and arm metrics before selecting a new model. The newest checkpoint can be worse than an earlier one. Historical failures remain in [development history](development_history.md).
+New runs do not overwrite submitted artifacts in `reports/`. Change `--run_name` to label another experiment. The selected ancestry contains 3,860 updates. The first 2,404 updates reproduce the intermediate supported-stance checkpoint; the final arm continuation is summarized above. Budgets and checkpoint indices in this recipe record the experiment; they do not guarantee recovery on a retrain. Check the actual five-episode result and arm metrics before selecting a new model. The newest checkpoint can be worse than an earlier one. Historical failures remain in [development history](development_history.md).
 
 Find the latest completed run:
 
@@ -150,7 +177,7 @@ new_checkpoint="$("$ISAAC_PYTHON" -c 'import json,sys; print(json.load(open(sys.
 
 The exported policy is `$run_dir/exported_relaxed_v4/policy.pt`. Check `export.succeeded` and the recovery result in `evaluation.json`; export alone does not prove recovery success. To serve this new policy, use its absolute path with `serve_isaac_policy.sh`. Evaluation remains an explicit step after training.
 
-The submitted reward plot is [here](../reports/relaxed_v4_training_reward.png). See [output locations](artifact_locations.md) for the full layout.
+The final refinement reward plot is [here](../reports/forward_arm_refinement_reward.png); the initial 2,404-update graph is [here](../reports/relaxed_v4_training_reward.png). See [output locations](artifact_locations.md) for the full layout.
 
 ## 3. Play and evaluate the supplied checkpoint
 
@@ -158,19 +185,19 @@ Playback needs `--viz kit` to open the Isaac viewer in this version. Set `seed` 
 
 ```bash
 seed=101
-./scripts/play_isaac.sh reports/checkpoints/x2_supine_model2397.pt \
+./scripts/play_isaac.sh reports/checkpoints/x2_supine_model3847.pt \
   --environment relaxed_v4 --device cuda:0 --viz kit --start-delay 2 \
   --seeds "$seed" --output "/tmp/x2_play_seed_${seed}.json"
 ```
 
 `--start-delay 2` shows the frozen supine reset pose for two wall-clock seconds before each episode. Only the viewer updates during this preview; physics, policy inference and the 10-second episode clock have not started. Set it to `0` to start immediately. Headless evaluation uses no preview.
 
-The viewer closes after evaluation finishes. A 10-second simulation episode can run faster than wall-clock time. The supplied path selects `model2397` explicitly; it does not automatically choose the latest training checkpoint. Seeds change small initial supine root-pose perturbations; the model weights, neutral joint angles and zero initial velocities remain the same.
+The viewer closes after evaluation finishes. A 10-second simulation episode can run faster than wall-clock time. The supplied path selects `model3847` explicitly; it does not automatically choose the latest training checkpoint. Seeds change small initial supine root-pose perturbations; the model weights, neutral joint angles and zero initial velocities remain the same.
 
 Play all five seeds sequentially in one viewer session:
 
 ```bash
-./scripts/play_isaac.sh reports/checkpoints/x2_supine_model2397.pt \
+./scripts/play_isaac.sh reports/checkpoints/x2_supine_model3847.pt \
   --environment relaxed_v4 --device cuda:0 --viz kit --start-delay 2 \
   --seeds 101 102 103 104 105 --output /tmp/x2_play_all_seeds.json
 ```
@@ -178,7 +205,7 @@ Play all five seeds sequentially in one viewer session:
 Evaluation runs those five fixed seeds headlessly and writes a JSON result:
 
 ```bash
-./scripts/evaluate_isaac.sh reports/checkpoints/x2_supine_model2397.pt \
+./scripts/evaluate_isaac.sh reports/checkpoints/x2_supine_model3847.pt \
   --environment relaxed_v4 --device cuda:0 \
   --output /tmp/x2_evaluation.json
 ```

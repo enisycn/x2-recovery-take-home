@@ -465,6 +465,54 @@ def test_relaxed_arms_reward_requires_support_and_allows_posture_transition():
     assert result[4] == result[0]  # motion may earn posture reward before strict success
 
 
+def test_forward_arm_target_only_scores_when_supported():
+    heights = torch.tensor([.68, .68])
+    gravity = torch.tensor([[0., 0., -1.], [0., 0., -1.]])
+    robot = fake_robot(heights, gravity)
+    robot.data.joint_pos = TorchField(torch.tensor([
+        [-.22, -.22, -1.17, -1.17], [-.22, -.22, -1.17, -1.17],
+    ]))
+    ground = torch.zeros((2, 3, 1, 3))
+    ground[0, :2, 0, 2] = 100.
+    sensor = SimpleNamespace(data=SimpleNamespace(force_matrix_w=TorchField(ground)))
+    env = SimpleNamespace(scene=FakeScene(robot, sensor))
+    result = mdp.relaxed_arms_when_stable(
+        env,
+        shoulder_cfg=SimpleNamespace(name="robot", joint_ids=[0, 1]),
+        elbow_cfg=SimpleNamespace(name="robot", joint_ids=[2, 3]),
+        feet_cfg=SimpleNamespace(name="contact_forces", body_ids=[0, 1]),
+        all_bodies_cfg=SimpleNamespace(name="contact_forces", body_ids=[0, 1, 2]),
+        variance=.5, shoulder_target_rad=-.22, elbow_target_rad=-1.17,
+    )
+    assert result.tolist() == [1., 0.]
+
+
+def test_forward_arm_command_proximity_guides_saturated_elbows_only_after_support():
+    heights = torch.tensor([.68, .68, .19])
+    gravity = torch.tensor([[0., 0., -1.]] * 2 + [[1., 0., 0.]])
+    robot = fake_robot(heights, gravity)
+    ground = torch.zeros((3, 3, 1, 3))
+    ground[:2, :2, 0, 2] = 100.
+    sensor = SimpleNamespace(data=SimpleNamespace(force_matrix_w=TorchField(ground)))
+    actions = torch.zeros((3, 8))
+    actions[:, 3] = math.atanh(.14)
+    actions[:, 4] = torch.tensor([2.25, math.atanh(-.4625), 2.25])
+    env = SimpleNamespace(scene=FakeScene(robot, sensor),
+                          action_manager=SimpleNamespace(action=actions))
+    feet = SimpleNamespace(name="contact_forces", body_ids=[0, 1])
+    bodies = SimpleNamespace(name="contact_forces", body_ids=[0, 1, 2])
+    result = mdp.supported_forward_arm_command_proximity(env, feet, bodies, variance=2.)
+    assert 0. < result[0] < .8
+    assert abs(result[1] - 1.0) < 1e-7
+    assert result[2] == 0.0
+    try:
+        mdp.supported_forward_arm_command_proximity(env, feet, bodies, variance=0.)
+    except ValueError:
+        pass
+    else:
+        assert False, "non-positive variance must be rejected"
+
+
 def test_controlled_rise_prefers_supported_ascent_to_flight_and_rejects_inversion():
     heights = torch.tensor([.50, .50, .50, .50, .19])
     gravity = torch.tensor([[0., 0., -1.]] * 3 + [[0., 0., 1.], [1., 0., 0.]])

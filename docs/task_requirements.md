@@ -12,14 +12,14 @@ Every required item is implemented and linked below. The selected result is a tr
 | Collision and joint/actuator limits | Complete | Self-collision, recursive 32-body ground contact and imported URDF limits with one 98% soft margin. Geometry, inertia and axes are unchanged. |
 | Observation and action spaces | Complete | 122 observations; eight bilateral absolute actions mapped to 31 joint targets. README and `synergy_action.py`. |
 | Reward and episode termination | Complete | Term-by-term formulas, weights and intent are in README and `mdp.py`. Timeout and safety terminations are documented separately from success. |
-| PPO training experiment | Complete | RSL-RL PPO, 3000 environments, 32 steps/environment, seed 47; 2,404 selected PPO updates, exclusively supine resets. Exact hyperparameters and command are in README and config snapshots. |
-| Checkpoint and reward plot | Complete | `x2_supine_model2397.pt`, supine parent499 checkpoint, reward CSV and PNG under `reports/`. Every successful supported training run also writes its own graph, CSV and manifest; see `docs/artifact_locations.md`. |
+| PPO training experiment | Complete | RSL-RL PPO, 3000 environments, 32 steps/environment, seed 47; 3,860 selected PPO updates, exclusively supine resets. Exact hyperparameters and final resolved configuration are in README and config snapshots. |
+| Checkpoint and reward plot | Complete | `x2_supine_model3847.pt`, `forward_arm_refinement_reward.png` and CSV under `reports/`; the initial 2,404-update curve is retained separately. Every successful supported training run also writes its own graph, CSV and manifest; see `docs/artifact_locations.md`. |
 
 ## ROS 2 integration and interfaces
 
 | Requirement | Status | Implementation and evidence |
 | --- | --- | --- |
-| Python ROS 2 package and one launch file | Complete | `src/x2_recovery_ros`; both nodes in `x2_recovery.launch.py`; fresh `colcon` record in `ros_fresh_build_v4.txt`. |
+| Python ROS 2 package and one launch file | Complete | `src/x2_recovery_ros`; both nodes in `x2_recovery.launch.py`; fresh `colcon` record in `ros_isaac_relaxed_v4_validation.txt`. |
 | Connect ROS to real simulator episode | Complete | Default `isaac_ipc` backend connects ROS Python 3.10 to Isaac Python 3.12 through a mode-0600 local Unix socket. |
 | Accept before execution | Complete | Trigger callback acquires the gate and returns `success=true`; timer dispatch starts the worker afterward. Measured acceptance remained below 1 ms in repeated validation. |
 | Reject second request while running | Complete | `AttemptGate` covers pending and running states; actual concurrent request returned busy. |
@@ -35,7 +35,7 @@ Every required item is implemented and linked below. The selected result is a tr
 | Five simulation episodes | Complete | Seeds 101-105, 500 steps and 10 s each in `relaxed_v4_evaluation.json`. Result: 5/5. |
 | Upright, both feet, no other support | Complete | Success requires height, projected-gravity uprightness, low root velocities, >=15 N on each foot and <15 N on all other bodies for 0.5 s continuously. |
 | Report failures | Complete | No failure occurred in the submitted five episodes; all `failure_reason` values are empty. Historical failures and fixes are in `development_history.md`. |
-| Fresh ROS 2 build | Complete | One-package clean build: 1 package finished in 1.26 s. |
+| Fresh ROS 2 build | Complete | One-package clean build: 1 package finished in 0.95 s. |
 | One launch command | Complete | `ros2 launch x2_recovery_ros x2_recovery.launch.py timeout_sec:=10.0`. |
 | CLI request starts recovery | Complete | Literal `ros2 service call /x2/start_recovery ...` produced `Recovery accepted` and `RUNNING -> SUCCEEDED`. |
 | Live joint telemetry | Complete | Measured simulator samples with 31 joint values and timestamps; counts are in the validation record. |
