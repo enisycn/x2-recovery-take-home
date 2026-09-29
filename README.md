@@ -10,13 +10,13 @@ The GIF and MP4 show **the supplied checkpoint**. The first two seconds are a fr
 
 ## One training run, one result
 
-The selected `model_1499.pt` came from **one uninterrupted 1,500-update PPO run**, starting with random actor/critic weights. All resets were supine, with no imitation, mixed-start pretraining, lift force, checkpoint resume, or reward change during the run. The reward graph and CSV below come from that same run; the video was rendered with that same final checkpoint. [Provenance and hashes](reports/configs/supine_single1500/provenance.json) make the relationship checkable.
+The selected `model_1499.pt` came from **one uninterrupted 1,500-update PPO run**, starting with random actor/critic weights. All resets were supine, with no imitation, mixed-start pretraining, lift force, checkpoint resume, or reward change during the run. The supported forward-arm rewards were active from update 0. The reward graph and CSV below come from that same run; the video was rendered with that same final checkpoint. [Provenance and hashes](reports/configs/supine_single1500/provenance.json) make the relationship checkable.
 
 ![Mean episode reward, iterations 0–1499](reports/selected_supine_training_reward.png)
 
 [Reward CSV](reports/selected_supine_training_reward.csv) · [Resolved environment and PPO settings](reports/configs/supine_single1500/) · [Full evaluation rules and results](docs/validation.md)
 
-The dark curve is a 20-update mean. Increasing reward indicates that the policy improved against the training objective; it is **not** a recovery count. The separate five-episode evaluation establishes the 5/5 result. At the brief height peak in these episodes, both feet leave the floor; the robot then lands and maintains the required unsupported stance for 8.86–8.96 seconds at episode end. This transient is a limitation of the selected controller, not a failure under the stated final-stance criterion.
+The dark curve is a 20-update mean. Increasing reward indicates that the policy improved against the training objective; it is **not** a recovery count. The separate five-episode evaluation establishes the 5/5 result. Both feet contact the floor at the height peak in all five episodes, and strict unsupported stance lasts 8.80–9.00 seconds at episode end. Four episodes contain a brief 0.02–0.04 s upright airborne interval elsewhere; the plot and evaluation do not imply continuous foot contact at every frame.
 
 ## Setup
 
@@ -41,8 +41,9 @@ Isaac Lab adds `weight × term value × 0.02 s` each policy step. These are rewa
 | Strict stance | +20 | Instantaneous stance checks; evaluation also requires a continuous 0.5 s hold. |
 | Stance proximity | +20 | Smooth approach to supported low-speed stance; training widths 0.35 tilt, 0.8 m/s linear and 2 rad/s angular speed. |
 | Leg pose | +20 | Neutral hip pitch, knee and ankle pitch when raised and upright. |
-| Relaxed arms | +40 | After supported upright stance, prefer shoulder pitch 0 and elbow −0.15 rad with Gaussian variance 2. |
-| Shoulder command | +80 | In supported stance, prefer raw shoulder action near `atanh(0.15)` with variance 1. |
+| Arm pose | +40 | After supported upright stance, prefer shoulder pitch −0.22 and elbow −1.17 rad with Gaussian variance 0.5. |
+| Shoulder command | +200 | In supported stance, prefer raw shoulder action near `atanh(0.14)` with variance 0.2. |
+| Forward arm command | +200 | Prefer the supported forward-arm shoulder/elbow action pair with variance 2. |
 | Near-stance motion | −2 | Penalize squared base linear speed plus 0.1 × squared angular speed, gated near standing. |
 | Action change | −0.02 | Penalize squared successive raw-action changes. |
 | Action saturation | −0.5 | Penalize commands beyond effective soft-limit ranges. |
@@ -51,7 +52,7 @@ Isaac Lab adds `weight × term value × 0.02 s` each policy step. These are rewa
 | Joint limit | −1 | Penalize soft-limit violation. |
 | Safety termination | −10 | Penalize non-timeout safety termination. |
 
-These terms were active from the first update. The older forward-arm reward and 200-weight arm-command terms belong to a **different historical controller** and are not in this checkpoint. HumanUP motivates rise and contact terms; HoST motivates post-standing posture; FRASA motivates compact symmetric control. All X2 weights, gates, widths and joint targets are local choices, not values copied from those papers. [Parameter sources](docs/parameter_provenance.md) and [design evidence](docs/design_and_evidence.md) explain the distinction.
+These terms were active from the first update. HumanUP motivates rise and contact terms; HoST motivates post-standing posture; FRASA motivates compact symmetric control. All X2 weights, gates, widths and joint targets are local choices, not values copied from those papers. [Parameter sources](docs/parameter_provenance.md) and [design evidence](docs/design_and_evidence.md) explain the distinction.
 
 PPO uses clip 0.2, γ 0.99, GAE λ 0.95, five epochs, four minibatches, value coefficient 1, desired KL 0.01, gradient clip 1 and an adaptive learning-rate schedule.
 
@@ -61,4 +62,4 @@ An episode ends after 10 seconds, a non-finite state, excessive root speed or an
 
 `scripts/build_ros.sh` builds the Python package with colcon. The launch file starts the recovery and telemetry nodes together; an Isaac policy server runs separately and supplies real simulator state over a local Unix socket. `/x2/start_recovery` accepts a request before execution and rejects another while busy. `/x2/recovery_status` publishes `IDLE`, `RUNNING`, `SUCCEEDED` or `FAILED`; `/x2/joint_states` publishes timestamped measured joint positions while running. An unsuccessful attempt ends at a configurable timeout. [Fresh build and live checks](docs/validation.md) cover accepted and busy requests, telemetry and timeout. [Run commands](docs/commands.md) show the server, launch, watchers and service call.
 
-The repository retains earlier experiments for audit. [Development history](docs/development_history.md) labels them separately; their plots and checkpoints are **not** the selected result. The selected training graph, video and checkpoint above all belong to the single 1,500-update run.
+The repository retains earlier experiments for audit. [Development history](docs/development_history.md) labels them separately; their plots and checkpoints are **not** the selected result. The selected training graph, video and checkpoint above all belong to the same 1,500-update run.

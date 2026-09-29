@@ -1,11 +1,11 @@
 {
   "selected_checkpoint": "reports/checkpoints/x2_supine_single1500.pt",
-  "source_run": "2026-09-29_11-32-05_fixed_rewards_single1500",
+  "source_run": "2026-09-28_18-20-41_final_rewards_scratch1500",
   "ppo_updates": 1500,
   "initial_weights": "random",
   "parent_checkpoint": null,
   "reset": "supine_only",
-  "reward_preset": "stability_refinement + posture_refinement from first update",
+  "reward_preset": "stability_refinement + posture_refinement + forward_arm_refinement from first update",
   "training_seed": 47,
   "num_envs": 3000,
   "evaluation_seeds": [
@@ -26,8 +26,8 @@
   "extra_successes": 5,
   "media_seed": 101,
   "preview_s": 2,
-  "checkpoint_sha256": "9c87530605ab64a5fa44e24983a07d66c167d4fdcd99a6ff22ef65056cebe3f5",
-  "policy_sha256": "16cb3bdadb8b7f7e03717e4f47d23d02a97c808e5e821ec4051337dc1d9c229f",
-  "reward_csv_sha256": "dd34daa193f623ccdd0beea316376abf690fc235f6bb1f7dc655626c683d8a78",
-  "video_sha256": "923395438d03f92705b58cee343b5d245e034f23732bea209da50c72a7f30b30"
+  "checkpoint_sha256": "235fc74110e42d5bc8c9c95916f6d42caec39b7b534c2bbe15921bccf0c0f04c",
+  "policy_sha256": "997368efc6b181d414d153fc9f0feb28c565e2f25697657b7a8de42da807eeb7",
+  "reward_csv_sha256": "d45246b85ee8259da75587eada417033dc9dd2d3ce6f77d379698b2ca558b6d2",
+  "video_sha256": "fdc661791d6dc4fa7621393d757b58d0e5536cf6242dc7a7d36f6e3553647c78"
 }

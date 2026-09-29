@@ -1,12 +1,12 @@
 {
   "schema_version": 1,
-  "generated_at_utc": "2026-09-29T11:23:33.662832+00:00",
+  "generated_at_utc": "2026-09-28T18:15:33.889984+00:00",
   "experiment": "hrs_x2_relaxed_v4",
-  "run": "2026-09-29_11-32-05_fixed_rewards_single1500",
+  "run": "2026-09-28_18-20-41_final_rewards_scratch1500",
   "reward_plot": "reward.png",
   "reward_csv": "reward.csv",
   "tensorboard_events": [
-    "events.out.tfevents.1790677975.enis.151049.0"
+    "events.out.tfevents.1790616092.enis.124024.0"
   ],
   "checkpoints": [
     {
@@ -169,6 +169,7 @@
   "parameters": [
     "params/agent.yaml",
     "params/env.yaml",
-    "params/runtime_settings.json"
+    "params/runtime_settings.json",
+    "params/source_changes.patch"
   ]
 }

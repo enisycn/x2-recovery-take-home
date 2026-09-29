@@ -33,8 +33,11 @@ cost, joint-speed cost, leg-posture shaping and action-saturation cost; it also
 changed foot, balance and action-change weights. It reached 5/5 stance after
 1,000 updates, then received a focused shoulder-command objective and further
 training to reach an intermediate neutral-arm result after 2,404 inherited
-updates, then forward-arm refinement to the submitted model. Those additions are **not active** in this new run. Neither are the
-controlled-rise or load-transfer presets.
+updates. A separate historical checkpoint then received forward-arm refinement.
+The currently submitted forward-arm policy is a different run trained from
+random weights with its final rewards fixed from update 0. None of those
+additional terms are active in this original-reward comparison run; neither
+are the controlled-rise or load-transfer presets.
 
 ## Measured result
 

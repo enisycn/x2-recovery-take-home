@@ -142,8 +142,9 @@ Isaac RewardManager multiplies each term by its weight and the 0.02 s policy tim
 | Other support | -1 | count of non-foot ground contacts × high-pelvis gate | **TASK + LOCAL.** Encodes “without support from other body parts” while allowing transitional pushes. |
 | Balance | 20 | high/upright gate × `exp(-(‖v‖+‖ω‖)^2/0.25)` | Smoothness/stability is paper-informed; formula and weight **LOCAL**. |
 | Strict stance | 20 | binary complete success predicate | **TASK + LOCAL.** Gives the evaluator's full target during training. |
-| Relaxed arms | 40 | supported-upright gate × a shoulder/elbow pose Gaussian near 0 and -0.15 rad; variance 2 | HoST motivates post-task posture constraints; X2 target, gate and weight are **LOCAL**. |
-| Shoulder command | 80 | supported-upright gate × proximity of shoulder raw action to `atanh(0.15)`; variance 1 | **LOCAL** command shaping; no paper supplies its coefficient. |
+| Arm pose | 40 | supported-upright gate × a shoulder/elbow pose Gaussian near -0.22 and -1.17 rad; variance 0.5 | HoST motivates post-task posture constraints; X2 target, gate and weight are **LOCAL**. |
+| Shoulder command | 200 | supported-upright gate × proximity of shoulder raw action to `atanh(0.14)`; variance 0.2 | **LOCAL** command shaping; no paper supplies its coefficient. |
+| Forward arm command | 200 | supported-upright gate × joint shoulder/elbow raw-action proximity; variance 2 | **LOCAL** compact action shaping; no paper supplies its coefficient. |
 | Stance proximity / leg pose | 20 / 20 | smooth closeness to supported low-speed stance / neutral leg pose when raised and upright | **LOCAL**, added after height-only bounce failures. |
 | Near-stance motion | -2 | penalize base linear speed squared plus 0.1 angular speed squared near standing | **LOCAL** regularization. |
 | Raw-action saturation | -0.5 | penalize commands beyond effective joint target range | **LOCAL** actuator-aware regularization. |
@@ -153,7 +154,7 @@ Isaac RewardManager multiplies each term by its weight and the 0.02 s policy tim
 | Joint limit | -1 | soft-limit violation | Safety regularization; exact weight/margin **LOCAL**. |
 | Failure | -10 | non-timeout safety termination | **LOCAL.** Timeout is excluded so “still trying at 10 s” is distinct from a numerical/unsafe failure. |
 
-Exact formulas and gates are in [design and evidence](design_and_evidence.md) and the [selected configuration](../reports/configs/supine_single1500/env.yaml). The posture and shoulder-command terms are present from update 0; the historical forward-arm target and combined elbow/shoulder command are **not active** in the submitted run. Training widths do not change the strict validator. No demonstrations are used and rewards do not replace network output at deployment.
+Exact formulas and gates are in [design and evidence](design_and_evidence.md) and the [selected configuration](../reports/configs/supine_single1500/env.yaml). The arm-pose, shoulder-command and forward-arm-command terms are all present from update 0. The forward command target is `atanh((-0.22+0.5)/2)` for shoulder and `atanh((-1.17+0.8)/0.8)` for elbow. Training widths do not change the strict validator. No demonstrations are used and rewards do not replace network output at deployment.
 
 No paper establishes `40`, `15 N`, `0.58 m`, `0.30 rad` or any other X2-specific reward/success number.
 

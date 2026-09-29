@@ -1,0 +1,24 @@
+diff --git a/scripts/isaac_train_entry.py b/scripts/isaac_train_entry.py
+index 8e51b4f..8db2d3e 100644
+--- a/scripts/isaac_train_entry.py
++++ b/scripts/isaac_train_entry.py
+@@ -31,7 +31,7 @@ parser.add_argument("--stability_refinement", action="store_true",
+ parser.add_argument("--posture_refinement", action="store_true",
+                     help="Add positive supported neutral-command shaping to the stability preset.")
+ parser.add_argument("--forward_arm_refinement", action="store_true",
+-                    help="Experiment with forward arm targets after supported recovery.")
++                    help="Use the fixed supported forward-arm reward preset, including from scratch.")
+ parser.add_argument("--arm_action_std_override", type=float, nargs=2, default=None,
+                     metavar=("SHOULDER", "ELBOW"),
+                     help="On checkpoint load, reset only shoulder and elbow exploration std.")
+@@ -77,8 +77,8 @@ if (args.controlled_rise or args.load_transfer) and args.checkpoint:
+     parser.error("Scratch reward presets require random initialization; omit --checkpoint")
+ if args.posture_refinement and not args.stability_refinement:
+     parser.error("--posture_refinement requires --stability_refinement")
+-if args.forward_arm_refinement and (not args.posture_refinement or not args.checkpoint):
+-    parser.error("--forward_arm_refinement requires --posture_refinement and --checkpoint")
++if args.forward_arm_refinement and not args.posture_refinement:
++    parser.error("--forward_arm_refinement requires --posture_refinement")
+ if args.arm_action_std_override is not None and (
+     not args.forward_arm_refinement or not all(math.isfinite(x) and x > 0 for x in args.arm_action_std_override)
+ ):

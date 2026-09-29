@@ -1,11 +1,11 @@
 {
   "checkpoint": "reports/checkpoints/x2_supine_single1500.pt",
-  "checkpoint_sha256": "9c87530605ab64a5fa44e24983a07d66c167d4fdcd99a6ff22ef65056cebe3f5",
+  "checkpoint_sha256": "235fc74110e42d5bc8c9c95916f6d42caec39b7b534c2bbe15921bccf0c0f04c",
   "completed_ppo_updates": 1500,
   "parent_checkpoint": null,
   "all_training_resets": "supine_only",
   "export": "reports/exported_relaxed_v4/policy.pt",
-  "export_sha256": "16cb3bdadb8b7f7e03717e4f47d23d02a97c808e5e821ec4051337dc1d9c229f",
+  "export_sha256": "997368efc6b181d414d153fc9f0feb28c565e2f25697657b7a8de42da807eeb7",
   "export_maximum_error": 0.0,
   "successful_evaluation_episodes": 5,
   "total_evaluation_episodes": 5

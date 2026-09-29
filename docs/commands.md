@@ -24,9 +24,11 @@ This is the exact selected configuration: 3,000 environments, 1,500 uninterrupte
 ```bash
 ./scripts/train_isaac.sh --phase relaxed_v4 --num_envs 3000 \
   --max_iterations 1500 --seed 47 --device cuda:0 \
-  --run_name fixed_rewards_single1500 \
-  --stability_refinement --posture_refinement \
-  --shoulder_command_variance 1 --shoulder_target_ratio 0.15 \
+  --run_name grounded_forward_single1500 \
+  --stability_refinement --posture_refinement --forward_arm_refinement \
+  --shoulder_target_ratio 0.14 --shoulder_command_variance 0.2 \
+  --forward_command_weight 200 --forward_command_variance 2 \
+  --posture_command_weight 200 \
   --action_std_override 0.8 --learning_schedule adaptive --entropy_coef 0
 ```
 

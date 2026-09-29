@@ -8,15 +8,15 @@ The evaluator runs each episode for all 500 policy steps (10 s), retaining the t
 
 | Seed | Recovery | Continuous strict stance at end | Both feet at height peak |
 | --- | --- | ---: | --- |
-| 101 | Yes | 8.96 s | No |
-| 102 | Yes | 8.94 s | No |
-| 103 | Yes | 8.96 s | No |
-| 104 | Yes | 8.88 s | No |
-| 105 | Yes | 8.86 s | No |
+| 101 | Yes | 8.90 s | Yes |
+| 102 | Yes | 8.82 s | Yes |
+| 103 | Yes | 8.80 s | Yes |
+| 104 | Yes | 8.98 s | Yes |
+| 105 | Yes | 9.00 s | Yes |
 
-The [machine-readable five-episode record](../reports/relaxed_v4_evaluation.json) is **5/5**. The [additional seeds 106–110](../reports/relaxed_v4_extra_evaluation.json) are also 5/5, with 8.84–8.88 s strict stance at end. All ten complete without a safety termination. Evaluation seeds are local reproducibility choices, each changing only small supine root-pose perturbations. They are not ten independent training seeds or a robustness claim.
+The [machine-readable five-episode record](../reports/relaxed_v4_evaluation.json) is **5/5**. The [additional seeds 106–110](../reports/relaxed_v4_extra_evaluation.json) are also 5/5, each with 8.98 s strict stance at end. All ten complete without a safety termination. Evaluation seeds are local reproducibility choices, each changing only small supine root-pose perturbations. They are not ten independent training seeds or a robustness claim.
 
-The controller briefly raises both feet at the height peak, then lands and remains in two-foot stance. The airborne peak is an observable limitation and is excluded from the strict-standing duration. No failures occurred in the required five episodes. Training reward alone would not establish these outcomes.
+Both feet remain in contact at the measured height peak in all five required episodes. Four episodes contain a separate 0.02–0.04 s upright airborne interval; one has none. These brief intervals are excluded from strict-standing duration. No failures occurred in the required five episodes. Training reward alone would not establish these outcomes.
 
 ## ROS 2 and regression checks
 
