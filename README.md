@@ -16,13 +16,15 @@ The first two seconds show the initial supine pose; the following ten seconds sh
 - [Setup, training and ROS commands](docs/commands.md)
 - [Validation and ROS outcomes](docs/validation.md)
 
-## Training reward
+## Submitted model training reward
 
 The submitted checkpoint inherits 3,860 PPO updates. Dashed lines mark training continuations; reward terms change at some boundaries. Mean reward alone does not prove recovery; the five-episode evaluation above measures that separately.
 
 ![Selected policy training reward](reports/selected_supine_training_reward.png)
 
 [Reward CSV](reports/selected_supine_training_reward.csv) · [Final 250-update curve](reports/forward_arm_refinement_reward.png)
+
+A separate [1,500-update run](reports/experiments/fixed_rewards_1500/README.md) also recovered 5/5 and has its [own reward graph](reports/experiments/fixed_rewards_1500/reward.png); it is not the submitted video/checkpoint.
 
 ## Setup and dependencies
 
