@@ -37,7 +37,7 @@ The official AgiBot X2 Ultra v1.3.0 URDF is pinned to revision `60c5de582c523cd1
 | Previous two eight-value actions | 16 |
 | **Total policy input** | **122** |
 
-The policy outputs eight continuous action values. Each left/right pair shares one value because the corresponding URDF joint axes have the same sign.
+The policy outputs **eight numbers**, not 15. Seven numbers are each shared by a left/right joint pair: for example, one knee action sets targets for both knees. The eighth number controls waist pitch. Thus 7 × 2 + 1 = 15 joints receive targets from an eight-dimensional action space.
 
 | Action index | Joint position targets | Joints |
 | ---: | --- | ---: |
@@ -49,7 +49,7 @@ The policy outputs eight continuous action values. Each left/right pair shares o
 | 5 | Waist pitch | 1 |
 | 6 | Left/right ankle roll | 2 |
 | 7 | Left/right hip roll | 2 |
-| **Total** | **Eight outputs vary 15 targets** | **15** |
+| **Total** | **8 action values control 15 joints** | **15** |
 
 For each controlled joint, `q_target = clamp(centre + span × tanh(action), imported 98% soft limits)`. The other 16 joints retain neutral position targets while remaining simulated and published. Actions specify position targets, not direct torques. Actor and critic are separate normalized 512/256/128 ELU MLPs; [centres and spans](docs/parameter_provenance.md#action-provenance) are listed separately.
 
