@@ -24,7 +24,34 @@ Tested on Ubuntu 22.04.5, RTX 5080 Laptop GPU (16 GB), Isaac Sim 6.0.1, Isaac La
 
 The official AgiBot X2 Ultra v1.3.0 URDF is pinned to revision `60c5de582c523cd188f563819e62d34cfdc3d2d0`. `scripts/fetch_agibot_model.sh` retrieves it, and `scripts/import_x2_isaac.sh` converts it locally to USD. The generated USD stays outside Git. A 200 m square flat floor has collision; the robot has a floating base, 31 movable joints, imported actuator limits and self-collision. The import retains vendor meshes, inertias and joint axes. Physics runs at 200 Hz, policy control at 50 Hz. Each reset places the robot on its back at 0.190 m pelvis height, collision-clear, with neutral joints and zero velocity.
 
-The policy observes 122 values: pelvis height (1), body-frame linear and angular velocity (6), projected gravity (3), joint positions and velocities (62), left/right foot contact (2), whole-body ground contact (32) and two preceding eight-value actions (16). Its eight symmetric action channels control hip pitch, knee, ankle pitch, shoulder pitch, elbow, waist pitch, ankle roll and hip roll, varying 15 joint position targets. The other 16 joints keep their neutral targets while remaining simulated and reported. Targets use `centre + span × tanh(action)`, clamped to imported 98% soft joint limits; they are position commands, not direct torques. Actor and critic are separate normalized 512/256/128 ELU MLPs.
+### Policy observation and action spaces
+
+| Observation | Values |
+| --- | ---: |
+| Pelvis height | 1 |
+| Body-frame linear and angular velocity | 6 |
+| Projected gravity | 3 |
+| Joint positions and velocities | 62 |
+| Left/right foot contact | 2 |
+| Whole-body ground-contact bits | 32 |
+| Previous two eight-value actions | 16 |
+| **Total policy input** | **122** |
+
+The policy outputs eight continuous action values. Each left/right pair shares one value because the corresponding URDF joint axes have the same sign.
+
+| Action index | Joint position targets | Joints |
+| ---: | --- | ---: |
+| 0 | Left/right hip pitch | 2 |
+| 1 | Left/right knee | 2 |
+| 2 | Left/right ankle pitch | 2 |
+| 3 | Left/right shoulder pitch | 2 |
+| 4 | Left/right elbow | 2 |
+| 5 | Waist pitch | 1 |
+| 6 | Left/right ankle roll | 2 |
+| 7 | Left/right hip roll | 2 |
+| **Total** | **Eight outputs vary 15 targets** | **15** |
+
+For each controlled joint, `q_target = clamp(centre + span × tanh(action), imported 98% soft limits)`. The other 16 joints retain neutral position targets while remaining simulated and published. Actions specify position targets, not direct torques. Actor and critic are separate normalized 512/256/128 ELU MLPs; [centres and spans](docs/parameter_provenance.md#action-provenance) are listed separately.
 
 ### Reward terms in the selected run
 
