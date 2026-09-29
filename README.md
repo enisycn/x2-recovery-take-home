@@ -38,7 +38,7 @@ Isaac Lab adds `weight × term value × 0.02 s` each policy step. These are rewa
 | Both feet | +10 | Both feet contacting near standing height and upright orientation. |
 | Other support | −1 | Count non-foot contacts near standing; early hand push-off remains allowed. |
 | Balance | +20 | Low base speed near upright standing. |
-| Strict stance | +20 | Complete physical success predicate below. |
+| Strict stance | +20 | Instantaneous stance checks; evaluation also requires a continuous 0.5 s hold. |
 | Stance proximity | +20 | Smooth approach to supported low-speed stance; training widths 0.35 tilt, 0.8 m/s linear and 2 rad/s angular speed. |
 | Leg pose | +20 | Neutral hip pitch, knee and ankle pitch when raised and upright. |
 | Relaxed arms | +40 | After supported upright stance, prefer shoulder pitch 0 and elbow −0.15 rad with Gaussian variance 2. |
