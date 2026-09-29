@@ -81,8 +81,8 @@
         -0.003011402441188693,
         0.0016469948459416628
       ],
-      "stamp_sec": 1790681635,
-      "stamp_nanosec": 142794381
+      "stamp_sec": 1790682416,
+      "stamp_nanosec": 926176491
     }
   },
   "timeout_parameter_command": [
@@ -103,7 +103,7 @@
       "std_srvs/srv/Trigger",
       "{}"
     ],
-    "cli_output": "waiting for service to become available...\nrequester: making request: std_srvs.srv.Trigger_Request()\n\nresponse:\nstd_srvs.srv.Trigger_Response(success=True, message='Recovery accepted')\n\n",
+    "cli_output": "requester: making request: std_srvs.srv.Trigger_Request()\n\nresponse:\nstd_srvs.srv.Trigger_Response(success=True, message='Recovery accepted')\n\n",
     "statuses": [
       "RUNNING",
       "FAILED"
@@ -176,8 +176,8 @@
         0.0035307270009070635,
         0.011940965428948402
       ],
-      "stamp_sec": 1790681637,
-      "stamp_nanosec": 281118052
+      "stamp_sec": 1790682418,
+      "stamp_nanosec": 802024932
     }
   },
   "concurrent_trial": {
@@ -254,13 +254,13 @@
         -0.002762885531410575,
         0.0018850909546017647
       ],
-      "stamp_sec": 1790681632,
-      "stamp_nanosec": 873210909
+      "stamp_sec": 1790682414,
+      "stamp_nanosec": 646892020
     }
   },
   "backend": "Isaac Lab / PhysX",
   "accepted": true,
-  "acceptance_wall_s": 0.0010087260161526501,
+  "acceptance_wall_s": 0.0006687960121780634,
   "busy_rejected": true,
   "statuses": [
     "RUNNING",
@@ -334,16 +334,16 @@
       0.0035307270009070635,
       0.011940965428948402
     ],
-    "stamp_sec": 1790681637,
-    "stamp_nanosec": 281118052
+    "stamp_sec": 1790682418,
+    "stamp_nanosec": 802024932
   },
   "success": true
 }
-[x2_telemetry_node-2] [INFO] [1790681632.058041040] [x2_telemetry]: status=RUNNING left_knee_joint=0.2847 rad
-[x2_telemetry_node-2] [INFO] [1790681633.057985034] [x2_telemetry]: status=SUCCEEDED left_knee_joint=-0.0003 rad
-[x2_telemetry_node-2] [INFO] [1790681634.058032075] [x2_telemetry]: status=RUNNING left_knee_joint=0.7870 rad
-[x2_telemetry_node-2] [INFO] [1790681635.058031591] [x2_telemetry]: status=RUNNING left_knee_joint=-0.0003 rad
-[x2_telemetry_node-2] [INFO] [1790681636.058022044] [x2_telemetry]: status=SUCCEEDED left_knee_joint=-0.0003 rad
-[x2_telemetry_node-2] [INFO] [1790681637.058061063] [x2_telemetry]: status=SUCCEEDED left_knee_joint=-0.0003 rad
-[x2_recovery_node-1] [WARN] [1790681637.282554733] [x2_recovery]: Recovery failed in 10 steps: timeout before 0.5 s strict stable stance
+[x2_telemetry_node-2] [INFO] [1790682413.888204214] [x2_telemetry]: status=RUNNING left_knee_joint=0.3066 rad
+[x2_telemetry_node-2] [INFO] [1790682414.888287226] [x2_telemetry]: status=SUCCEEDED left_knee_joint=-0.0003 rad
+[x2_telemetry_node-2] [INFO] [1790682415.888207350] [x2_telemetry]: status=RUNNING left_knee_joint=0.4064 rad
+[x2_telemetry_node-2] [INFO] [1790682416.888172248] [x2_telemetry]: status=RUNNING left_knee_joint=-0.0003 rad
+[x2_telemetry_node-2] [INFO] [1790682417.888362477] [x2_telemetry]: status=SUCCEEDED left_knee_joint=-0.0003 rad
+[x2_recovery_node-1] [WARN] [1790682418.803169691] [x2_recovery]: Recovery failed in 10 steps: timeout before 0.5 s strict stable stance
+[x2_telemetry_node-2] [INFO] [1790682418.888551252] [x2_telemetry]: status=FAILED left_knee_joint=0.3206 rad
 ROS-Isaac runtime validation passed (CLI success, busy rejection, live telemetry, Isaac timeout)
