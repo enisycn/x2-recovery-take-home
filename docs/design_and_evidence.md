@@ -95,9 +95,9 @@ the current preset also scored 0/5: seeds 103 and 105 briefly met all criteria
 for 0.04 s, below the required 0.5 s. This is partial progress, not recovery.
 Continuing the same reward preset for 500 more updates reached **5/5**, with 8.78–9.02 s strict stance at episode end. All training resets in this new lineage were supine. At that 1,000-update stage, the additional neutral-arm criterion was still unmet. This combined reward/exploration change and larger training budget is not a single-factor ablation. The historical mixed-start model450 remains separate.
 
-## Shoulder refinement
+## Historical shoulder refinement
 
-The optional posture preset adds
+This section describes the older staged continuation, not the submitted single run. In that experiment, the optional posture preset added
 `80 * gate * exp(-(a_shoulder - atanh(0.25))^2 / 9)` while retaining the physical
 arm-pose reward. The inverse target follows from `0 = -0.5 + 2*tanh(a_shoulder)`.
 The gate multiplies `clip((z-.50)/.15,0,1)`,
@@ -127,4 +127,4 @@ then receive more distinct scores without changing the target or maximum
 reward. Both widths are local choices and are saved in the run configuration.
 The original broad reward remains reproducible by omitting this override.
 
-Precision model2248 passes all five canonical recoveries and the full final-two-second neutral-arm check. A subsequent 150-update change moves the shoulder-command target ratio from 0.25 to 0.15; intermediate model2397 retains 5/5 recovery after 2,404 all-supine updates. The final model3847 continues that supported-stance lineage with a local forward-arm target and passes 5/5 required plus 5/5 additional episodes after 3,860 selected updates. Exact stages and physical arm measurements are recorded in [development history](development_history.md) and [validation](validation.md).
+The selected policy uses the stance and posture terms from its first update with shoulder target ratio 0.15 and command variance 1. It begins from random weights and runs uninterrupted for 1,500 PPO updates. It passes 5/5 required plus 5/5 additional supine episodes. The older model2248/model2397/model3847 continuation lineage remains a historical comparison, not this checkpoint's parent. Exact results and the brief airborne rise are recorded in [development history](development_history.md) and [validation](validation.md).

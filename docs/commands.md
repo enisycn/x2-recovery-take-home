@@ -1,160 +1,38 @@
-# Commands, in order
+# Reproduce the selected X2 recovery result
 
-Run commands from the root of this repository. Training is optional when validating the submitted checkpoint and ROS interface: the checkpoint and exported policy are already in `reports/`.
+Run each block from the repository root. Isaac and ROS use separate Python environments; the commands below do not change CPU affinity or the configuration of other robot projects.
 
-## 1. One-time setup
+## 1. Install and import
 
-Clone this repository using its GitHub URL, then enter it:
+Tested: Ubuntu 22.04.5, RTX 5080 Laptop GPU (16 GB), Isaac Sim 6.0.1, Isaac Lab 3.0.0-beta2.patch1, RSL-RL 5.0.1, ROS 2 Humble. Install [Isaac Sim](https://docs.isaacsim.omniverse.nvidia.com/6.0.1/installation/install_python.html), [Isaac Lab](https://github.com/isaac-sim/IsaacLab/releases/tag/v3.0.0-beta2.patch1), [RSL-RL](https://github.com/leggedrobotics/rsl_rl/releases/tag/v5.0.1) and [ROS 2 Humble](https://docs.ros.org/en/humble/Installation/Ubuntu-Install-Debs.html) first.
 
 ```bash
 git clone https://github.com/enisycn/x2-recovery-take-home.git hrs_x2_take_home
 cd hrs_x2_take_home
-```
-
-Install [Isaac Sim 6.0.1](https://docs.isaacsim.omniverse.nvidia.com/6.0.1/installation/install_python.html), [Isaac Lab 3.0.0-beta2.patch1](https://github.com/isaac-sim/IsaacLab/releases/tag/v3.0.0-beta2.patch1), [RSL-RL 5.0.1](https://github.com/leggedrobotics/rsl_rl/releases/tag/v5.0.1), and [ROS 2 Humble](https://docs.ros.org/en/humble/Installation/Ubuntu-Install-Debs.html) in their respective environments. The tested host was Ubuntu 22.04.5 with an NVIDIA RTX 5080 Laptop GPU (16 GB). Isaac used Python 3.12; ROS used system Python 3.10. Keep those environments separate.
-
-Activate the Isaac environment and record its Python executable:
-
-```bash
-export ISAAC_PYTHON="$(command -v python)"
-"$ISAAC_PYTHON" -c 'import importlib.util as u; assert all(u.find_spec(x) for x in ("isaacsim", "isaaclab", "rsl_rl"))'
+export ISAAC_PYTHON="$(command -v python)"  # after activating the Isaac Python 3.12 environment
 "$ISAAC_PYTHON" -m pip install -r requirements.txt
 ./scripts/fetch_agibot_model.sh
 ./scripts/import_x2_isaac.sh
 ```
 
-`ISAAC_PYTHON` must point to the Isaac environment in each new terminal that runs Isaac. Training, evaluation, policy-server and import launchers select `--viz none` for headless execution; graphical playback uses `--viz kit`. The deprecated `--headless` CLI flag is not passed by these launchers. The fetcher checks the official source and exact recorded Git revision. The imported USD remains local under `assets/isaac/`.
+Set `ISAAC_PYTHON` in each new Isaac terminal. The model is pinned; generated USD stays local in `assets/isaac/` and is not needed in Git. The scripts use `--viz none` for headless runs and `--viz kit` for graphical playback.
 
-Install the ROS package dependencies in a ROS terminal:
+## 2. Train once from random weights (optional)
 
-```bash
-source /opt/ros/humble/setup.bash
-rosdep install --from-paths src --ignore-src -r -y
-```
-
-## 2. Train (optional)
-
-This starts a new PPO experiment from random actor/critic weights. Every episode starts supine with neutral joints and zero velocity; there are no auxiliary poses, reset schedule or lift assistance. Do not add `--checkpoint` when training from scratch. Reward gates stay active; they control when rewards apply, not the initial pose.
+This is the exact selected configuration: 3,000 environments, 1,500 uninterrupted PPO updates, only supine resets, and the same rewards from update 0. There is **no** `--checkpoint` option.
 
 ```bash
 ./scripts/train_isaac.sh --phase relaxed_v4 --num_envs 3000 \
-  --max_iterations 500 --seed 47 --device cuda:0 \
-  --run_name supine_dense_stance_scratch \
-  --stability_refinement --action_std_override 0.8 --entropy_coef 0
-```
-
-After that run completes, continue for 500 further updates with the same reward and all-supine resets. Keep the learned standard deviations and optimizer state:
-
-```bash
-experiment=logs/rsl_rl/hrs_x2_relaxed_v4
-parent_dir="$experiment/$(cat "$experiment/LATEST_RUN.txt")"
-./scripts/train_isaac.sh --phase relaxed_v4 --num_envs 3000 \
-  --max_iterations 500 --seed 47 --device cuda:0 \
-  --run_name supine_dense_stance_continue --stability_refinement \
-  --checkpoint "$parent_dir/model_499.pt" --entropy_coef 0
-```
-
-After the two stance runs, the recorded arm refinement uses the following continuations. Every reset stays supine; only the supported shoulder objective is added. Keep the learned per-channel standard deviations and optimizer. Run each block after the previous one finishes.
-
-Continue from the indicated saved checkpoint for 300 updates (fixed learning rate):
-
-```bash
-parent_dir="$experiment/$(cat "$experiment/LATEST_RUN.txt")"
-./scripts/train_isaac.sh --phase relaxed_v4 --num_envs 3000 \
-  --max_iterations 300 --seed 47 --device cuda:0 \
-  --run_name supine_shoulder_focus --stability_refinement --posture_refinement \
-  --checkpoint "$parent_dir/model_998.pt" \
-  --learning_rate_override 0.0001 --learning_schedule fixed --entropy_coef 0
-```
-
-Continue from the indicated saved checkpoint for 454 updates (fixed learning rate):
-
-```bash
-parent_dir="$experiment/$(cat "$experiment/LATEST_RUN.txt")"
-./scripts/train_isaac.sh --phase relaxed_v4 --num_envs 3000 \
-  --max_iterations 454 --seed 47 --device cuda:0 \
-  --run_name supine_shoulder_continue --stability_refinement --posture_refinement \
-  --checkpoint "$parent_dir/model_1297.pt" \
-  --learning_rate_override 0.0001 --learning_schedule fixed --entropy_coef 0
-```
-
-Continue from the indicated saved checkpoint for 300 updates (adaptive learning rate):
-
-```bash
-parent_dir="$experiment/$(cat "$experiment/LATEST_RUN.txt")"
-./scripts/train_isaac.sh --phase relaxed_v4 --num_envs 3000 \
-  --max_iterations 300 --seed 47 --device cuda:0 \
-  --run_name supine_shoulder_kl --stability_refinement --posture_refinement \
-  --checkpoint "$parent_dir/model_1750.pt" \
-  --learning_rate_override 0.0001 --learning_schedule adaptive --entropy_coef 0
-```
-
-Continue from the indicated saved checkpoint for 200 updates (adaptive learning rate):
-
-```bash
-parent_dir="$experiment/$(cat "$experiment/LATEST_RUN.txt")"
-./scripts/train_isaac.sh --phase relaxed_v4 --num_envs 3000 \
-  --max_iterations 200 --seed 47 --device cuda:0 \
-  --run_name supine_shoulder_precision --stability_refinement --posture_refinement --shoulder_command_variance 1 \
-  --checkpoint "$parent_dir/model_2049.pt" \
-  --learning_rate_override 0.0001 --learning_schedule adaptive --entropy_coef 0
-```
-
-Continue the verified model2248 for 150 more updates to move the shoulder target slightly toward neutral (no new reward term):
-
-```bash
-parent_dir="$experiment/$(cat "$experiment/LATEST_RUN.txt")"
-./scripts/train_isaac.sh --phase relaxed_v4 --num_envs 3000 \
-  --max_iterations 150 --seed 47 --device cuda:0 \
-  --run_name shoulder_forward150 --stability_refinement --posture_refinement \
+  --max_iterations 1500 --seed 47 --device cuda:0 \
+  --run_name fixed_rewards_single1500 \
+  --stability_refinement --posture_refinement \
   --shoulder_command_variance 1 --shoulder_target_ratio 0.15 \
-  --checkpoint "$parent_dir/model_2248.pt" \
-  --learning_rate_override 0.0001 --learning_schedule adaptive --entropy_coef 0
+  --action_std_override 0.8 --learning_schedule adaptive --entropy_coef 0
 ```
 
-The selected forward-arm continuation starts from the supplied intermediate `reports/checkpoints/x2_supine_model2397.pt`. All six stages retain exclusively supine resets, 3,000 environments, seed 47, actor/critic weights and optimizer. Each stage uses `--stability_refinement --posture_refinement --forward_arm_refinement --shoulder_target_ratio 0.14 --arm_action_std_override 0.2 0.8 --learning_rate_override 0.00005 --learning_schedule adaptive --entropy_coef 0`; set the listed lengths with `--max_iterations` and use the preceding stage's checkpoint as `--checkpoint`.
+Each completed run writes `reward.png`, `reward.csv`, `run_manifest.json`, settings and checkpoints under `logs/rsl_rl/hrs_x2_relaxed_v4/<timestamp>_<run_name>/`. Training prints iteration, reward, steps/s and ETA. For a second-terminal summary refreshed every five seconds, run `python3 scripts/watch_training.py` from the repository root. This watcher reads the active log; it does not start another training process.
 
-| Selected stage | Added updates | Parent index → selected index | Forward command weight / variance | Shoulder command weight / variance |
-| --- | ---: | --- | --- | --- |
-| Forward pose | 200 | 2397 → 2596 | 80 / 16 | 80 / 1 |
-| Stronger forward command | 300 | 2596 → 2895 | 200 / 16 | 80 / 1 |
-| Retained interrupted checkpoint | 156 | 2895 → 3050 | 200 / 16 | 80 / 1 |
-| Continue same reward | 300 | 3050 → 3349 | 200 / 16 | 80 / 1 |
-| Stronger shoulder command | 250 | 3349 → 3598 | 200 / 16 | 200 / 0.2 |
-| Narrow forward command | 250 | 3598 → 3847 | 200 / 2 | 200 / 0.2 |
-
-Use `--forward_command_weight`, `--forward_command_variance`, `--posture_command_weight` and `--shoulder_command_variance` to set each row. The 156-update checkpoint was chosen from an interrupted longer run; later unselected updates are excluded. [Final resolved settings](../reports/configs/supine_model3847/env.yaml) and [lineage provenance](../reports/configs/supine_model3847/provenance.json) are supplied. Reward changes mean an uninterrupted run is a new experiment, not a bitwise reproduction. The final 250-update settings can be used for a fresh continuation:
-
-```bash
-./scripts/train_isaac.sh --phase relaxed_v4 --num_envs 3000 \
-  --max_iterations 250 --seed 47 --device cuda:0 \
-  --run_name forward_arm_continuation \
-  --checkpoint reports/checkpoints/x2_supine_model3847.pt \
-  --stability_refinement --posture_refinement --forward_arm_refinement \
-  --shoulder_target_ratio 0.14 --shoulder_command_variance 0.2 \
-  --forward_command_weight 200 --forward_command_variance 2 \
-  --posture_command_weight 200 --arm_action_std_override 0.2 0.8 \
-  --learning_rate_override 0.00005 --learning_schedule adaptive --entropy_coef 0
-```
-
-A continuation produces a new run and requires its own five-episode evaluation. The supplied checkpoint remains the validated result.
-
-The original fixed-rate trial continued beyond model1750 and regressed. Those rejected updates are not inherited by this recipe. Validate each retraining result separately.
-
-Training prints progress after each completed PPO iteration: iteration number, mean reward, mean episode length (policy steps), reward terms, elapsed time and ETA. Output is unbuffered. No completed episodes means the mean episode metrics are not available yet. The training console prints the temporary log path as `[HRS] Live console log:`. For a compact view refreshed every five seconds, run this in a second terminal while one training run is active:
-
-```bash
-cd /path/to/hrs_x2_take_home
-python3 scripts/watch_training.py
-```
-
-The monitor shows only the latest complete iteration, including steps per second, mean episode metrics and supported-stance reward terms; it strips terminal formatting codes. `Ctrl+C` in this second terminal stops only the monitor. The newest temporary training log is selected once at startup; to choose a specific run, append its printed console log path to the command. When the launcher finishes, it saves the console output as `training.log` inside the run directory, removes the temporary copy, and the monitor stops without inferring success. TensorBoard metrics and checkpoints also remain in the run directory.
-
-Every **completed** training run writes a checkpoint, `reward.png`, `reward.csv`, and `run_manifest.json` to its timestamped directory. The folder hierarchy is `logs/rsl_rl/hrs_x2_relaxed_v4/<timestamp>_<run_name>/`; the run is inside the experiment folder, not directly under `rsl_rl` and not under `/tmp`.
-
-New runs do not overwrite submitted artifacts in `reports/`. Change `--run_name` to label another experiment. The selected ancestry contains 3,860 updates. The first 2,404 updates reproduce the intermediate supported-stance checkpoint; the final arm continuation is summarized above. Budgets and checkpoint indices in this recipe record the experiment; they do not guarantee recovery on a retrain. Check the actual five-episode result and arm metrics before selecting a new model. The newest checkpoint can be worse than an earlier one. Historical failures remain in [development history](development_history.md).
-
-Find the latest completed run:
+Locate the run you just completed without relying on the latest-run pointer after another experiment:
 
 ```bash
 experiment=logs/rsl_rl/hrs_x2_relaxed_v4
@@ -164,63 +42,40 @@ xdg-open "$run_dir/reward.png"
 ls -lh "$run_dir"/model_*.pt
 ```
 
-The directory name is `timestamp_run_name`, using the label supplied with `--run_name`. `LATEST_RUN.txt` stores the name of the last run whose finalization completed, regardless of its label. Another completed run changes that pointer; keep the full directory path to revisit a particular experiment.
+`LATEST_RUN.txt` points to the most recently completed run. Its directory is timestamped and includes the value of `--run_name`. The submitted result is the distinct [selected graph](../reports/selected_supine_training_reward.png) and [selected checkpoint](../reports/checkpoints/x2_supine_single1500.pt); a new run never overwrites those files automatically.
 
-Evaluate the new checkpoint and keep its report and exported ROS policy in that same run directory:
-
-```bash
-new_checkpoint="$("$ISAAC_PYTHON" -c 'import json,sys; print(json.load(open(sys.argv[1]))["latest_checkpoint"])' "$run_dir/run_manifest.json")"
-./scripts/evaluate_isaac.sh "$run_dir/$new_checkpoint" \
-  --environment relaxed_v4 --device cuda:0 \
-  --output "$run_dir/evaluation.json"
-```
-
-The exported policy is `$run_dir/exported_relaxed_v4/policy.pt`. Check `export.succeeded` and the recovery result in `evaluation.json`; export alone does not prove recovery success. To serve this new policy, use its absolute path with `serve_isaac_policy.sh`. Evaluation remains an explicit step after training.
-
-The [complete selected training curve](../reports/selected_supine_training_reward.png) covers all 3,860 inherited updates. The [final 250-update graph](../reports/forward_arm_refinement_reward.png) isolates the last refinement. Replot the complete committed CSV with `"$ISAAC_PYTHON" scripts/plot_selected_lineage.py`; see [output locations](artifact_locations.md) for the full layout.
-
-## 3. Play and evaluate the supplied checkpoint
-
-Playback needs `--viz kit` to open the Isaac viewer in this version. Set `seed` to 101, 102, 103, 104 or 105 for a single episode:
+## 3. Play the supplied checkpoint
 
 ```bash
-seed=101
-./scripts/play_isaac.sh reports/checkpoints/x2_supine_model3847.pt \
+seed=101  # use 101, 102, 103, 104 or 105
+./scripts/play_isaac.sh reports/checkpoints/x2_supine_single1500.pt \
   --environment relaxed_v4 --device cuda:0 --viz kit --start-delay 2 \
   --seeds "$seed" --output "/tmp/x2_play_seed_${seed}.json"
 ```
 
-`--start-delay 2` shows the frozen supine reset pose for two wall-clock seconds before each episode. Only the viewer updates during this preview; physics, policy inference and the 10-second episode clock have not started. Set it to `0` to start immediately. Headless evaluation uses no preview.
+The two-second frozen preview shows the supine reset pose; physics and the episode clock start afterward. For all five episodes, replace `--seeds "$seed"` with `--seeds 101 102 103 104 105`. Playback and evaluation use the checkpoint path explicitly: they do not select the newest checkpoint automatically.
 
-The viewer closes after evaluation finishes. A 10-second simulation episode can run faster than wall-clock time. The supplied path selects `model3847` explicitly; it does not automatically choose the latest training checkpoint. Seeds change small initial supine root-pose perturbations; the model weights, neutral joint angles and zero initial velocities remain the same.
-
-Play all five seeds sequentially in one viewer session:
+## 4. Evaluate the supplied checkpoint
 
 ```bash
-./scripts/play_isaac.sh reports/checkpoints/x2_supine_model3847.pt \
-  --environment relaxed_v4 --device cuda:0 --viz kit --start-delay 2 \
-  --seeds 101 102 103 104 105 --output /tmp/x2_play_all_seeds.json
-```
-
-Evaluation runs those five fixed seeds headlessly and writes a JSON result:
-
-```bash
-./scripts/evaluate_isaac.sh reports/checkpoints/x2_supine_model3847.pt \
-  --environment relaxed_v4 --device cuda:0 \
-  --output /tmp/x2_evaluation.json
-```
-
-The recorded result is [5/5](../reports/relaxed_v4_evaluation.json). To evaluate a checkpoint from your own run, replace the checkpoint path with one shown in its `run_manifest.json`.
-
-At completion, expect one result line per seed and `successes=N/5 report=/tmp/x2_evaluation.json`. Inspect `successful_recoveries`, `total_episodes`, and each episode's `success`, `standing_at_episode_end` and `failure_reason` in that JSON. `export.succeeded` checks the policy export separately. Evaluation does not generate a training reward graph.
-
-```bash
+./scripts/evaluate_isaac.sh reports/checkpoints/x2_supine_single1500.pt \
+  --environment relaxed_v4 --device cuda:0 --output /tmp/x2_evaluation.json
 "$ISAAC_PYTHON" -m json.tool /tmp/x2_evaluation.json
 ```
 
-## 4. Build and run ROS 2
+Expect `successes=5/5` and review `successful_recoveries`, each `standing_at_episode_end`, `final_strict_stable_s` and `failure_reason`. The evaluator also exports a TorchScript policy for ROS. Its export check alone does not establish recovery success.
 
-Build once from the repository root:
+To evaluate your **new** training run instead, read `latest_checkpoint` from its manifest and keep the result in that run directory:
+
+```bash
+new_checkpoint="$("$ISAAC_PYTHON" -c 'import json,sys; print(json.load(open(sys.argv[1]))["latest_checkpoint"])' "$run_dir/run_manifest.json")"
+./scripts/evaluate_isaac.sh "$run_dir/$new_checkpoint" \
+  --environment relaxed_v4 --device cuda:0 --output "$run_dir/evaluation.json"
+```
+
+## 5. Build and run ROS 2
+
+Build the package after setup and again after changing ROS source:
 
 ```bash
 ./scripts/build_ros.sh
@@ -235,7 +90,7 @@ export ISAAC_PYTHON=/path/to/your/isaac/environment/bin/python
   --environment relaxed_v4 --device cuda:0
 ```
 
-**Terminal 2 — both ROS nodes with one launch:**
+**Terminal 2 — both ROS nodes in one launch:**
 
 ```bash
 cd /path/to/hrs_x2_take_home
@@ -246,27 +101,22 @@ export FASTRTPS_DEFAULT_PROFILES_FILE="$PWD/config/fastdds_shm.xml"
 ros2 launch x2_recovery_ros x2_recovery.launch.py timeout_sec:=10.0
 ```
 
-**Terminals 3–5 — prepare each ROS inspection terminal:**
-
-```bash
-cd /path/to/hrs_x2_take_home
-source /opt/ros/humble/setup.bash
-source install/setup.bash
-export ROS_DOMAIN_ID=94
-export FASTRTPS_DEFAULT_PROFILES_FILE="$PWD/config/fastdds_shm.xml"
-```
-
-Start both watchers **before** the request so the 10-second episode is visible live:
+Prepare Terminals 3–5 with the same `cd`, `source` and `export` commands from Terminal 2. Start the watchers before requesting recovery:
 
 ```bash
 # Terminal 3: status
 ros2 topic echo /x2/recovery_status std_msgs/msg/String --qos-durability transient_local
-
-# Terminal 4: measured simulator joints
+# Terminal 4: timestamped simulator joint positions
 ros2 topic echo /x2/joint_states sensor_msgs/msg/JointState
-
-# Terminal 5: accepted start request
+# Terminal 5: start request
 ros2 service call /x2/start_recovery std_srvs/srv/Trigger '{}'
 ```
 
-For the busy-request and `FAILED` timeout checks, use the exact steps in [live validation](ros_live_validation.md). Recorded outputs are in [validation](validation.md).
+The first request returns `success=True`; a second request while `RUNNING` returns `false`. The live status changes to `SUCCEEDED` after a stable hold. To test timeout, set `ros2 param set /x2_recovery timeout_sec 0.2` in a prepared ROS terminal and call the service again; expect `FAILED`. Restore `10.0` afterward. [Recorded checks](ros_live_validation.md) and [validation summary](validation.md) show the outcomes.
+
+For a one-command integration recheck after building ROS, close other Isaac sessions and run:
+
+```bash
+./scripts/validate_ros_isaac_runtime.sh reports/exported_relaxed_v4/policy.pt \
+  --environment relaxed_v4 --device cuda:0
+```

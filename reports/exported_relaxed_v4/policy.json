@@ -1,39 +1,12 @@
 {
-  "checkpoint": "reports/checkpoints/x2_supine_model3847.pt",
-  "sha256": "9956b462535ee79fd8f1e664c31087b2c678c99a7c9264eb7779932277652de5",
-  "iteration": 3847,
-  "completed_ppo_updates": 3860,
-  "parent_stance_checkpoint": "reports/checkpoints/x2_supine_model2397.pt",
-  "selected_arm_continuation_updates": [
-    200,
-    300,
-    156,
-    300,
-    250,
-    250
-  ],
-  "initial_weights": "random",
+  "checkpoint": "reports/checkpoints/x2_supine_single1500.pt",
+  "checkpoint_sha256": "9c87530605ab64a5fa44e24983a07d66c167d4fdcd99a6ff22ef65056cebe3f5",
+  "completed_ppo_updates": 1500,
+  "parent_checkpoint": null,
   "all_training_resets": "supine_only",
-  "mixed_start_pretraining": false,
-  "reset_curriculum": false,
-  "imitation": false,
-  "external_force": false,
-  "obs_dim": 122,
-  "policy_action_dim": 8,
-  "actuated_joints": 31,
-  "sim_dt": 0.005,
-  "policy_dt": 0.02,
-  "successful_evaluation_episodes": 5,
-  "total_evaluation_episodes": 5,
-  "all_standing_at_episode_end": true,
-  "strict_stance_duration_range_s": [
-    8.88,
-    9.0
-  ],
-  "additional_seed_successes": 5,
-  "additional_seed_episodes": 5,
-  "arm_posture_note": "Forward-arm pose is an optional local design target, not an HRS success condition. The evaluator retains a historical neutral-arm diagnostic.",
   "export": "reports/exported_relaxed_v4/policy.pt",
-  "export_sha256": "9b6bbb8b34e1231283a5ef8a9cb2e84c74ae35c3b728e671a84afcedfcf47236",
-  "export_maximum_error": 0.0
+  "export_sha256": "16cb3bdadb8b7f7e03717e4f47d23d02a97c808e5e821ec4051337dc1d9c229f",
+  "export_maximum_error": 0.0,
+  "successful_evaluation_episodes": 5,
+  "total_evaluation_episodes": 5
 }

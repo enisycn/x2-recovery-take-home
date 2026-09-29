@@ -76,7 +76,7 @@ and [diagnostic totals](../reports/experiments/original_rewards2000/rollout_diag
 Increasing the original experiment's budget to 2,000 did not solve recovery
 in this run. Keep the selected, separately validated supine-only policy: its
 dense-stance ancestor reached 5/5 at 1,000 updates, and the later arm refinement
-reached 5/5 with neutral arms after 2,404 inherited updates. The selected final checkpoint continued that policy with forward-arm rewards. This experiment is
+reached 5/5 with neutral arms after 2,404 inherited updates. A separate historical checkpoint continued that policy with forward-arm rewards. The currently selected single-run checkpoint has no parent. This experiment is
 retained as a failed comparison and was not promoted to the ROS policy.
 
 Evidence: [evaluation](../reports/experiments/original_rewards2000/evaluation.json),

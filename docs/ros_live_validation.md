@@ -1,5 +1,7 @@
 # Live ROS 2 validation
 
+The server below loads the TorchScript export of the selected uninterrupted 1,500-update checkpoint. The current live test record is [`reports/ros_isaac_relaxed_v4_validation.txt`](../reports/ros_isaac_relaxed_v4_validation.txt).
+
 The required user-initiated command is the Trigger service call. Recovery status and joint states must be observed from the nodes; do not manually publish fake status or joint messages.
 
 ## Terminal 1: Isaac policy server
@@ -135,9 +137,8 @@ ros2 param set /x2_recovery timeout_sec 10.0
 
 ## Graphs and result files to open
 
-- `reports/selected_supine_training_reward.png`: complete 3,860-update selected all-supine lineage.
-- `reports/relaxed_v4_training_reward.png`: initial 2,404-update lineage.
-- `reports/forward_arm_refinement_reward.png`: final 250-update selected refinement.
+- `reports/selected_supine_training_reward.png`: complete 1,500-update single-run selected curve.
+- `reports/relaxed_v4_training_reward.png` and `reports/forward_arm_refinement_reward.png`: historical continuation experiments.
 - `reports/relaxed_v4_evaluation.json`: seeds 101-105 and 5/5 result.
 - `reports/gifs_relaxed_v4/x2_final_policy_attempt.gif`: final visual result.
 - `reports/videos/x2_recovery_supine_to_standing.mp4`: two-second supine preview and ten-second recorded episode.
@@ -149,4 +150,4 @@ For a newly completed training run, `scripts/train_isaac.sh` also creates `rewar
 
 Press `Ctrl+C` in Terminal 2, then Terminal 1. The interactive inspection terminal can remain open.
 
-The selected supine-only checkpoint passes the physical stance criterion. Its forward-arm posture is a separate local design choice; the historical neutral-arm check is not a ROS success condition. ROS and the evaluator share the same strict stance thresholds.
+The selected supine-only checkpoint passes the physical stance criterion. Arm posture is a separate local design choice, not a ROS success condition. ROS and the evaluator share the same strict stance thresholds.

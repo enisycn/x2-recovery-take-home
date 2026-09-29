@@ -47,14 +47,10 @@ To finish an older successful run that predates automatic finalization:
 | File or directory | Meaning |
 | --- | --- |
 | `docs/submission_report.pdf` | Four-page English summary of the method, reward curve, five-episode evaluation and ROS integration. |
-| `reports/selected_supine_training_reward.png` and `.csv` | Complete selected all-supine lineage: 3,860 PPO updates across continuation stages. |
-| `reports/relaxed_v4_training_reward.png` | Initial 2,404 selected PPO updates, through the intermediate supported-stance checkpoint. |
-| `reports/relaxed_v4_training_reward.csv` | Values behind that initial curve. |
-| `reports/forward_arm_refinement_reward.png` and `.csv` | Final 250-update reward curve and values. |
-| `reports/configs/supine_model3847/` | Final resolved environment and PPO settings plus selected lineage provenance. |
-| `reports/checkpoints/x2_supine_model3847.pt` | Selected policy checkpoint. |
-| `reports/checkpoints/x2_supine_model2397.pt` | Intermediate supported-stance parent for the final arm refinement. |
-| `reports/checkpoints/x2_supine_parent_model499.pt` | Supine-only 500-update parent used for the next 500 updates. |
+| `reports/selected_supine_training_reward.png` and `.csv` | Complete 1,500-update reward curve and values from the selected single run. |
+| `reports/configs/supine_single1500/` | Selected run's resolved environment, PPO settings, manifest and hash provenance. |
+| `reports/checkpoints/x2_supine_single1500.pt` | Selected single-run policy checkpoint. |
+| `reports/relaxed_v4_training_reward.png`, `reports/forward_arm_refinement_reward.png` and earlier checkpoints | Historical continuation experiments; not the selected run. |
 | `reports/relaxed_v4_evaluation.json` | Five seeded evaluation episodes and success checks. |
 | `reports/gifs_relaxed_v4/x2_final_policy_attempt.gif` | Visual rollout from the selected checkpoint. |
 | `reports/videos/x2_recovery_supine_to_standing.mp4` | Two-second supine preview followed by the recorded ten-second episode; English on-screen labels. |

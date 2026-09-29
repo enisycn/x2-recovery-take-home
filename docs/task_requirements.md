@@ -12,8 +12,8 @@ Every required item is implemented and linked below. The selected result is a tr
 | Collision and joint/actuator limits | Complete | Self-collision, recursive 32-body ground contact and imported URDF limits with one 98% soft margin. Geometry, inertia and axes are unchanged. |
 | Observation and action spaces | Complete | 122 observations; eight bilateral absolute actions mapped to 31 joint targets. README and `synergy_action.py`. |
 | Reward and episode termination | Complete | Term-by-term formulas, weights and intent are in README and `mdp.py`. Timeout and safety terminations are documented separately from success. |
-| PPO training experiment | Complete | RSL-RL PPO, 3000 environments, 32 steps/environment, seed 47; 3,860 selected PPO updates, exclusively supine resets. Exact hyperparameters and final resolved configuration are in README and config snapshots. |
-| Checkpoint and reward plot | Complete | `x2_supine_model3847.pt`, the complete 3,860-update `selected_supine_training_reward.png` and CSV under `reports/`; the final 250-update curve is retained separately. Every successful supported training run also writes its own graph, CSV and manifest; see `docs/artifact_locations.md`. |
+| PPO training experiment | Complete | RSL-RL PPO, 3000 environments, 32 steps/environment, seed 47; one uninterrupted 1,500-update run from random weights, exclusively supine resets. Resolved configuration is in `reports/configs/supine_single1500/`. |
+| Checkpoint and reward plot | Complete | `x2_supine_single1500.pt` and `selected_supine_training_reward.png`/CSV under `reports/` all come from that one run. Previous plots are historical comparisons; see `docs/artifact_locations.md`. |
 
 ## ROS 2 integration and interfaces
 
@@ -35,7 +35,7 @@ Every required item is implemented and linked below. The selected result is a tr
 | Five simulation episodes | Complete | Seeds 101-105, 500 steps and 10 s each in `relaxed_v4_evaluation.json`. Result: 5/5. |
 | Upright, both feet, no other support | Complete | Success requires height, projected-gravity uprightness, low root velocities, >=15 N on each foot and <15 N on all other bodies for 0.5 s continuously. |
 | Report failures | Complete | No failure occurred in the submitted five episodes; all `failure_reason` values are empty. Historical failures and fixes are in `development_history.md`. |
-| Fresh ROS 2 build | Complete | One-package clean build: 1 package finished in 0.95 s. |
+| Fresh ROS 2 build | Complete | One-package fresh `colcon` build; recorded under `reports/ros_fresh_build_v4.txt`. |
 | One launch command | Complete | `ros2 launch x2_recovery_ros x2_recovery.launch.py timeout_sec:=10.0`. |
 | CLI request starts recovery | Complete | Literal `ros2 service call /x2/start_recovery ...` produced `Recovery accepted` and `RUNNING -> SUCCEEDED`. |
 | Live joint telemetry | Complete | Measured simulator samples with 31 joint values and timestamps; counts are in the validation record. |

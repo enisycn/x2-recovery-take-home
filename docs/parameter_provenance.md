@@ -7,7 +7,7 @@ This document separates four kinds of evidence:
 - **ROBOT/TASK**: a value fixed by the official X2 model or by the assignment contract.
 - **LOCAL**: an X2-specific engineering choice supported by geometry audit, failure analysis or the final evaluation. A local value must not be presented as a paper constant.
 
-The cited papers motivate the method. They do not establish that their exact values transfer to AgiBot X2. The complete serialized settings remain in `reports/configs/supine_model3847/{agent,env}.yaml`; this page covers every material value that was selected or interpreted for the submitted controller.
+The cited papers motivate the method. They do not establish that their exact values transfer to AgiBot X2. The selected one-run settings are in `reports/configs/supine_single1500/{agent,env}.yaml` and `runtime_settings.json`.
 
 ## Primary sources used in the implementation
 
@@ -31,12 +31,11 @@ DAgger, DAPG, GAIL and DeepMimic are comparison methods only; the selected check
 | Activation | ELU after each hidden layer | **FRAMEWORK.** RSL-RL default/robotics convention. No paper-specific X2 claim. |
 | Actor output | Eight Gaussian means plus eight learned standard deviations | **PPO/FRAMEWORK.** Continuous stochastic actor during training. Deployment uses the deterministic mean. |
 | Observation normalization | Separate running mean/variance for actor and critic | **FRAMEWORK.** Enabled locally because input scales mix metres, radians, velocities and binary contacts. |
-| Actor parameters | 228,232 linear parameters + 8 learned standard-deviation parameters | **MEASURED.** Counted from `model3847.pt`; normalization statistics are buffers, not learned policy weights. |
+| Actor parameters | 228,232 linear parameters + 8 learned standard-deviation parameters | **DERIVED** from the selected 122/512/256/128/8 network; normalization statistics are buffers. |
 | Critic parameters | 227,329 | **MEASURED.** Counted from the checkpoint. |
-| Initial standard deviation | `0.8` at random initialization | **LOCAL.** Runtime override; retained learned values on continuation. The serialized class default is 1.0; runtime settings record the actual override. |
-| Final mean standard deviation | `0.1457` | **MEASURED.** Mean of eight learned action standard deviations in model3847; deterministic evaluation does not sample them. Shoulder and elbow exploration std were explicitly adjusted on arm continuations. |
+| Initial standard deviation | `0.8` at random initialization | **LOCAL.** Runtime override. The serialized class default is 1.0; runtime settings record the actual value. |
 
-The first two runs use 500 updates each with the same dense stance reward. Later all-supine continuations add the supported shoulder objective, producing the intermediate model2397 after 2,404 selected updates. Six selected arm continuations (200 + 300 + 156 + 300 + 250 + 250) change the local target to forward arms. Actor, critic and optimizer are retained; shoulder/elbow exploration std are explicitly adjusted at each arm stage. The final ancestry contains 3,860 updates. Rejected branches are identified in development history. This is not a single-factor ablation.
+The submitted network was trained for 1,500 updates in one process from random weights, without a parent checkpoint or reward change. Earlier continuation experiments are retained as historical comparisons in [development history](development_history.md); they are not this policy's ancestry.
 
 The final actor has no autoencoder, decoder, reconstruction loss, diffusion model, CNN, RNN, privileged latent, behavior-cloning loss or expert dataset. HumanUP's history/RMA-style model was implemented and evaluated historically, but it achieved 0/5 from strict true-supine resets and is not part of the selected policy.
 
@@ -56,16 +55,16 @@ The final actor has no autoencoder, decoder, reconstruction loss, diffusion mode
 | Desired KL | 0.01 | **PAPER + FRAMEWORK** | RSL-RL uses this to adapt learning rate only with the adaptive schedule. PPO clipping itself does not guarantee a strict KL bound. |
 | Gradient norm clip | 1.0 | **FRAMEWORK** | RSL-RL stability default, not a PPO theorem. |
 | Optimizer | Adam | **PAPER + FRAMEWORK** | PPO's algorithm description recommends minibatch SGD, usually Adam; RSL-RL implements Adam here. |
-| Learning rate | `3e-4` initially; `1e-4` initial value for refinements | **FRAMEWORK + LOCAL** | Initial stance runs use adaptive KL sizing; shoulder continuation first uses fixed rate, then adaptive after regression. The adaptive rate varies during training. |
+| Learning rate | `3e-4` initially, adaptive schedule | **FRAMEWORK + LOCAL** | RSL-RL adjusts the rate against desired KL during this single run. |
 | Rollout length | 32 steps/environment | **LOCAL** | At 50 Hz this is 0.64 s per environment per PPO update; chosen for contact transition coverage and GPU throughput. |
 | Parallel environments | 3000 | **LOCAL/COMPUTE** | Fits the 16 GB RTX 5080 Laptop GPU while producing 96,000 transitions/update. No paper mandates 3000. |
 | Learning passes/update | `5 × 4 = 20` minibatch updates | **DERIVED** | Five epochs over four minibatches. |
-| Seed | 47 in selected training runs | **LOCAL/REPRODUCIBILITY** | Experiment identifier; evaluation uses independent seeds 101-105. |
-| Parent | `supine_model2397` plus six selected arm continuations | **LOCAL/LINEAGE** | Earlier all-supine supported-stance checkpoint and final forward-arm refinements; selected stage lengths are in provenance. |
-| Optimizer reset | disabled | **LOCAL** | Continuation retains learned actor/critic and Adam state. |
-| Selected checkpoint | file index 3847; 3,860 selected updates | **MEASURED** | RSL-RL repeats the loaded index at each continuation. |
+| Seed | 47 in selected training | **LOCAL/REPRODUCIBILITY** | Experiment identifier; evaluation uses seeds 101-105. |
+| Parent | none | **MEASURED/LINEAGE** | Random weights; one uninterrupted run. |
+| Optimizer reset | not applicable | **MEASURED/LINEAGE** | Adam state starts empty and remains in the same process. |
+| Selected checkpoint | file index 1499; 1,500 updates | **MEASURED** | Iterations are indexed 0–1499. |
 
-The raw `agent.yaml` records the dataclass before checkpoint loading and optional runtime overrides. The selected continuation retains the checkpoint's learned standard deviations. `reports/configs/supine_model3847/runtime_settings.json` records that runtime distinction explicitly.
+The raw `agent.yaml` records the dataclass; `runtime_settings.json` records the initial standard-deviation override and confirms that `parent_checkpoint` is null.
 
 ## Simulation and robot parameters
 
@@ -143,13 +142,18 @@ Isaac RewardManager multiplies each term by its weight and the 0.02 s policy tim
 | Other support | -1 | count of non-foot ground contacts × high-pelvis gate | **TASK + LOCAL.** Encodes “without support from other body parts” while allowing transitional pushes. |
 | Balance | 20 | high/upright gate × `exp(-(‖v‖+‖ω‖)^2/0.25)` | Smoothness/stability is paper-informed; formula and weight **LOCAL**. |
 | Strict stance | 20 | binary complete success predicate | **TASK + LOCAL.** Gives the evaluator's full target during training. |
-| Forward arm pose | 40 | supported-upright gate × `exp(-arm_mse/0.5)`; shoulder -0.22, elbow -1.17 rad | HoST motivates post-task posture constraints; X2 angles, variance, gate and weight are **LOCAL**. |
+| Relaxed arms | 40 | supported-upright gate × a shoulder/elbow pose Gaussian near 0 and -0.15 rad; variance 2 | HoST motivates post-task posture constraints; X2 target, gate and weight are **LOCAL**. |
+| Shoulder command | 80 | supported-upright gate × proximity of shoulder raw action to `atanh(0.15)`; variance 1 | **LOCAL** command shaping; no paper supplies its coefficient. |
+| Stance proximity / leg pose | 20 / 20 | smooth closeness to supported low-speed stance / neutral leg pose when raised and upright | **LOCAL**, added after height-only bounce failures. |
+| Near-stance motion | -2 | penalize base linear speed squared plus 0.1 angular speed squared near standing | **LOCAL** regularization. |
+| Raw-action saturation | -0.5 | penalize commands beyond effective joint target range | **LOCAL** actuator-aware regularization. |
+| Joint speed | -0.0005 | squared joint velocities | **LOCAL** regularization. |
 | Action change | -0.02 | `‖a_t-a_(t-1)‖²` | PPO robotics/FRASA/HumanUP smoothness principle; exact weight **LOCAL**. |
 | Torque | -1e-6 | `‖tau‖²` | HumanUP regularization family; exact X2 weight **LOCAL**. |
 | Joint limit | -1 | soft-limit violation | Safety regularization; exact weight/margin **LOCAL**. |
 | Failure | -10 | non-timeout safety termination | **LOCAL.** Timeout is excluded so “still trying at 10 s” is distinct from a numerical/unsafe failure. |
 
-The selected dense preset additionally uses stance proximity 20, leg pose 20, near-stance motion -2, raw-action saturation -0.5 and joint-speed cost -0.0005. Exact formulas, gates and training widths are in [design and evidence](design_and_evidence.md); all are local X2 adaptations. Training widths do not change the strict validator. The final supported shoulder-command term uses weight 200, raw-action ratio `r=.14` and variance 0.2. The final combined forward-arm command term uses weight 200 and variance 2; its shoulder target is `atanh(.14)` and elbow target is `atanh(-.4625)`. Both terms are multiplied by the same supported-upright gate. Their numerical targets, widths, gates and weights are **LOCAL** X2 choices, not paper constants. They use no demonstrations and do not replace network output at deployment.
+Exact formulas and gates are in [design and evidence](design_and_evidence.md) and the [selected configuration](../reports/configs/supine_single1500/env.yaml). The posture and shoulder-command terms are present from update 0; the historical forward-arm target and combined elbow/shoulder command are **not active** in the submitted run. Training widths do not change the strict validator. No demonstrations are used and rewards do not replace network output at deployment.
 
 No paper establishes `40`, `15 N`, `0.58 m`, `0.30 rad` or any other X2-specific reward/success number.
 
@@ -168,8 +172,8 @@ No paper establishes `40`, `15 N`, `0.58 m`, `0.30 rad` or any other X2-specific
 | Foot support | each foot ≥15 N | **TASK semantics + LOCAL threshold.** |
 | Other support | every other body <15 N | **TASK semantics + LOCAL threshold.** |
 | Hold time | all conditions continuous for ≥0.5 s | **LOCAL**, prevents one-frame success. |
-| Arm posture | terminal shoulder/elbow positions and final-window variation | **LOCAL diagnostic**, separate from the assignment's base recovery predicate. The evaluator also retains an older neutral-arm diagnostic, which is not the final forward-arm target. |
+| Arm posture | terminal shoulder/elbow positions and final-window variation | **LOCAL diagnostic**, separate from the assignment's base recovery predicate. |
 
 The five final episodes use seeds 101-105 and examine all 500 policy steps. Those measurements, rather than the training return, establish the submitted 5/5 claim.
 
-On resume, RSL-RL staggers the initial episode counters; poses still reset supine. Subsequent episodes and all validation episodes use the full 500-step limit. This changes neither the reset-pose distribution nor the physical success checks.
+The submitted run has no resume. All five validation episodes use the full 500-step limit and the same strict physical success checks.

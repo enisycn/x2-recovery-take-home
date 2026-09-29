@@ -1,35 +1,25 @@
-# Validation
+# Validation of the selected policy
 
-## Policy
+The selected policy is [`x2_supine_single1500.pt`](../reports/checkpoints/x2_supine_single1500.pt). It was trained from random weights in one uninterrupted 1,500-update PPO run with exclusively supine resets and fixed reward terms. Its [graph](../reports/selected_supine_training_reward.png), [CSV](../reports/selected_supine_training_reward.csv), [run settings](../reports/configs/supine_single1500/) and [video](../reports/videos/x2_recovery_supine_to_standing.mp4) have matching provenance; they do not describe an earlier resumed policy.
 
-`reports/relaxed_v4_evaluation.json` records `x2_supine_model3847` in five deterministic 10 s episodes, seeds 101–105. `reports/relaxed_v4_extra_evaluation.json` adds seeds 106–110. All ten complete 500 steps without safety termination.
+## Physical recovery rule
 
-Seeds 101–105 all recover and remain standing at episode end for 8.88–9.00 s. Seeds 106–110 also score 5/5 with 8.88–8.90 s final strict stance. In the required five, height peaks at 0.671–0.687 m with both feet touching the floor at each peak; this contrasts with the fixed-reward 1,500-update alternative's airborne seed-101 height peak. Terminal shoulder pitch is about -0.39 to -0.44 rad and elbow about -0.85 to -0.87 rad. Those arm measurements are descriptive, not HRS success criteria.
+The evaluator runs each episode for all 500 policy steps (10 s), retaining the terminal state before reset. Success requires at least 0.5 continuous seconds with pelvis ≥0.58 m; projected-gravity XY norm ≤0.15 and Z ≤−0.98; root linear/angular speed ≤0.25 m/s and 0.35 rad/s; ≥15 N ground force on **each** foot; and <15 N on every other body. The robot must also stand at episode end. Brief hand or body support during the rise is allowed, and does not count as final success.
 
-The selected lineage began with random weights and has 3,860 selected PPO updates with exclusively supine resets. The first 1,000 learn stance with dense feedback. The intermediate 2,404-update checkpoint adds a neutral-arm preference. Final continuations replace that local preference with a forward-arm target while retaining the supported stance. No mixed-start pretraining, imitation, lift assistance or physical success-threshold change enters this lineage. The evaluator JSON still reports a historical optional neutral-arm diagnostic; failure of that diagnostic does not affect the 5/5 recovery count.
+| Seed | Recovery | Continuous strict stance at end | Both feet at height peak |
+| --- | --- | ---: | --- |
+| 101 | Yes | 8.96 s | No |
+| 102 | Yes | 8.94 s | No |
+| 103 | Yes | 8.96 s | No |
+| 104 | Yes | 8.88 s | No |
+| 105 | Yes | 8.86 s | No |
 
-## ROS 2
+The [machine-readable five-episode record](../reports/relaxed_v4_evaluation.json) is **5/5**. The [additional seeds 106–110](../reports/relaxed_v4_extra_evaluation.json) are also 5/5, with 8.84–8.88 s strict stance at end. All ten complete without a safety termination. Evaluation seeds are local reproducibility choices, each changing only small supine root-pose perturbations. They are not ten independent training seeds or a robustness claim.
 
-`reports/ros_isaac_relaxed_v4_validation.txt` records a fresh one-package `colcon build` and the selected model3847 runtime check.
+The controller briefly raises both feet at the height peak, then lands and remains in two-foot stance. The airborne peak is an observable limitation and is excluded from the strict-standing duration. No failures occurred in the required five episodes. Training reward alone would not establish these outcomes.
 
-`reports/ros_isaac_relaxed_v4_validation.txt` records the actual Isaac IPC path:
+## ROS 2 and regression checks
 
-- first Trigger request accepted before execution;
-- second request rejected while pending/running;
-- live 31-joint telemetry with timestamps;
-- literal successful CLI episode;
-- timeout changed to 0.2 s, producing `FAILED` after the real simulator timed out.
+The [fresh `colcon` build](../reports/ros_fresh_build_v4.txt) passed. The [live Isaac–ROS log](../reports/ros_isaac_relaxed_v4_validation.txt) uses the TorchScript export of this same checkpoint. The CLI `Trigger` request returned `success=True` before execution; a second request while running was rejected; 31 measured joints with timestamps streamed during recovery; the normal episode reached `SUCCEEDED`; and a 0.2 s timeout produced `FAILED`. ROS stops after the physical 0.5 s success hold, whereas the five-episode evaluation checks the full 10 s stance. [Terminal commands](commands.md) reproduce the check.
 
-The recovery states are `IDLE`, `RUNNING`, `SUCCEEDED` and `FAILED`. The selected model's successful CLI episode completed after 81 simulation steps; the 0.2 s timeout trial failed after 10 steps. ROS ends after the physical 0.5 s success hold. Final stance and arm posture are established by the separate full 10 s evaluation, not this shorter service episode.
-
-## Tests
-
-`reports/unit_tests_v4.txt` records 29 passing tests across reward formulas, reset geometry, action mapping, success criteria and ROS session behavior. These are fast regression checks: 21 Isaac task/formula tests, four reduced-order harness tests and four ROS session/IPC tests. Tests support implementation correctness; the five real Isaac episodes establish physical behavior. The current expanded suite has 39 passing checks, recorded in `reports/unit_tests_stance.txt`. See `docs/test_matrix.md` for the distinction and coverage map.
-
-## Supine-only scratch setup check (27 September 2026)
-
-The dedicated reset was checked in the actual Isaac/PhysX environment with 32 robots, five seeds and policy-step counters 0 and 1,000,000: all 320 resets remained supine at pelvis height 0.190 ± 0.001 m, with neutral joints, zero initial root/joint velocities and zero episode clocks. The active configuration has no curriculum terms, auxiliary-pose parameters or lift assistance. A fresh PPO runner had iteration 0, an empty optimizer state, initial action standard deviation 1.0 and finite 32 × 8 inference outputs. No PPO learning was executed. The training CLI rejects historical phases and auxiliary reset/handoff options before launching Isaac. The 29 regression tests passed again. These setup checks predate the subsequent dense-stance 1,000-update experiment; its separate five-episode report establishes successful supine-only training.
-
-The historical model450 was also re-evaluated for all five seeds with the dedicated reset: 5/5 recovered, and the complete episode records matched the earlier reset implementation. This is a regression check of the existing checkpoint, not a result for the new scratch experiment.
-
-The ROS server previously required neutral arms as well as stance. A model998 trial therefore timed out despite standing. That additional check was removed from ROS success to match the evaluator and HRS task; it remains a separately reported evaluation metric. The current runtime validation uses the identical height, orientation, speed, support and 0.5 s hold thresholds.
+Fast formula, reset and ROS-session regression tests are recorded in [`reports/unit_tests_stance.txt`](../reports/unit_tests_stance.txt). They check code behavior; real PhysX episodes establish the physical result. Earlier failed policies and the separately resumed successful lineage remain documented in [development history](development_history.md).

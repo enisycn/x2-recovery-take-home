@@ -1,0 +1,9 @@
+{
+  "gif": "reports/gifs_relaxed_v4/x2_final_policy_attempt.gif",
+  "mp4": "reports/videos/x2_recovery_supine_to_standing.mp4",
+  "initial_preview_s": 2,
+  "total_duration_s": 12.0,
+  "simulation_speed_changed": false,
+  "seed": 101,
+  "source_checkpoint": "reports/checkpoints/x2_supine_single1500.pt"
+}

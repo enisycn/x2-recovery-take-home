@@ -1,0 +1,174 @@
+{
+  "schema_version": 1,
+  "generated_at_utc": "2026-09-29T11:23:33.662832+00:00",
+  "experiment": "hrs_x2_relaxed_v4",
+  "run": "2026-09-29_11-32-05_fixed_rewards_single1500",
+  "reward_plot": "reward.png",
+  "reward_csv": "reward.csv",
+  "tensorboard_events": [
+    "events.out.tfevents.1790677975.enis.151049.0"
+  ],
+  "checkpoints": [
+    {
+      "file": "model_0.pt",
+      "iteration": 0,
+      "size_bytes": 5492415
+    },
+    {
+      "file": "model_50.pt",
+      "iteration": 50,
+      "size_bytes": 5492753
+    },
+    {
+      "file": "model_100.pt",
+      "iteration": 100,
+      "size_bytes": 5492835
+    },
+    {
+      "file": "model_150.pt",
+      "iteration": 150,
+      "size_bytes": 5492835
+    },
+    {
+      "file": "model_200.pt",
+      "iteration": 200,
+      "size_bytes": 5492835
+    },
+    {
+      "file": "model_250.pt",
+      "iteration": 250,
+      "size_bytes": 5492835
+    },
+    {
+      "file": "model_300.pt",
+      "iteration": 300,
+      "size_bytes": 5492835
+    },
+    {
+      "file": "model_350.pt",
+      "iteration": 350,
+      "size_bytes": 5492835
+    },
+    {
+      "file": "model_400.pt",
+      "iteration": 400,
+      "size_bytes": 5492835
+    },
+    {
+      "file": "model_450.pt",
+      "iteration": 450,
+      "size_bytes": 5492835
+    },
+    {
+      "file": "model_500.pt",
+      "iteration": 500,
+      "size_bytes": 5492835
+    },
+    {
+      "file": "model_550.pt",
+      "iteration": 550,
+      "size_bytes": 5492835
+    },
+    {
+      "file": "model_600.pt",
+      "iteration": 600,
+      "size_bytes": 5492835
+    },
+    {
+      "file": "model_650.pt",
+      "iteration": 650,
+      "size_bytes": 5492835
+    },
+    {
+      "file": "model_700.pt",
+      "iteration": 700,
+      "size_bytes": 5492835
+    },
+    {
+      "file": "model_750.pt",
+      "iteration": 750,
+      "size_bytes": 5492835
+    },
+    {
+      "file": "model_800.pt",
+      "iteration": 800,
+      "size_bytes": 5492835
+    },
+    {
+      "file": "model_850.pt",
+      "iteration": 850,
+      "size_bytes": 5492835
+    },
+    {
+      "file": "model_900.pt",
+      "iteration": 900,
+      "size_bytes": 5492835
+    },
+    {
+      "file": "model_950.pt",
+      "iteration": 950,
+      "size_bytes": 5492835
+    },
+    {
+      "file": "model_1000.pt",
+      "iteration": 1000,
+      "size_bytes": 5492917
+    },
+    {
+      "file": "model_1050.pt",
+      "iteration": 1050,
+      "size_bytes": 5492917
+    },
+    {
+      "file": "model_1100.pt",
+      "iteration": 1100,
+      "size_bytes": 5492917
+    },
+    {
+      "file": "model_1150.pt",
+      "iteration": 1150,
+      "size_bytes": 5492917
+    },
+    {
+      "file": "model_1200.pt",
+      "iteration": 1200,
+      "size_bytes": 5492917
+    },
+    {
+      "file": "model_1250.pt",
+      "iteration": 1250,
+      "size_bytes": 5492917
+    },
+    {
+      "file": "model_1300.pt",
+      "iteration": 1300,
+      "size_bytes": 5492917
+    },
+    {
+      "file": "model_1350.pt",
+      "iteration": 1350,
+      "size_bytes": 5492917
+    },
+    {
+      "file": "model_1400.pt",
+      "iteration": 1400,
+      "size_bytes": 5492917
+    },
+    {
+      "file": "model_1450.pt",
+      "iteration": 1450,
+      "size_bytes": 5492917
+    },
+    {
+      "file": "model_1499.pt",
+      "iteration": 1499,
+      "size_bytes": 5492917
+    }
+  ],
+  "latest_checkpoint": "model_1499.pt",
+  "parameters": [
+    "params/agent.yaml",
+    "params/env.yaml",
+    "params/runtime_settings.json"
+  ]
+}
