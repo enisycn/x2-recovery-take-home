@@ -7,7 +7,7 @@ This document separates four kinds of evidence:
 - **ROBOT/TASK**: a value fixed by the official X2 model or by the assignment contract.
 - **LOCAL**: an X2-specific engineering choice supported by geometry audit, failure analysis or the final evaluation. A local value must not be presented as a paper constant.
 
-The cited papers motivate the method. They do not establish that their exact values transfer to AgiBot X2. The selected one-run settings are in `reports/configs/supine_single1500/{agent,env}.yaml` and `runtime_settings.json`.
+The cited papers motivate the method. They do not establish that their exact values transfer to AgiBot X2. The selected one-run settings are in `reports/configs/supine_single1500/{agent,env}.yaml` and `runtime_settings.json`. The public `env.yaml` normalizes only the machine-specific USD and log directory paths to repository-relative paths; reward, physics and PPO values are unchanged.
 
 ## Primary sources used in the implementation
 
