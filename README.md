@@ -51,7 +51,16 @@ The policy outputs **eight numbers**, not 15. Seven numbers are each shared by a
 | 7 | Left/right hip roll | 2 |
 | **Total** | **8 action values control 15 joints** | **15** |
 
-For each controlled joint, `q_target = clamp(centre + span × tanh(action), imported 98% soft limits)`. The other 16 joints retain neutral position targets while remaining simulated and published. Actions specify position targets, not direct torques. Actor and critic are separate normalized 512/256/128 ELU MLPs; [centres and spans](docs/parameter_provenance.md#action-provenance) are listed separately.
+For each controlled joint, `q_target = clamp(centre + span × tanh(action), imported 98% soft limits)`. The other 16 joints retain neutral position targets while remaining simulated and published. Actions specify position targets, not direct torques. The [centres and spans](docs/parameter_provenance.md#action-provenance) are listed separately.
+
+### Neural network
+
+| Network | Layers | Role |
+| --- | --- | --- |
+| Actor (policy) | 122 inputs → 512 → 256 → 128 → 8 outputs | Computes the eight action values above. |
+| Critic (value) | 122 inputs → 512 → 256 → 128 → 1 output | Estimates state value for PPO training. |
+
+The actor and critic are separate multilayer perceptrons (MLPs). Both normalize their observations and use ELU activations in the three hidden layers. PPO uses a Gaussian action distribution during training; its standard deviation is learned. The [saved agent configuration](reports/configs/supine_single1500/agent.yaml) records these settings.
 
 ### Reward terms in the selected run
 
